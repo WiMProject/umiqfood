@@ -27,7 +27,9 @@ export default function UserHome() {
     }>().props;
 
     const [search, setSearch] = useState('');
-    const [kategoriAktif, setKategoriAktif] = useState<number | 'semua'>('semua');
+    const [kategoriAktif, setKategoriAktif] = useState<number | 'semua'>(
+        'semua',
+    );
 
     const hasil = useMemo(() => {
         return masakans.filter((item) => {
@@ -58,7 +60,9 @@ export default function UserHome() {
                         <div className="flex items-center gap-3">
                             <div className="flex items-center gap-2 rounded-lg bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700">
                                 <ShoppingBag className="h-4 w-4" />
-                                <span className="hidden sm:inline">Keranjang</span>
+                                <span className="hidden sm:inline">
+                                    Keranjang
+                                </span>
                                 <span className="rounded-full bg-emerald-600 px-1.5 text-xs font-bold text-white">
                                     0
                                 </span>
@@ -89,7 +93,8 @@ export default function UserHome() {
                             Halo, {auth.user?.name}!
                         </h1>
                         <p className="text-emerald-100">
-                            Ada yang mengidam hari ini? Yuk pilih masakan favoritmu di bawah.
+                            Ada yang mengidam hari ini? Yuk pilih masakan
+                            favoritmu di bawah.
                         </p>
                     </div>
                 </section>
@@ -143,7 +148,8 @@ export default function UserHome() {
                                 Menu tidak ditemukan
                             </p>
                             <p className="text-sm text-gray-400">
-                                Coba kata kunci lain atau pilih kategori "Semua".
+                                Coba kata kunci lain atau pilih kategori
+                                "Semua".
                             </p>
                         </div>
                     ) : (
@@ -167,7 +173,8 @@ export default function UserHome() {
                                     <div className="p-5">
                                         <div className="flex items-center justify-between">
                                             <span className="text-xs text-gray-400">
-                                                {item.kategori?.icon} {item.kategori?.nama || '-'}
+                                                {item.kategori?.icon}{' '}
+                                                {item.kategori?.nama || '-'}
                                             </span>
                                             <span
                                                 className={`rounded-full px-2 py-0.5 text-xs font-medium ${
@@ -185,7 +192,8 @@ export default function UserHome() {
                                             {item.nama}
                                         </h3>
                                         <p className="mt-0.5 line-clamp-2 min-h-10 text-sm text-gray-500">
-                                            {item.deskripsi || 'Masakan spesial buatan rumahan.'}
+                                            {item.deskripsi ||
+                                                'Masakan spesial buatan rumahan.'}
                                         </p>
                                         <div className="mt-4 flex items-center justify-between">
                                             <span className="font-bold text-emerald-600">
@@ -194,7 +202,7 @@ export default function UserHome() {
                                             <button
                                                 onClick={() =>
                                                     alert(
-                                                        'Fitur keranjang & pemesanan segera hadir! 🚧'
+                                                        'Fitur keranjang & pemesanan segera hadir! 🚧',
                                                     )
                                                 }
                                                 className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700"

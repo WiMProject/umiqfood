@@ -15,16 +15,18 @@ class RoleMiddleware
      */
     public function handle(Request $request, Closure $next, string ...$roles): Response
     {
-        if (!auth()->check()) {
+        if (! auth()->check()) {
             return redirect()->route('login');
         }
         $user = auth()->user();
-        if (!in_array($user->role, $roles)) {
+        if (! in_array($user->role, $roles)) {
             if ($user->isAdmin()) {
                 return redirect()->route('dashboard');
             }
+
             return redirect()->route('home');
         }
+
         return $next($request);
     }
 }

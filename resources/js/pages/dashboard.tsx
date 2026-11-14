@@ -86,7 +86,9 @@ export default function Dashboard({ stats, masakans }: Props) {
             <div className="flex flex-col gap-6 p-6">
                 {/* Sapaan */}
                 <div className="rounded-2xl bg-gradient-to-r from-emerald-600 to-amber-500 px-8 py-8 text-white shadow-sm">
-                    <p className="mb-1 text-sm text-emerald-100">Panel Admin UmiqFood</p>
+                    <p className="mb-1 text-sm text-emerald-100">
+                        Panel Admin UmiqFood
+                    </p>
                     <h1 className="text-2xl font-extrabold">
                         Selamat datang, Admin! 🍱
                     </h1>
@@ -103,7 +105,9 @@ export default function Dashboard({ stats, masakans }: Props) {
                             className="flex items-center justify-between rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-neutral-900"
                         >
                             <div>
-                                <p className="text-sm text-gray-500">{item.title}</p>
+                                <p className="text-sm text-gray-500">
+                                    {item.title}
+                                </p>
                                 <p className="mt-1 text-3xl font-extrabold text-gray-900 dark:text-white">
                                     {item.value}
                                 </p>
@@ -129,14 +133,16 @@ export default function Dashboard({ stats, masakans }: Props) {
                                 size="sm"
                                 className="gap-1 text-emerald-600"
                             >
-                                Kelola Menu <ArrowUpRight className="h-3.5 w-3.5" />
+                                Kelola Menu{' '}
+                                <ArrowUpRight className="h-3.5 w-3.5" />
                             </Button>
                         </Link>
                     </div>
 
                     {masakans.length === 0 ? (
                         <div className="py-12 text-center text-gray-400">
-                            Belum ada menu. Klik "Kelola Menu" untuk menambahkan.
+                            Belum ada menu. Klik "Kelola Menu" untuk
+                            menambahkan.
                         </div>
                     ) : (
                         <ul className="divide-y divide-gray-100 dark:divide-gray-800">
@@ -161,7 +167,8 @@ export default function Dashboard({ stats, masakans }: Props) {
                                             {item.nama}
                                         </p>
                                         <p className="text-xs text-gray-400">
-                                            {item.kategori?.icon} {item.kategori?.nama || '-'}
+                                            {item.kategori?.icon}{' '}
+                                            {item.kategori?.nama || '-'}
                                         </p>
                                     </div>
                                     <span className="hidden text-xs text-gray-400 md:inline">

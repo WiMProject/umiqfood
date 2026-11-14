@@ -1,12 +1,12 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 use App\Http\Controllers\BahanBakuController;
 use App\Http\Controllers\MasakanController;
 use App\Models\BahanBaku;
-use App\Models\Masakan;
 use App\Models\Kategori;
+use App\Models\Masakan;
+use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 
 // Halaman depan (bisa diakses tanpa login)
 Route::get('/', function () {
@@ -64,4 +64,4 @@ Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
     Route::resource('inventori', BahanBakuController::class)->except(['create', 'show', 'edit']);
 });
 
-require __DIR__ . '/settings.php';
+require __DIR__.'/settings.php';

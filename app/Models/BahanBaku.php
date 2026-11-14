@@ -2,14 +2,11 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class BahanBaku extends Model
 {
-    use HasFactory;
-
     protected $fillable = ['nama', 'satuan', 'stok', 'stok_minimum'];
 
     protected $casts = [
@@ -18,6 +15,9 @@ class BahanBaku extends Model
     ];
 
     // Relasi: 1 bahan baku dipakai di BANYAK resep
+    /**
+     * @return HasMany<ResepItem, $this>
+     */
     public function resepItems(): HasMany
     {
         return $this->hasMany(ResepItem::class);

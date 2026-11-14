@@ -67,7 +67,11 @@ interface ResepRow {
     jumlah: string | number;
 }
 
-export default function MasakanIndex({ masakans, kategoris, bahanBakus }: Props) {
+export default function MasakanIndex({
+    masakans,
+    kategoris,
+    bahanBakus,
+}: Props) {
     const [isOpen, setIsOpen] = useState(false);
     const [editingItem, setEditingItem] = useState<Masakan | null>(null);
 
@@ -158,25 +162,35 @@ export default function MasakanIndex({ masakans, kategoris, bahanBakus }: Props)
     };
 
     const addResepRow = () => {
-        const terpakai = new Set(data.resep.map((r) => Number(r.bahan_baku_id)));
+        const terpakai = new Set(
+            data.resep.map((r) => Number(r.bahan_baku_id)),
+        );
         const tersedia = bahanBakus.find((b) => !terpakai.has(b.id));
 
         if (!tersedia) {
             return;
         }
 
-        setData('resep', [...data.resep, { bahan_baku_id: tersedia.id, jumlah: '' }]);
+        setData('resep', [
+            ...data.resep,
+            { bahan_baku_id: tersedia.id, jumlah: '' },
+        ]);
     };
 
     const updateResepRow = (index: number, patch: Partial<ResepRow>) => {
         setData(
             'resep',
-            data.resep.map((row, i) => (i === index ? { ...row, ...patch } : row)),
+            data.resep.map((row, i) =>
+                i === index ? { ...row, ...patch } : row,
+            ),
         );
     };
 
     const removeResepRow = (index: number) => {
-        setData('resep', data.resep.filter((_, i) => i !== index));
+        setData(
+            'resep',
+            data.resep.filter((_, i) => i !== index),
+        );
     };
 
     const openMasak = (item: Masakan) => {
@@ -227,7 +241,9 @@ export default function MasakanIndex({ masakans, kategoris, bahanBakus }: Props)
     const adaResep = (masakItem?.resep_items?.length ?? 0) > 0;
 
     const formatAngka = (nilai: number) =>
-        new Intl.NumberFormat('id-ID', { maximumFractionDigits: 2 }).format(nilai);
+        new Intl.NumberFormat('id-ID', { maximumFractionDigits: 2 }).format(
+            nilai,
+        );
 
     return (
         <>
@@ -244,7 +260,10 @@ export default function MasakanIndex({ masakans, kategoris, bahanBakus }: Props)
                             Atur menu, resep bahan, dan jumlah porsi siap jual.
                         </p>
                     </div>
-                    <Button onClick={openCreateModal} className="bg-emerald-600 text-white hover:bg-emerald-700">
+                    <Button
+                        onClick={openCreateModal}
+                        className="bg-emerald-600 text-white hover:bg-emerald-700"
+                    >
                         <Plus className="mr-2 h-4 w-4" /> Tambah Masakan
                     </Button>
                 </div>
@@ -261,14 +280,20 @@ export default function MasakanIndex({ masakans, kategoris, bahanBakus }: Props)
                                     <th className="px-6 py-4">Porsi Siap</th>
                                     <th className="px-6 py-4">Resep</th>
                                     <th className="px-6 py-4">Status</th>
-                                    <th className="px-6 py-4 text-right">Aksi</th>
+                                    <th className="px-6 py-4 text-right">
+                                        Aksi
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
                                 {masakans.length === 0 ? (
                                     <tr>
-                                        <td colSpan={7} className="py-12 text-center text-gray-400">
-                                            Belum ada menu masakan. Silakan klik tombol "Tambah Masakan".
+                                        <td
+                                            colSpan={7}
+                                            className="py-12 text-center text-gray-400"
+                                        >
+                                            Belum ada menu masakan. Silakan klik
+                                            tombol "Tambah Masakan".
                                         </td>
                                     </tr>
                                 ) : (
@@ -295,14 +320,16 @@ export default function MasakanIndex({ masakans, kategoris, bahanBakus }: Props)
                                                             {item.nama}
                                                         </div>
                                                         <div className="max-w-xs truncate text-xs text-gray-400">
-                                                            {item.deskripsi || 'Tidak ada deskripsi'}
+                                                            {item.deskripsi ||
+                                                                'Tidak ada deskripsi'}
                                                         </div>
                                                     </div>
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4">
                                                 <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300">
-                                                    {item.kategori?.icon} {item.kategori?.nama || '-'}
+                                                    {item.kategori?.icon}{' '}
+                                                    {item.kategori?.nama || '-'}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 font-semibold text-emerald-600">
@@ -311,18 +338,24 @@ export default function MasakanIndex({ masakans, kategoris, bahanBakus }: Props)
                                             <td className="px-6 py-4">
                                                 <div className="flex flex-col">
                                                     <span className="font-semibold text-gray-900 dark:text-white">
-                                                        {item.jumlah_porsi} porsi
+                                                        {item.jumlah_porsi}{' '}
+                                                        porsi
                                                     </span>
-                                                    {item.max_porsi !== null && (
+                                                    {item.max_porsi !==
+                                                        null && (
                                                         <span className="text-xs text-gray-400">
-                                                            maks. {item.max_porsi} dari stok
+                                                            maks.{' '}
+                                                            {item.max_porsi}{' '}
+                                                            dari stok
                                                         </span>
                                                     )}
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4">
                                                 <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300">
-                                                    {item.resep_items?.length || 0} bahan
+                                                    {item.resep_items?.length ||
+                                                        0}{' '}
+                                                    bahan
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4">
@@ -333,7 +366,9 @@ export default function MasakanIndex({ masakans, kategoris, bahanBakus }: Props)
                                                             : 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300'
                                                     }`}
                                                 >
-                                                    {item.tersedia ? 'Tersedia' : 'Habis'}
+                                                    {item.tersedia
+                                                        ? 'Tersedia'
+                                                        : 'Habis'}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 text-right">
@@ -341,16 +376,21 @@ export default function MasakanIndex({ masakans, kategoris, bahanBakus }: Props)
                                                     <Button
                                                         variant="outline"
                                                         size="sm"
-                                                        onClick={() => openMasak(item)}
+                                                        onClick={() =>
+                                                            openMasak(item)
+                                                        }
                                                         className="h-8 gap-1 border-emerald-200 px-2 text-emerald-700 hover:bg-emerald-50"
                                                         title="Masak menu ini"
                                                     >
-                                                        <ChefHat className="h-3.5 w-3.5" /> Masak
+                                                        <ChefHat className="h-3.5 w-3.5" />{' '}
+                                                        Masak
                                                     </Button>
                                                     <Button
                                                         variant="outline"
                                                         size="sm"
-                                                        onClick={() => openEditModal(item)}
+                                                        onClick={() =>
+                                                            openEditModal(item)
+                                                        }
                                                         className="h-8 px-2 text-gray-600"
                                                     >
                                                         <Pencil className="h-3.5 w-3.5" />
@@ -358,7 +398,11 @@ export default function MasakanIndex({ masakans, kategoris, bahanBakus }: Props)
                                                     <Button
                                                         variant="outline"
                                                         size="sm"
-                                                        onClick={() => handleDelete(item.id)}
+                                                        onClick={() =>
+                                                            handleDelete(
+                                                                item.id,
+                                                            )
+                                                        }
                                                         className="h-8 border-red-200 px-2 text-red-600 hover:bg-red-50 hover:text-red-700"
                                                     >
                                                         <Trash2 className="h-3.5 w-3.5" />
@@ -379,7 +423,9 @@ export default function MasakanIndex({ masakans, kategoris, bahanBakus }: Props)
                 <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
                     <DialogHeader>
                         <DialogTitle>
-                            {editingItem ? 'Edit Menu Masakan' : 'Tambah Menu Masakan Baru'}
+                            {editingItem
+                                ? 'Edit Menu Masakan'
+                                : 'Tambah Menu Masakan Baru'}
                         </DialogTitle>
                     </DialogHeader>
 
@@ -389,11 +435,17 @@ export default function MasakanIndex({ masakans, kategoris, bahanBakus }: Props)
                             <Input
                                 id="nama"
                                 value={data.nama}
-                                onChange={(e) => setData('nama', e.target.value)}
+                                onChange={(e) =>
+                                    setData('nama', e.target.value)
+                                }
                                 placeholder="Contoh: Nasi Goreng Spesial"
                                 required
                             />
-                            {errors.nama && <span className="text-xs text-red-500">{errors.nama}</span>}
+                            {errors.nama && (
+                                <span className="text-xs text-red-500">
+                                    {errors.nama}
+                                </span>
+                            )}
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
@@ -402,7 +454,9 @@ export default function MasakanIndex({ masakans, kategoris, bahanBakus }: Props)
                                 <select
                                     id="kategori"
                                     value={data.kategori_id}
-                                    onChange={(e) => setData('kategori_id', e.target.value)}
+                                    onChange={(e) =>
+                                        setData('kategori_id', e.target.value)
+                                    }
                                     className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus:ring-1 focus:ring-ring focus:outline-none"
                                     required
                                 >
@@ -413,7 +467,9 @@ export default function MasakanIndex({ masakans, kategoris, bahanBakus }: Props)
                                     ))}
                                 </select>
                                 {errors.kategori_id && (
-                                    <span className="text-xs text-red-500">{errors.kategori_id}</span>
+                                    <span className="text-xs text-red-500">
+                                        {errors.kategori_id}
+                                    </span>
                                 )}
                             </div>
                             <div>
@@ -422,40 +478,58 @@ export default function MasakanIndex({ masakans, kategoris, bahanBakus }: Props)
                                     id="harga"
                                     type="number"
                                     value={data.harga}
-                                    onChange={(e) => setData('harga', e.target.value)}
+                                    onChange={(e) =>
+                                        setData('harga', e.target.value)
+                                    }
                                     placeholder="15000"
                                     required
                                 />
-                                {errors.harga && <span className="text-xs text-red-500">{errors.harga}</span>}
+                                {errors.harga && (
+                                    <span className="text-xs text-red-500">
+                                        {errors.harga}
+                                    </span>
+                                )}
                             </div>
                         </div>
 
                         <div>
-                            <Label htmlFor="deskripsi">Deskripsi (Opsional)</Label>
+                            <Label htmlFor="deskripsi">
+                                Deskripsi (Opsional)
+                            </Label>
                             <Input
                                 id="deskripsi"
                                 value={data.deskripsi}
-                                onChange={(e) => setData('deskripsi', e.target.value)}
+                                onChange={(e) =>
+                                    setData('deskripsi', e.target.value)
+                                }
                                 placeholder="Keterangan bahan / rasa..."
                             />
                             {errors.deskripsi && (
-                                <span className="text-xs text-red-500">{errors.deskripsi}</span>
+                                <span className="text-xs text-red-500">
+                                    {errors.deskripsi}
+                                </span>
                             )}
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <Label htmlFor="jumlah_porsi">Jumlah Porsi Siap Jual</Label>
+                                <Label htmlFor="jumlah_porsi">
+                                    Jumlah Porsi Siap Jual
+                                </Label>
                                 <Input
                                     id="jumlah_porsi"
                                     type="number"
                                     min="0"
                                     value={data.jumlah_porsi}
-                                    onChange={(e) => setData('jumlah_porsi', e.target.value)}
+                                    onChange={(e) =>
+                                        setData('jumlah_porsi', e.target.value)
+                                    }
                                     placeholder="0"
                                 />
                                 {errors.jumlah_porsi && (
-                                    <span className="text-xs text-red-500">{errors.jumlah_porsi}</span>
+                                    <span className="text-xs text-red-500">
+                                        {errors.jumlah_porsi}
+                                    </span>
                                 )}
                             </div>
                             <div>
@@ -465,10 +539,19 @@ export default function MasakanIndex({ masakans, kategoris, bahanBakus }: Props)
                                     type="file"
                                     accept="image/*"
                                     onChange={(e) =>
-                                        setData('foto', e.target.files ? e.target.files[0] : null)
+                                        setData(
+                                            'foto',
+                                            e.target.files
+                                                ? e.target.files[0]
+                                                : null,
+                                        )
                                     }
                                 />
-                                {errors.foto && <span className="text-xs text-red-500">{errors.foto}</span>}
+                                {errors.foto && (
+                                    <span className="text-xs text-red-500">
+                                        {errors.foto}
+                                    </span>
+                                )}
                             </div>
                         </div>
 
@@ -480,7 +563,8 @@ export default function MasakanIndex({ masakans, kategoris, bahanBakus }: Props)
                                         Resep Bahan Baku
                                     </p>
                                     <p className="text-xs text-gray-400">
-                                        Takaran per 1 porsi — stok inventori berkurang otomatis saat masak.
+                                        Takaran per 1 porsi — stok inventori
+                                        berkurang otomatis saat masak.
                                     </p>
                                 </div>
                                 <Button
@@ -488,7 +572,10 @@ export default function MasakanIndex({ masakans, kategoris, bahanBakus }: Props)
                                     variant="outline"
                                     size="sm"
                                     onClick={addResepRow}
-                                    disabled={bahanBakus.length === 0 || data.resep.length >= bahanBakus.length}
+                                    disabled={
+                                        bahanBakus.length === 0 ||
+                                        data.resep.length >= bahanBakus.length
+                                    }
                                     className="h-8 gap-1 text-emerald-700"
                                 >
                                     <Plus className="h-3.5 w-3.5" /> Bahan
@@ -497,7 +584,8 @@ export default function MasakanIndex({ masakans, kategoris, bahanBakus }: Props)
 
                             {bahanBakus.length === 0 ? (
                                 <p className="rounded-lg bg-amber-50 p-3 text-xs text-amber-700">
-                                    Belum ada bahan baku. Tambahkan dulu di menu Inventori.
+                                    Belum ada bahan baku. Tambahkan dulu di menu
+                                    Inventori.
                                 </p>
                             ) : data.resep.length === 0 ? (
                                 <p className="rounded-lg bg-gray-50 p-3 text-center text-xs text-gray-400 dark:bg-neutral-800/50">
@@ -507,21 +595,29 @@ export default function MasakanIndex({ masakans, kategoris, bahanBakus }: Props)
                                 <div className="space-y-2">
                                     {data.resep.map((row, index) => {
                                         const terpilih = bahanBakus.find(
-                                            (b) => b.id === Number(row.bahan_baku_id),
+                                            (b) =>
+                                                b.id ===
+                                                Number(row.bahan_baku_id),
                                         );
                                         const terpakaiLain = new Set(
                                             data.resep
                                                 .filter((_, i) => i !== index)
-                                                .map((r) => Number(r.bahan_baku_id)),
+                                                .map((r) =>
+                                                    Number(r.bahan_baku_id),
+                                                ),
                                         );
 
                                         return (
-                                            <div key={index} className="flex items-center gap-2">
+                                            <div
+                                                key={index}
+                                                className="flex items-center gap-2"
+                                            >
                                                 <select
                                                     value={row.bahan_baku_id}
                                                     onChange={(e) =>
                                                         updateResepRow(index, {
-                                                            bahan_baku_id: e.target.value,
+                                                            bahan_baku_id:
+                                                                e.target.value,
                                                         })
                                                     }
                                                     className="min-w-0 flex-1 rounded-md border border-input bg-transparent px-2 py-1.5 text-sm shadow-sm focus:ring-1 focus:ring-ring focus:outline-none"
@@ -530,7 +626,9 @@ export default function MasakanIndex({ masakans, kategoris, bahanBakus }: Props)
                                                         <option
                                                             key={bahan.id}
                                                             value={bahan.id}
-                                                            disabled={terpakaiLain.has(bahan.id)}
+                                                            disabled={terpakaiLain.has(
+                                                                bahan.id,
+                                                            )}
                                                         >
                                                             {bahan.nama}
                                                         </option>
@@ -542,7 +640,10 @@ export default function MasakanIndex({ masakans, kategoris, bahanBakus }: Props)
                                                     min="0.01"
                                                     value={row.jumlah}
                                                     onChange={(e) =>
-                                                        updateResepRow(index, { jumlah: e.target.value })
+                                                        updateResepRow(index, {
+                                                            jumlah: e.target
+                                                                .value,
+                                                        })
                                                     }
                                                     placeholder="Takaran"
                                                     className="w-24"
@@ -555,7 +656,9 @@ export default function MasakanIndex({ masakans, kategoris, bahanBakus }: Props)
                                                     type="button"
                                                     variant="ghost"
                                                     size="sm"
-                                                    onClick={() => removeResepRow(index)}
+                                                    onClick={() =>
+                                                        removeResepRow(index)
+                                                    }
                                                     className="h-8 px-2 text-red-500 hover:bg-red-50 hover:text-red-600"
                                                 >
                                                     <Trash2 className="h-3.5 w-3.5" />
@@ -566,7 +669,9 @@ export default function MasakanIndex({ masakans, kategoris, bahanBakus }: Props)
                                 </div>
                             )}
                             {errors.resep && (
-                                <span className="mt-2 block text-xs text-red-500">{errors.resep}</span>
+                                <span className="mt-2 block text-xs text-red-500">
+                                    {errors.resep}
+                                </span>
                             )}
                         </div>
 
@@ -575,16 +680,25 @@ export default function MasakanIndex({ masakans, kategoris, bahanBakus }: Props)
                                 type="checkbox"
                                 id="tersedia"
                                 checked={data.tersedia}
-                                onChange={(e) => setData('tersedia', e.target.checked)}
+                                onChange={(e) =>
+                                    setData('tersedia', e.target.checked)
+                                }
                                 className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
                             />
-                            <Label htmlFor="tersedia" className="cursor-pointer">
+                            <Label
+                                htmlFor="tersedia"
+                                className="cursor-pointer"
+                            >
                                 Status Masakan Tersedia (Bisa dipesan)
                             </Label>
                         </div>
 
                         <div className="flex justify-end gap-2 pt-2">
-                            <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setIsOpen(false)}
+                            >
                                 Batal
                             </Button>
                             <Button
@@ -604,7 +718,10 @@ export default function MasakanIndex({ masakans, kategoris, bahanBakus }: Props)
             </Dialog>
 
             {/* Dialog Masak */}
-            <Dialog open={!!masakItem} onOpenChange={(open) => !open && setMasakItem(null)}>
+            <Dialog
+                open={!!masakItem}
+                onOpenChange={(open) => !open && setMasakItem(null)}
+            >
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
                         <DialogTitle>Masak {masakItem?.nama}</DialogTitle>
@@ -612,7 +729,9 @@ export default function MasakanIndex({ masakans, kategoris, bahanBakus }: Props)
 
                     <form onSubmit={handleMasak} className="space-y-4">
                         <div>
-                            <Label htmlFor="masak_porsi">Jumlah Porsi yang Dimasak</Label>
+                            <Label htmlFor="masak_porsi">
+                                Jumlah Porsi yang Dimasak
+                            </Label>
                             <Input
                                 id="masak_porsi"
                                 type="number"
@@ -622,14 +741,16 @@ export default function MasakanIndex({ masakans, kategoris, bahanBakus }: Props)
                                 required
                             />
                             <p className="mt-1 text-xs text-gray-400">
-                                Porsi siap jual saat ini: {masakItem?.jumlah_porsi ?? 0} porsi
+                                Porsi siap jual saat ini:{' '}
+                                {masakItem?.jumlah_porsi ?? 0} porsi
                             </p>
                         </div>
 
                         {!adaResep ? (
                             <div className="rounded-lg bg-amber-50 p-3 text-sm text-amber-700">
-                                Menu ini belum punya resep bahan baku. Edit menu dulu dan tambahkan
-                                bahan resepnya agar stok bisa dihitung otomatis.
+                                Menu ini belum punya resep bahan baku. Edit menu
+                                dulu dan tambahkan bahan resepnya agar stok bisa
+                                dihitung otomatis.
                             </div>
                         ) : (
                             <div className="rounded-xl border border-gray-200 dark:border-gray-800">
@@ -638,22 +759,30 @@ export default function MasakanIndex({ masakans, kategoris, bahanBakus }: Props)
                                 </div>
                                 <div className="divide-y divide-gray-100 dark:divide-gray-800">
                                     {kebutuhan.map((k, i) => (
-                                        <div key={i} className="flex items-center justify-between gap-3 px-4 py-2.5 text-sm">
+                                        <div
+                                            key={i}
+                                            className="flex items-center justify-between gap-3 px-4 py-2.5 text-sm"
+                                        >
                                             <div className="min-w-0">
                                                 <p className="truncate font-medium text-gray-800 dark:text-gray-200">
                                                     {k.nama}
                                                 </p>
                                                 <p className="text-xs text-gray-400">
-                                                    {formatAngka(k.jumlah)} {k.satuan}/porsi ×{' '}
-                                                    {Number(masakPorsi) || 0} = {formatAngka(k.butuh)}{' '}
+                                                    {formatAngka(k.jumlah)}{' '}
+                                                    {k.satuan}/porsi ×{' '}
+                                                    {Number(masakPorsi) || 0} ={' '}
+                                                    {formatAngka(k.butuh)}{' '}
                                                     {k.satuan}
                                                 </p>
                                             </div>
                                             <div className="flex items-center gap-2 text-right">
                                                 <div>
-                                                    <p className="text-xs text-gray-400">stok</p>
+                                                    <p className="text-xs text-gray-400">
+                                                        stok
+                                                    </p>
                                                     <p className="text-xs font-medium text-gray-600 dark:text-gray-300">
-                                                        {formatAngka(k.stok)} {k.satuan}
+                                                        {formatAngka(k.stok)}{' '}
+                                                        {k.satuan}
                                                     </p>
                                                 </div>
                                                 {k.cukup ? (
@@ -670,13 +799,18 @@ export default function MasakanIndex({ masakans, kategoris, bahanBakus }: Props)
 
                         {adaResep && !semuaCukup && (
                             <div className="rounded-lg bg-red-50 p-3 text-sm text-red-700">
-                                Stok bahan belum cukup untuk jumlah porsi ini. Kurangi porsi atau
-                                tambah stok di halaman Inventori.
+                                Stok bahan belum cukup untuk jumlah porsi ini.
+                                Kurangi porsi atau tambah stok di halaman
+                                Inventori.
                             </div>
                         )}
 
                         <div className="flex justify-end gap-2 pt-2">
-                            <Button type="button" variant="outline" onClick={() => setMasakItem(null)}>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setMasakItem(null)}
+                            >
                                 Batal
                             </Button>
                             <Button

@@ -66,8 +66,10 @@ export default defineConfig({
         ignorePatterns: [
             '.github/**',
             'composer.json',
+            'panduan.md',
             'resources/js/components/ui/*',
             'resources/views/mail/*',
+            'resources/views/vendor/**',
         ],
         sortTailwindcss: {
             functions: ['clsx', 'cn', 'cva'],

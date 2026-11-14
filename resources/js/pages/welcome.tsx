@@ -104,7 +104,9 @@ function FotoMenu({
 
     if (!src) {
         return (
-            <div className={`${className} flex items-center justify-center bg-emerald-100 text-5xl`}>
+            <div
+                className={`${className} flex items-center justify-center bg-emerald-100 text-5xl`}
+            >
                 {emoji || <Utensils className="h-10 w-10 text-emerald-500" />}
             </div>
         );
@@ -156,7 +158,10 @@ export default function Welcome() {
     );
 
     const chartConfig = {
-        menu: { label: 'Jumlah Menu', color: 'var(--color-emerald-600, #059669)' },
+        menu: {
+            label: 'Jumlah Menu',
+            color: 'var(--color-emerald-600, #059669)',
+        },
     } satisfies ChartConfig;
 
     const featured = masakans.slice(0, 4);
@@ -171,7 +176,8 @@ export default function Welcome() {
                     <Alert className="mx-auto max-w-6xl border-none bg-transparent px-6 py-0 text-emerald-100">
                         <Megaphone className="size-4" />
                         <AlertTitle className="mb-0 text-sm">
-                            Promo hari ini: gratis ongkir untuk pemesanan pertamamu!
+                            Promo hari ini: gratis ongkir untuk pemesanan
+                            pertamamu!
                         </AlertTitle>
                         <AlertDescription className="sr-only">
                             Berlaku untuk semua menu di UmiqFood.
@@ -190,21 +196,43 @@ export default function Welcome() {
                         </div>
 
                         <div className="hidden items-center gap-6 text-sm font-medium text-gray-600 md:flex">
-                            <a href="#menu" className="transition hover:text-emerald-600">Menu</a>
-                            <a href="#kategori" className="transition hover:text-emerald-600">Kategori</a>
-                            <a href="#cara-pesan" className="transition hover:text-emerald-600">Cara Pesan</a>
+                            <a
+                                href="#menu"
+                                className="transition hover:text-emerald-600"
+                            >
+                                Menu
+                            </a>
+                            <a
+                                href="#kategori"
+                                className="transition hover:text-emerald-600"
+                            >
+                                Kategori
+                            </a>
+                            <a
+                                href="#cara-pesan"
+                                className="transition hover:text-emerald-600"
+                            >
+                                Cara Pesan
+                            </a>
                         </div>
 
                         <div className="flex items-center gap-3">
                             {auth.user ? (
                                 <Link
-                                    href={auth.user.role === 'admin' ? '/dashboard' : '/home'}
+                                    href={
+                                        auth.user.role === 'admin'
+                                            ? '/dashboard'
+                                            : '/home'
+                                    }
                                     className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-700"
                                 >
                                     {auth.user.role === 'admin' ? (
                                         <>Dashboard Admin</>
                                     ) : (
-                                        <>Halaman User <ArrowRight className="h-4 w-4" /></>
+                                        <>
+                                            Halaman User{' '}
+                                            <ArrowRight className="h-4 w-4" />
+                                        </>
                                     )}
                                 </Link>
                             ) : (
@@ -232,11 +260,15 @@ export default function Welcome() {
                     <div className="mx-auto grid max-w-6xl items-center gap-10 px-6 py-14 md:grid-cols-2 md:py-20">
                         <div>
                             <span className="mb-4 inline-flex items-center gap-2 rounded-full bg-emerald-100 px-4 py-1.5 text-sm font-medium text-emerald-700">
-                                <ChefHat className="h-4 w-4" /> Masakan rumahan, rasa juara
+                                <ChefHat className="h-4 w-4" /> Masakan rumahan,
+                                rasa juara
                             </span>
-                            <h1 className="mb-4 text-4xl font-extrabold leading-tight text-gray-900 md:text-5xl">
+                            <h1 className="mb-4 text-4xl leading-tight font-extrabold text-gray-900 md:text-5xl">
                                 Lapar? Pesan Masakan{' '}
-                                <span className="text-emerald-600">Favoritmu</span> di UmiqFood!
+                                <span className="text-emerald-600">
+                                    Favoritmu
+                                </span>{' '}
+                                di UmiqFood!
                             </h1>
                             <p className="mb-8 text-lg text-gray-500">
                                 Pilih menu, pesan dalam hitungan menit, nikmati
@@ -247,7 +279,8 @@ export default function Welcome() {
                                     href="#menu"
                                     className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-3 font-semibold text-white shadow-lg shadow-emerald-600/20 transition hover:bg-emerald-700"
                                 >
-                                    Lihat Menu <ArrowRight className="h-4 w-4" />
+                                    Lihat Menu{' '}
+                                    <ArrowRight className="h-4 w-4" />
                                 </Link>
                                 {!auth.user && (
                                     <Link
@@ -269,7 +302,9 @@ export default function Welcome() {
                                         <div className="mx-auto mb-2 flex h-11 w-11 items-center justify-center rounded-full bg-white text-emerald-600 shadow-sm">
                                             <item.icon className="h-5 w-5" />
                                         </div>
-                                        <p className="text-xs font-medium text-gray-600">{item.label}</p>
+                                        <p className="text-xs font-medium text-gray-600">
+                                            {item.label}
+                                        </p>
                                     </div>
                                 ))}
                             </div>
@@ -281,7 +316,10 @@ export default function Welcome() {
                             <Carousel className="relative w-full">
                                 <CarouselContent className="ml-2">
                                     {featured.map((item) => (
-                                        <CarouselItem key={item.id} className="pl-2">
+                                        <CarouselItem
+                                            key={item.id}
+                                            className="pl-2"
+                                        >
                                             <div className="overflow-hidden rounded-2xl border border-emerald-100 bg-white shadow-lg">
                                                 <FotoMenu
                                                     src={item.foto_url}
@@ -295,7 +333,12 @@ export default function Welcome() {
                                                             {item.nama}
                                                         </p>
                                                         <p className="text-xs text-gray-400">
-                                                            {item.kategori?.icon} {item.kategori?.nama || '-'}
+                                                            {
+                                                                item.kategori
+                                                                    ?.icon
+                                                            }{' '}
+                                                            {item.kategori
+                                                                ?.nama || '-'}
                                                         </p>
                                                     </div>
                                                     <span className="font-bold text-emerald-600">
@@ -313,7 +356,10 @@ export default function Welcome() {
                             <div className="mt-4 rounded-2xl bg-emerald-600 p-5 text-white shadow-lg shadow-emerald-600/30">
                                 <div className="flex items-center gap-1 text-yellow-300">
                                     {[...Array(5)].map((_, i) => (
-                                        <Star key={i} className="h-4 w-4 fill-current" />
+                                        <Star
+                                            key={i}
+                                            className="h-4 w-4 fill-current"
+                                        />
                                     ))}
                                 </div>
                                 <p className="mt-2 text-sm font-medium">
@@ -339,7 +385,9 @@ export default function Welcome() {
                                     key={kategori.id}
                                     className="flex items-center gap-2 rounded-xl border border-emerald-100 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition hover:border-emerald-300 hover:bg-emerald-50"
                                 >
-                                    <span className="text-lg">{kategori.icon}</span>
+                                    <span className="text-lg">
+                                        {kategori.icon}
+                                    </span>
                                     {kategori.nama}
                                     <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-700">
                                         {kategori.masakans_count ?? 0}
@@ -354,9 +402,23 @@ export default function Welcome() {
                                 <Sparkles className="h-4 w-4 text-emerald-600" />
                                 Menu per Kategori
                             </p>
-                            <ChartContainer config={chartConfig} className="h-40 w-full">
-                                <BarChart data={dataChart} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-                                    <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                            <ChartContainer
+                                config={chartConfig}
+                                className="h-40 w-full"
+                            >
+                                <BarChart
+                                    data={dataChart}
+                                    margin={{
+                                        top: 4,
+                                        right: 4,
+                                        left: -20,
+                                        bottom: 0,
+                                    }}
+                                >
+                                    <CartesianGrid
+                                        vertical={false}
+                                        strokeDasharray="3 3"
+                                    />
                                     <XAxis
                                         dataKey="nama"
                                         tickLine={false}
@@ -364,8 +426,16 @@ export default function Welcome() {
                                         fontSize={11}
                                         interval={0}
                                     />
-                                    <ChartTooltip content={<ChartTooltipContent nameKey="menu" />} />
-                                    <Bar dataKey="menu" fill="var(--color-menu)" radius={6} />
+                                    <ChartTooltip
+                                        content={
+                                            <ChartTooltipContent nameKey="menu" />
+                                        }
+                                    />
+                                    <Bar
+                                        dataKey="menu"
+                                        fill="var(--color-menu)"
+                                        radius={6}
+                                    />
                                 </BarChart>
                             </ChartContainer>
                         </div>
@@ -376,9 +446,12 @@ export default function Welcome() {
                 <section id="menu" className="mx-auto max-w-6xl px-6 py-12">
                     <div className="mb-6 flex items-end justify-between">
                         <div>
-                            <h2 className="text-2xl font-bold text-gray-900">Menu Andalan</h2>
+                            <h2 className="text-2xl font-bold text-gray-900">
+                                Menu Andalan
+                            </h2>
                             <p className="text-sm text-gray-500">
-                                {masakans.length} masakan tersedia — halaman {halaman} dari {totalHalaman}
+                                {masakans.length} masakan tersedia — halaman{' '}
+                                {halaman} dari {totalHalaman}
                             </p>
                         </div>
                         <Link
@@ -392,9 +465,12 @@ export default function Welcome() {
                     {masakans.length === 0 ? (
                         <div className="rounded-2xl border border-dashed border-emerald-200 bg-white p-12 text-center">
                             <div className="mb-3 text-4xl">🍽️</div>
-                            <p className="font-medium text-gray-700">Menu belum tersedia</p>
+                            <p className="font-medium text-gray-700">
+                                Menu belum tersedia
+                            </p>
                             <p className="text-sm text-gray-400">
-                                Admin belum menambahkan menu. Nantikan update menunya!
+                                Admin belum menambahkan menu. Nantikan update
+                                menunya!
                             </p>
                         </div>
                     ) : (
@@ -407,7 +483,10 @@ export default function Welcome() {
                                     >
                                         <Drawer>
                                             <DrawerTrigger asChild>
-                                                <button type="button" className="text-left focus:outline-none">
+                                                <button
+                                                    type="button"
+                                                    className="text-left focus:outline-none"
+                                                >
                                                     <FotoMenu
                                                         src={item.foto_url}
                                                         alt={item.nama}
@@ -420,10 +499,15 @@ export default function Welcome() {
                                                 <div className="mx-auto w-full max-w-md pb-8">
                                                     <DrawerHeader>
                                                         <DrawerTitle className="text-lg font-bold">
-                                                            {item.kategori?.icon} {item.nama}
+                                                            {
+                                                                item.kategori
+                                                                    ?.icon
+                                                            }{' '}
+                                                            {item.nama}
                                                         </DrawerTitle>
                                                         <DrawerDescription>
-                                                            {item.deskripsi || 'Masakan spesial buatan rumahan.'}
+                                                            {item.deskripsi ||
+                                                                'Masakan spesial buatan rumahan.'}
                                                         </DrawerDescription>
                                                     </DrawerHeader>
 
@@ -438,26 +522,48 @@ export default function Welcome() {
                                                         <Table className="mt-4">
                                                             <TableHeader>
                                                                 <TableRow>
-                                                                    <TableHead colSpan={2} className="text-xs text-gray-400">
-                                                                        Detail Menu
+                                                                    <TableHead
+                                                                        colSpan={
+                                                                            2
+                                                                        }
+                                                                        className="text-xs text-gray-400"
+                                                                    >
+                                                                        Detail
+                                                                        Menu
                                                                     </TableHead>
                                                                 </TableRow>
                                                             </TableHeader>
                                                             <TableBody>
                                                                 <TableRow>
-                                                                    <TableCell className="text-gray-500">Kategori</TableCell>
+                                                                    <TableCell className="text-gray-500">
+                                                                        Kategori
+                                                                    </TableCell>
                                                                     <TableCell className="text-right font-medium">
-                                                                        {item.kategori?.icon} {item.kategori?.nama || '-'}
+                                                                        {
+                                                                            item
+                                                                                .kategori
+                                                                                ?.icon
+                                                                        }{' '}
+                                                                        {item
+                                                                            .kategori
+                                                                            ?.nama ||
+                                                                            '-'}
                                                                     </TableCell>
                                                                 </TableRow>
                                                                 <TableRow>
-                                                                    <TableCell className="text-gray-500">Harga</TableCell>
+                                                                    <TableCell className="text-gray-500">
+                                                                        Harga
+                                                                    </TableCell>
                                                                     <TableCell className="text-right font-bold text-emerald-600">
-                                                                        {item.harga_format}
+                                                                        {
+                                                                            item.harga_format
+                                                                        }
                                                                     </TableCell>
                                                                 </TableRow>
                                                                 <TableRow>
-                                                                    <TableCell className="text-gray-500">Status</TableCell>
+                                                                    <TableCell className="text-gray-500">
+                                                                        Status
+                                                                    </TableCell>
                                                                     <TableCell className="text-right">
                                                                         <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-700">
                                                                             Tersedia
@@ -474,7 +580,8 @@ export default function Welcome() {
                                         <div className="flex flex-1 flex-col p-4">
                                             <div className="flex items-center justify-between">
                                                 <span className="text-xs text-gray-400">
-                                                    {item.kategori?.icon} {item.kategori?.nama || '-'}
+                                                    {item.kategori?.icon}{' '}
+                                                    {item.kategori?.nama || '-'}
                                                 </span>
                                                 <span
                                                     className={`rounded-full px-2 py-0.5 text-xs font-medium ${
@@ -488,9 +595,12 @@ export default function Welcome() {
                                                         : 'Porsi habis'}
                                                 </span>
                                             </div>
-                                            <h3 className="mt-1 font-semibold text-gray-900">{item.nama}</h3>
+                                            <h3 className="mt-1 font-semibold text-gray-900">
+                                                {item.nama}
+                                            </h3>
                                             <p className="mt-0.5 line-clamp-2 min-h-10 text-sm text-gray-500">
-                                                {item.deskripsi || 'Masakan spesial buatan rumahan.'}
+                                                {item.deskripsi ||
+                                                    'Masakan spesial buatan rumahan.'}
                                             </p>
                                             <div className="mt-auto flex items-center justify-between pt-3">
                                                 <span className="font-bold text-emerald-600">
@@ -501,7 +611,11 @@ export default function Welcome() {
                                                 <AlertDialog>
                                                     <AlertDialogTrigger asChild>
                                                         <Link
-                                                            href={auth.user ? '/home' : '/login'}
+                                                            href={
+                                                                auth.user
+                                                                    ? '/home'
+                                                                    : '/login'
+                                                            }
                                                             className="inline-flex items-center gap-2 rounded-lg bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-600 hover:text-white"
                                                         >
                                                             + Pesan
@@ -510,18 +624,38 @@ export default function Welcome() {
                                                     <AlertDialogContent>
                                                         <AlertDialogHeader>
                                                             <AlertDialogTitle>
-                                                                Lanjut ke pemesanan?
+                                                                Lanjut ke
+                                                                pemesanan?
                                                             </AlertDialogTitle>
                                                             <AlertDialogDescription>
-                                                                Kamu akan diarahkan ke katalog lengkap untuk
-                                                                memesan {item.nama} ({item.harga_format}).
+                                                                Kamu akan
+                                                                diarahkan ke
+                                                                katalog lengkap
+                                                                untuk memesan{' '}
+                                                                {item.nama} (
+                                                                {
+                                                                    item.harga_format
+                                                                }
+                                                                ).
                                                             </AlertDialogDescription>
                                                         </AlertDialogHeader>
                                                         <AlertDialogFooter>
-                                                            <AlertDialogCancel>Batal</AlertDialogCancel>
-                                                            <AlertDialogAction asChild>
-                                                                <Link href={auth.user ? '/home' : '/login'}>
-                                                                    {auth.user ? 'Lanjut' : 'Login dulu'}
+                                                            <AlertDialogCancel>
+                                                                Batal
+                                                            </AlertDialogCancel>
+                                                            <AlertDialogAction
+                                                                asChild
+                                                            >
+                                                                <Link
+                                                                    href={
+                                                                        auth.user
+                                                                            ? '/home'
+                                                                            : '/login'
+                                                                    }
+                                                                >
+                                                                    {auth.user
+                                                                        ? 'Lanjut'
+                                                                        : 'Login dulu'}
                                                                 </Link>
                                                             </AlertDialogAction>
                                                         </AlertDialogFooter>
@@ -542,33 +676,52 @@ export default function Welcome() {
                                                 href="#menu"
                                                 onClick={(e) => {
                                                     e.preventDefault();
-                                                    setHalaman((h) => Math.max(1, h - 1));
+                                                    setHalaman((h) =>
+                                                        Math.max(1, h - 1),
+                                                    );
                                                 }}
-                                                className={halaman === 1 ? 'pointer-events-none opacity-40' : ''}
+                                                className={
+                                                    halaman === 1
+                                                        ? 'pointer-events-none opacity-40'
+                                                        : ''
+                                                }
                                             />
                                         </PaginationItem>
-                                        {[...Array(totalHalaman)].map((_, i) => (
-                                            <PaginationItem key={i}>
-                                                <PaginationLink
-                                                    href="#menu"
-                                                    isActive={halaman === i + 1}
-                                                    onClick={(e) => {
-                                                        e.preventDefault();
-                                                        setHalaman(i + 1);
-                                                    }}
-                                                >
-                                                    {i + 1}
-                                                </PaginationLink>
-                                            </PaginationItem>
-                                        ))}
+                                        {[...Array(totalHalaman)].map(
+                                            (_, i) => (
+                                                <PaginationItem key={i}>
+                                                    <PaginationLink
+                                                        href="#menu"
+                                                        isActive={
+                                                            halaman === i + 1
+                                                        }
+                                                        onClick={(e) => {
+                                                            e.preventDefault();
+                                                            setHalaman(i + 1);
+                                                        }}
+                                                    >
+                                                        {i + 1}
+                                                    </PaginationLink>
+                                                </PaginationItem>
+                                            ),
+                                        )}
                                         <PaginationItem>
                                             <PaginationNext
                                                 href="#menu"
                                                 onClick={(e) => {
                                                     e.preventDefault();
-                                                    setHalaman((h) => Math.min(totalHalaman, h + 1));
+                                                    setHalaman((h) =>
+                                                        Math.min(
+                                                            totalHalaman,
+                                                            h + 1,
+                                                        ),
+                                                    );
                                                 }}
-                                                className={halaman === totalHalaman ? 'pointer-events-none opacity-40' : ''}
+                                                className={
+                                                    halaman === totalHalaman
+                                                        ? 'pointer-events-none opacity-40'
+                                                        : ''
+                                                }
                                             />
                                         </PaginationItem>
                                     </PaginationContent>
@@ -579,20 +732,48 @@ export default function Welcome() {
                 </section>
 
                 {/* Cara Pesan */}
-                <section id="cara-pesan" className="mx-auto max-w-6xl px-6 py-12">
+                <section
+                    id="cara-pesan"
+                    className="mx-auto max-w-6xl px-6 py-12"
+                >
                     <div className="rounded-3xl bg-emerald-600 px-8 py-12 text-center text-white md:px-16">
-                        <h2 className="mb-2 text-2xl font-bold md:text-3xl">Pesan dalam 3 langkah</h2>
-                        <p className="mb-10 text-emerald-200">Semudah itu, masakan siap dinikmati.</p>
+                        <h2 className="mb-2 text-2xl font-bold md:text-3xl">
+                            Pesan dalam 3 langkah
+                        </h2>
+                        <p className="mb-10 text-emerald-200">
+                            Semudah itu, masakan siap dinikmati.
+                        </p>
                         <div className="grid gap-8 md:grid-cols-3">
                             {[
-                                { emoji: '📝', title: '1. Pilih Menu', desc: 'Jelajahi katalog masakan dan pilih favoritmu.' },
-                                { emoji: '🛒', title: '2. Masukkan Keranjang', desc: 'Atur pesanan sesuai selera dan jumlahnya.' },
-                                { emoji: '🍽️', title: '3. Pesanan Siap', desc: 'Tunggu konfirmasi, lalu nikmati masakannya!' },
+                                {
+                                    emoji: '📝',
+                                    title: '1. Pilih Menu',
+                                    desc: 'Jelajahi katalog masakan dan pilih favoritmu.',
+                                },
+                                {
+                                    emoji: '🛒',
+                                    title: '2. Masukkan Keranjang',
+                                    desc: 'Atur pesanan sesuai selera dan jumlahnya.',
+                                },
+                                {
+                                    emoji: '🍽️',
+                                    title: '3. Pesanan Siap',
+                                    desc: 'Tunggu konfirmasi, lalu nikmati masakannya!',
+                                },
                             ].map((step) => (
-                                <div key={step.title} className="rounded-2xl bg-white/10 p-6 backdrop-blur-sm">
-                                    <div className="mb-3 text-4xl">{step.emoji}</div>
-                                    <h3 className="mb-1 font-semibold">{step.title}</h3>
-                                    <p className="text-sm text-emerald-100">{step.desc}</p>
+                                <div
+                                    key={step.title}
+                                    className="rounded-2xl bg-white/10 p-6 backdrop-blur-sm"
+                                >
+                                    <div className="mb-3 text-4xl">
+                                        {step.emoji}
+                                    </div>
+                                    <h3 className="mb-1 font-semibold">
+                                        {step.title}
+                                    </h3>
+                                    <p className="text-sm text-emerald-100">
+                                        {step.desc}
+                                    </p>
                                 </div>
                             ))}
                         </div>
@@ -606,7 +787,9 @@ export default function Welcome() {
                             <div>
                                 <div className="mb-1 flex items-center gap-2">
                                     <span className="text-2xl">🍱</span>
-                                    <span className="text-lg font-bold text-emerald-600">UmiqFood</span>
+                                    <span className="text-lg font-bold text-emerald-600">
+                                        UmiqFood
+                                    </span>
                                 </div>
                                 <p className="text-sm text-gray-500">
                                     Masakan rumahan favorit, pesan di mana aja.
@@ -620,7 +803,8 @@ export default function Welcome() {
                             </Link>
                         </div>
                         <p className="mt-8 text-center text-xs text-gray-400">
-                            © {new Date().getFullYear()} UmiqFood. Semua hak dilindungi.
+                            © {new Date().getFullYear()} UmiqFood. Semua hak
+                            dilindungi.
                         </p>
                     </div>
                 </footer>

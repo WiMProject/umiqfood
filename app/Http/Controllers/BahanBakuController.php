@@ -3,15 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Models\BahanBaku;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class BahanBakuController extends Controller
 {
     /**
      * Tampilkan daftar bahan baku (inventori)
      */
-    public function index()
+    public function index(): Response
     {
         $bahanBakus = BahanBaku::withCount('resepItems')
             ->orderBy('nama')
@@ -30,7 +32,7 @@ class BahanBakuController extends Controller
     /**
      * Simpan bahan baku baru
      */
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'nama' => 'required|string|max:100',
@@ -47,7 +49,7 @@ class BahanBakuController extends Controller
     /**
      * Update bahan baku
      */
-    public function update(Request $request, BahanBaku $inventori)
+    public function update(Request $request, BahanBaku $inventori): RedirectResponse
     {
         $validated = $request->validate([
             'nama' => 'required|string|max:100',
@@ -64,7 +66,7 @@ class BahanBakuController extends Controller
     /**
      * Hapus bahan baku
      */
-    public function destroy(BahanBaku $inventori)
+    public function destroy(BahanBaku $inventori): RedirectResponse
     {
         if ($inventori->resepItems()->exists()) {
             return $this->toast(
@@ -81,7 +83,7 @@ class BahanBakuController extends Controller
     /**
      * Kirim notifikasi toast lewat Inertia lalu kembali ke halaman sebelumnya.
      */
-    private function toast(string $type, string $message)
+    private function toast(string $type, string $message): RedirectResponse
     {
         Inertia::flash('toast', ['type' => $type, 'message' => $message]);
 

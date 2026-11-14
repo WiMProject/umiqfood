@@ -40,6 +40,7 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         'password',
         'role',
     ];
+
     protected function casts(): array
     {
         return [
@@ -48,12 +49,14 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
             'two_factor_confirmed_at' => 'datetime',
         ];
     }
+
     // Helper buat cek role
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
     }
-    public function isUser()
+
+    public function isUser(): bool
     {
         return $this->role === 'user';
     }

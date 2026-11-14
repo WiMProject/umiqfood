@@ -1,8 +1,8 @@
 <?php
 
 namespace Database\Seeders;
+
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -18,7 +18,7 @@ class UserSeeder extends Seeder
             'name' => 'admin',
             'password' => Hash::make('umiqfood123'),
             'email_verified_at' => now(),
-            'role' => 'admin'
+            'role' => 'admin',
         ]);
 
         User::create([
@@ -26,7 +26,7 @@ class UserSeeder extends Seeder
             'name' => 'user',
             'password' => Hash::make('umiqfood123'),
             'email_verified_at' => now(),
-            'role' => 'user'
+            'role' => 'user',
         ]);
     }
 }

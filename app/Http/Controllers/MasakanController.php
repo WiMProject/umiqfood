@@ -5,17 +5,19 @@ namespace App\Http\Controllers;
 use App\Models\BahanBaku;
 use App\Models\Kategori;
 use App\Models\Masakan;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class MasakanController extends Controller
 {
     /**
      * Tampilkan daftar semua masakan
      */
-    public function index()
+    public function index(): Response
     {
         $masakans = Masakan::with(['kategori', 'resepItems.bahanBaku'])
             ->latest()
@@ -35,7 +37,7 @@ class MasakanController extends Controller
     /**
      * Simpan masakan baru
      */
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'nama' => 'required|string|max:100',
@@ -54,12 +56,13 @@ class MasakanController extends Controller
             $validated['foto'] = $request->file('foto')->store('masakans', 'public');
         }
 
-        $data = collect($validated)->except('resep')->all();
+        $data = $validated;
+        unset($data['resep']);
         $data['jumlah_porsi'] = $validated['jumlah_porsi'] ?? 0;
 
         $masakan = Masakan::create($data);
 
-        $this->syncResep($masakan, $request->input('resep', []));
+        $this->syncResep($masakan, (array) $request->input('resep', []));
 
         return $this->toast('success', 'Menu masakan berhasil ditambahkan!');
     }
@@ -67,7 +70,7 @@ class MasakanController extends Controller
     /**
      * Update masakan yang ada
      */
-    public function update(Request $request, Masakan $masakan)
+    public function update(Request $request, Masakan $masakan): RedirectResponse
     {
         $validated = $request->validate([
             'nama' => 'required|string|max:100',
@@ -90,12 +93,13 @@ class MasakanController extends Controller
             $validated['foto'] = $request->file('foto')->store('masakans', 'public');
         }
 
-        $data = collect($validated)->except('resep')->all();
+        $data = $validated;
+        unset($data['resep']);
         $data['jumlah_porsi'] = $validated['jumlah_porsi'] ?? $masakan->jumlah_porsi;
 
         $masakan->update($data);
 
-        $this->syncResep($masakan, $request->input('resep', []));
+        $this->syncResep($masakan, (array) $request->input('resep', []));
 
         return $this->toast('success', 'Menu masakan berhasil diperbarui!');
     }
@@ -103,7 +107,7 @@ class MasakanController extends Controller
     /**
      * Hapus masakan
      */
-    public function destroy(Masakan $masakan)
+    public function destroy(Masakan $masakan): RedirectResponse
     {
         if ($masakan->foto) {
             Storage::disk('public')->delete($masakan->foto);
@@ -118,7 +122,7 @@ class MasakanController extends Controller
      * Masak menu: kurangi stok bahan baku sesuai resep & takaran per porsi,
      * lalu tambahkan jumlah porsi siap jual.
      */
-    public function masak(Request $request, Masakan $masakan)
+    public function masak(Request $request, Masakan $masakan): RedirectResponse
     {
         $validated = $request->validate([
             'jumlah' => 'required|integer|min:1|max:1000',
@@ -140,20 +144,20 @@ class MasakanController extends Controller
             $bahan = $item->bahanBaku;
             $butuh = $item->jumlah * $porsi;
 
-            if (!$bahan || $bahan->stok < $butuh) {
+            if ($bahan->stok < $butuh) {
                 $kurang[] = sprintf(
                     '%s (butuh %s %s, sisa %s %s)',
-                    $bahan?->nama ?? 'Bahan terhapus',
+                    $bahan->nama,
                     rtrim(rtrim(number_format($butuh, 2, ',', '.'), '0'), ','),
-                    $bahan?->satuan ?? '',
-                    rtrim(rtrim(number_format($bahan?->stok ?? 0, 2, ',', '.'), '0'), ','),
-                    $bahan?->satuan ?? ''
+                    $bahan->satuan,
+                    rtrim(rtrim(number_format($bahan->stok, 2, ',', '.'), '0'), ','),
+                    $bahan->satuan
                 );
             }
         }
 
-        if (!empty($kurang)) {
-            return $this->toast('error', 'Stok bahan tidak cukup: ' . implode('; ', $kurang));
+        if (! empty($kurang)) {
+            return $this->toast('error', 'Stok bahan tidak cukup: '.implode('; ', $kurang));
         }
 
         DB::transaction(function () use ($masakan, $porsi) {
@@ -174,7 +178,7 @@ class MasakanController extends Controller
     /**
      * Kirim notifikasi toast lewat Inertia lalu kembali ke halaman sebelumnya.
      */
-    private function toast(string $type, string $message)
+    private function toast(string $type, string $message): RedirectResponse
     {
         Inertia::flash('toast', ['type' => $type, 'message' => $message]);
 
@@ -183,11 +187,13 @@ class MasakanController extends Controller
 
     /**
      * Sinkronkan resep (bahan baku + takaran per porsi) milik masakan.
+     *
+     * @param  array<int, array{bahan_baku_id?: int|string|null, jumlah?: int|string|null}>  $resep
      */
     private function syncResep(Masakan $masakan, array $resep): void
     {
         $items = collect($resep)
-            ->filter(fn ($row) => !empty($row['bahan_baku_id']) && isset($row['jumlah']) && $row['jumlah'] !== '')
+            ->filter(fn ($row) => ! empty($row['bahan_baku_id']) && isset($row['jumlah']) && $row['jumlah'] !== '')
             ->map(fn ($row) => [
                 'bahan_baku_id' => (int) $row['bahan_baku_id'],
                 'jumlah' => $row['jumlah'],
@@ -202,4 +208,3 @@ class MasakanController extends Controller
         }
     }
 }
-
