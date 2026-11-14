@@ -1,0 +1,31 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+class BahanBaku extends Model
+{
+    use HasFactory;
+
+    protected $fillable = ['nama', 'satuan', 'stok', 'stok_minimum'];
+
+    protected $casts = [
+        'stok' => 'float',
+        'stok_minimum' => 'float',
+    ];
+
+    // Relasi: 1 bahan baku dipakai di BANYAK resep
+    public function resepItems(): HasMany
+    {
+        return $this->hasMany(ResepItem::class);
+    }
+
+    // Helper: stok menipis?
+    public function getStokMenipisAttribute(): bool
+    {
+        return $this->stok <= $this->stok_minimum;
+    }
+}

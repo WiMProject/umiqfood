@@ -5,6 +5,8 @@ import {
     PackageX,
     UtensilsCrossed,
     ArrowUpRight,
+    Boxes,
+    AlertTriangle,
 } from 'lucide-react';
 import { dashboard } from '@/routes';
 import { Button } from '@/components/ui/button';
@@ -20,6 +22,7 @@ interface Masakan {
     nama: string;
     harga_format: string;
     tersedia: boolean;
+    jumlah_porsi: number;
     foto_url: string | null;
     kategori?: Kategori;
 }
@@ -30,6 +33,8 @@ interface Props {
         tersedia: number;
         habis: number;
         totalKategori: number;
+        totalBahan: number;
+        stokKritis: number;
     };
     masakans: Masakan[];
 }
@@ -58,7 +63,19 @@ export default function Dashboard({ stats, masakans }: Props) {
             title: 'Total Kategori',
             value: stats.totalKategori,
             icon: ChefHat,
-            warna: 'bg-orange-50 text-orange-600',
+            warna: 'bg-emerald-50 text-emerald-600',
+        },
+        {
+            title: 'Bahan Baku',
+            value: stats.totalBahan,
+            icon: Boxes,
+            warna: 'bg-teal-50 text-teal-600',
+        },
+        {
+            title: 'Stok Kritis',
+            value: stats.stokKritis,
+            icon: AlertTriangle,
+            warna: 'bg-amber-50 text-amber-600',
         },
     ];
 
@@ -68,18 +85,18 @@ export default function Dashboard({ stats, masakans }: Props) {
 
             <div className="flex flex-col gap-6 p-6">
                 {/* Sapaan */}
-                <div className="rounded-2xl bg-gradient-to-r from-orange-600 to-amber-500 px-8 py-8 text-white shadow-sm">
-                    <p className="mb-1 text-sm text-orange-100">Panel Admin UmiqFood</p>
+                <div className="rounded-2xl bg-gradient-to-r from-emerald-600 to-amber-500 px-8 py-8 text-white shadow-sm">
+                    <p className="mb-1 text-sm text-emerald-100">Panel Admin UmiqFood</p>
                     <h1 className="text-2xl font-extrabold">
                         Selamat datang, Admin! 🍱
                     </h1>
-                    <p className="mt-2 text-sm text-orange-100">
+                    <p className="mt-2 text-sm text-emerald-100">
                         Pantau menu warungmu dari satu tempat.
                     </p>
                 </div>
 
                 {/* Kartu Statistik */}
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     {kartu.map((item) => (
                         <div
                             key={item.title}
@@ -110,7 +127,7 @@ export default function Dashboard({ stats, masakans }: Props) {
                             <Button
                                 variant="outline"
                                 size="sm"
-                                className="gap-1 text-orange-600"
+                                className="gap-1 text-emerald-600"
                             >
                                 Kelola Menu <ArrowUpRight className="h-3.5 w-3.5" />
                             </Button>
@@ -135,7 +152,7 @@ export default function Dashboard({ stats, masakans }: Props) {
                                             className="h-11 w-11 rounded-lg border object-cover"
                                         />
                                     ) : (
-                                        <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-orange-100 text-orange-600 dark:bg-orange-950/40">
+                                        <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600 dark:bg-emerald-950/40">
                                             <UtensilsCrossed className="h-5 w-5" />
                                         </div>
                                     )}
@@ -147,7 +164,10 @@ export default function Dashboard({ stats, masakans }: Props) {
                                             {item.kategori?.icon} {item.kategori?.nama || '-'}
                                         </p>
                                     </div>
-                                    <span className="text-sm font-semibold text-orange-600">
+                                    <span className="hidden text-xs text-gray-400 md:inline">
+                                        {item.jumlah_porsi} porsi
+                                    </span>
+                                    <span className="text-sm font-semibold text-emerald-600">
                                         {item.harga_format}
                                     </span>
                                     <span
