@@ -9,6 +9,7 @@ use App\Models\Order;
 use App\Models\Payment;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class PesananTest extends TestCase
@@ -210,8 +211,12 @@ class PesananTest extends TestCase
         $this->actingAs($user)
             ->get(route('user.dashboard'))
             ->assertOk()
-            ->assertSee('Pesanan & pembayaran')
-            ->assertSee($order->kode);
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('user/dashboard')
+                ->where('activeOrder.kode', $order->kode)
+                ->has('orders', 1)
+                ->has('payments', 1)
+            );
     }
 
     private function buatMasakan(int $jumlahPorsi = 5, int $harga = 15000): Masakan
