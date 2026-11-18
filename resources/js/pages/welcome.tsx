@@ -764,13 +764,13 @@ export default function Welcome() {
                                                 href={
                                                     auth.user.role === 'admin'
                                                         ? '/dashboard'
-                                                        : '/home'
+                                                        : '/akun'
                                                 }
                                             >
                                                 <ShoppingBag className="size-4" />
                                                 {auth.user.role === 'admin'
                                                     ? 'Dashboard admin'
-                                                    : 'Halaman user'}
+                                                    : 'Pesanan saya'}
                                             </Link>
                                         </DropdownMenuItem>
                                         <DropdownMenuItem asChild>
@@ -894,13 +894,13 @@ export default function Welcome() {
                                                             auth.user.role ===
                                                             'admin'
                                                                 ? '/dashboard'
-                                                                : '/home'
+                                                                : '/akun'
                                                         }
                                                     >
                                                         {auth.user.role ===
                                                         'admin'
                                                             ? 'Dashboard admin'
-                                                            : 'Halaman user'}
+                                                            : 'Pesanan saya'}
                                                     </Link>
                                                 </Button>
                                                 <Button

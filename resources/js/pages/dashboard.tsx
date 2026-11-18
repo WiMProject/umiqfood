@@ -8,6 +8,8 @@ import {
     Boxes,
     AlertTriangle,
     ChartColumn,
+    ClipboardList,
+    Coins,
 } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 import { dashboard } from '@/routes';
@@ -45,6 +47,8 @@ interface Props {
         totalKategori: number;
         totalBahan: number;
         stokKritis: number;
+        pesananAktif: number;
+        pendapatanHariIni: number;
     };
     masakans: Masakan[];
 }
@@ -103,6 +107,18 @@ export default function Dashboard({ stats, masakans }: Props) {
             icon: AlertTriangle,
             warna: 'bg-amber-50 text-amber-600',
         },
+        {
+            title: 'Pesanan Aktif',
+            value: stats.pesananAktif,
+            icon: ClipboardList,
+            warna: 'bg-sky-50 text-sky-600',
+        },
+        {
+            title: 'Pendapatan Hari Ini',
+            value: `Rp ${stats.pendapatanHariIni.toLocaleString('id-ID')}`,
+            icon: Coins,
+            warna: 'bg-emerald-50 text-emerald-600',
+        },
     ];
 
     return (
@@ -124,7 +140,7 @@ export default function Dashboard({ stats, masakans }: Props) {
                 </div>
 
                 {/* Kartu Statistik */}
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {kartu.map((item) => (
                         <div
                             key={item.title}

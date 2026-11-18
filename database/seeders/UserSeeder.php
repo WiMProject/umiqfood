@@ -13,20 +13,24 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        User::create([
-            'email' => 'umiqfood@admin.com',
-            'name' => 'admin',
-            'password' => Hash::make('umiqfood123'),
-            'email_verified_at' => now(),
-            'role' => 'admin',
-        ]);
+        User::updateOrCreate(
+            ['email' => 'umiqfood@admin.com'],
+            [
+                'name' => 'admin',
+                'password' => Hash::make('umiqfood123'),
+                'email_verified_at' => now(),
+                'role' => 'admin',
+            ],
+        );
 
-        User::create([
-            'email' => 'umiqfood@user.com',
-            'name' => 'user',
-            'password' => Hash::make('umiqfood123'),
-            'email_verified_at' => now(),
-            'role' => 'user',
-        ]);
+        User::updateOrCreate(
+            ['email' => 'umiqfood@user.com'],
+            [
+                'name' => 'user',
+                'password' => Hash::make('umiqfood123'),
+                'email_verified_at' => now(),
+                'role' => 'user',
+            ],
+        );
     }
 }

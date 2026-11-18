@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Order;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -41,6 +42,39 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            'keranjang' => function () use ($request): array {
+                $user = $request->user();
+
+                if (! $user || ! $user->isUser()) {
+                    return ['jumlah' => 0, 'subtotal' => 0];
+                }
+
+                $items = $user->cartItems()
+                    ->with('masakan:id,harga')
+                    ->get();
+
+                return [
+                    'jumlah' => (int) $items->sum('jumlah'),
+                    'subtotal' => (int) $items->sum(
+                        fn ($item) => $item->masakan->harga * $item->jumlah,
+                    ),
+                ];
+            },
+            'pesananAktif' => function () use ($request): int {
+                $user = $request->user();
+
+                if (! $user || ! $user->isUser()) {
+                    return 0;
+                }
+
+                return $user->orders()
+                    ->whereIn('status', [
+                        Order::STATUS_MENUNGGU,
+                        Order::STATUS_DIMASAK,
+                        Order::STATUS_SIAP,
+                    ])
+                    ->count();
+            },
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }

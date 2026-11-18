@@ -2,6 +2,7 @@ import { Link } from '@inertiajs/react';
 import {
     BookOpen,
     Boxes,
+    ClipboardList,
     FolderGit2,
     LayoutGrid,
     UtensilsCrossed,
@@ -37,6 +38,11 @@ const mainNavItems: NavItem[] = [
         title: 'Inventori',
         href: '/inventori',
         icon: Boxes,
+    },
+    {
+        title: 'Pesanan',
+        href: '/pesanan',
+        icon: ClipboardList,
     },
 ];
 
