@@ -10,7 +10,6 @@ import {
     LogOut,
     Megaphone,
     Menu as MenuIcon,
-    Package,
     Search,
     Settings,
     ShieldCheck,
@@ -40,12 +39,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import {
-    Carousel,
-    CarouselContent,
-    CarouselItem,
-    CarouselNext,
-    CarouselPrevious,
-} from '@/components/ui/carousel';
+    HeroParallax,
+    type HeroParallaxProduct,
+} from '@/components/ui/hero-parallax';
 import {
     Drawer,
     DrawerClose,
@@ -120,6 +116,30 @@ interface AuthUser {
 }
 
 const PER_HALAMAN = 6;
+
+const PALET_HERO = [
+    'from-emerald-500 via-teal-500 to-emerald-700',
+    'from-amber-400 via-orange-500 to-rose-500',
+    'from-sky-500 via-cyan-500 to-teal-600',
+    'from-orange-500 via-rose-500 to-red-600',
+    'from-lime-400 via-emerald-500 to-teal-700',
+    'from-cyan-500 via-sky-500 to-blue-600',
+];
+
+const FITUR_HERO = [
+    ['Pesan cepat', '3 langkah', 'Pilih, pesan, lalu nikmati.', '⚡'],
+    ['Stok terpantau', 'Real-time', 'Sisa porsi selalu jelas.', '📦'],
+    ['Resep otomatis', 'Per porsi', 'Bahan dihitung otomatis.', '🧾'],
+    ['Bahan terjaga', 'Inventori', 'Stok bahan rapi dan akurat.', '🥬'],
+    ['Gratis ongkir', 'Pesanan pertama', 'Berlaku untuk semua menu.', '🚚'],
+    ['Fresh dimasak', 'Sesuai pesanan', 'Hangat saat sampai.', '🍳'],
+    ['Rasa rumahan', 'Bumbu khas', 'Dimasak dengan resep keluarga.', '💚'],
+    ['Menu harian', 'Selalu baru', 'Pilihan berganti tiap hari.', '🍱'],
+    ['Higienis', 'Terjaga', 'Proses bersih dan aman.', '🛡️'],
+    ['Mudah dipesan', 'Tanpa ribet', 'Dari HP atau laptop.', '📱'],
+    ['Harga ramah', 'Tanpa biaya tersembunyi', 'Ramah kantong.', '🪙'],
+    ['Favorit pelanggan', 'Rating 4.9', 'Disukai banyak orang.', '⭐'],
+] as const;
 
 const OPSI_URUT = [
     { value: 'terbaru', label: 'Terbaru' },
@@ -553,7 +573,44 @@ export default function Welcome() {
         setHalaman(1);
     }, [query, kategoriAktif, urutan]);
 
-    const featured = masakans.slice(0, 4);
+    const heroProducts = useMemo<HeroParallaxProduct[]>(() => {
+        const menu = masakans.slice(0, 3).map((item, index) => ({
+            id: `menu-${item.id}`,
+            title: item.nama,
+            subtitle: item.kategori?.nama ?? 'Menu',
+            description: item.deskripsi ?? 'Masakan rumahan spesial.',
+            emoji: item.kategori?.icon ?? '🍱',
+            meta:
+                item.jumlah_porsi > 0 ? `${item.jumlah_porsi} porsi` : 'Habis',
+            link: '#menu',
+            accent: PALET_HERO[index % PALET_HERO.length],
+        }));
+
+        const kategori = kategoris.map((item, index) => ({
+            id: `kategori-${item.id}`,
+            title: item.nama,
+            subtitle: 'Kategori',
+            description: `${item.masakans_count ?? 0} menu tersedia`,
+            emoji: item.icon ?? '🍽️',
+            link: '#kategori',
+            accent: PALET_HERO[(index + 2) % PALET_HERO.length],
+        }));
+
+        const fitur = FITUR_HERO.map(
+            ([title, subtitle, description, emoji], index) => ({
+                id: `fitur-${index}`,
+                title,
+                subtitle,
+                description,
+                emoji,
+                link: '#cara-pesan',
+                accent: PALET_HERO[(index + 4) % PALET_HERO.length],
+            }),
+        );
+
+        return [...menu, ...kategori, ...fitur].slice(0, 18);
+    }, [masakans, kategoris]);
+
     const labelUrutan =
         OPSI_URUT.find((opsi) => opsi.value === urutan)?.label ?? 'Terbaru';
     const kategoriTerpilih = kategoris.find(
@@ -889,21 +946,19 @@ export default function Welcome() {
                 </header>
 
                 {/* Hero */}
-                <section className="relative overflow-hidden bg-gradient-to-b from-emerald-50 via-background to-background dark:from-emerald-950/30 dark:via-background dark:to-background">
-                    <div className="pointer-events-none absolute -top-24 -right-24 size-80 rounded-full bg-emerald-200/50 blur-3xl dark:bg-emerald-600/10" />
-                    <div className="pointer-events-none absolute -bottom-32 -left-24 size-80 rounded-full bg-teal-200/40 blur-3xl dark:bg-teal-600/10" />
-
-                    <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-4 py-14 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16 lg:px-8 lg:py-24">
-                        <div>
+                <HeroParallax
+                    products={heroProducts}
+                    header={
+                        <div className="relative max-w-4xl">
                             <Badge
                                 variant="outline"
-                                className="mb-5 gap-2 border-emerald-200 bg-emerald-50 px-3 py-1.5 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/60 dark:text-emerald-300"
+                                className="gap-2 border-emerald-200 bg-emerald-50 px-3 py-1.5 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/60 dark:text-emerald-300"
                             >
                                 <ChefHat className="size-3.5" />
                                 Masakan rumahan, rasa juara
                             </Badge>
 
-                            <h1 className="text-4xl leading-[1.1] font-extrabold tracking-tight text-foreground sm:text-5xl xl:text-6xl">
+                            <h1 className="mt-5 max-w-3xl text-4xl leading-[1.08] font-extrabold tracking-tight text-balance text-foreground sm:text-5xl xl:text-6xl">
                                 Lapar? Pesan masakan{' '}
                                 <span className="text-emerald-600 dark:text-emerald-400">
                                     favoritmu
@@ -911,7 +966,7 @@ export default function Welcome() {
                                 di UmiqFood
                             </h1>
 
-                            <p className="mt-5 max-w-xl text-base text-muted-foreground sm:text-lg">
+                            <p className="mt-4 max-w-xl text-base leading-relaxed text-pretty text-muted-foreground sm:text-lg">
                                 Pilih menu, pesan dalam hitungan menit, nikmati
                                 tanpa repot masak. Semudah itu.
                             </p>
@@ -921,33 +976,35 @@ export default function Welcome() {
                                     event.preventDefault();
                                     keMenu();
                                 }}
-                                className="mt-8 flex flex-col gap-3 sm:flex-row"
+                                className="mt-8 w-full max-w-xl"
                             >
-                                <div className="relative flex-1">
-                                    <Search className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-muted-foreground" />
-                                    <Input
-                                        value={query}
-                                        onChange={(event) =>
-                                            setQuery(event.target.value)
-                                        }
-                                        placeholder="Cari nasi goreng, ayam, minuman..."
-                                        aria-label="Cari menu"
-                                        className="h-12 rounded-xl border-border bg-background pl-11 text-base shadow-sm"
-                                    />
+                                <div className="flex flex-col gap-2 rounded-2xl border border-border/80 bg-background/90 p-2 shadow-lg shadow-emerald-950/5 backdrop-blur sm:flex-row sm:items-center sm:rounded-full">
+                                    <div className="relative flex-1">
+                                        <Search className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
+                                        <Input
+                                            value={query}
+                                            onChange={(event) =>
+                                                setQuery(event.target.value)
+                                            }
+                                            placeholder="Cari nasi goreng, ayam, minuman..."
+                                            aria-label="Cari menu"
+                                            className="h-11 rounded-xl border-0 bg-transparent pl-10 text-base shadow-none focus-visible:ring-0 sm:rounded-full"
+                                        />
+                                    </div>
+                                    <Button
+                                        type="submit"
+                                        className="h-11 rounded-xl bg-emerald-600 px-6 text-white shadow-md shadow-emerald-600/20 hover:bg-emerald-700 sm:rounded-full"
+                                    >
+                                        Cari menu
+                                        <ArrowRight className="size-4" />
+                                    </Button>
                                 </div>
-                                <Button
-                                    type="submit"
-                                    className="h-12 rounded-xl bg-emerald-600 px-6 text-white shadow-lg shadow-emerald-600/20 hover:bg-emerald-700"
-                                >
-                                    Cari menu
-                                    <ArrowRight className="size-4" />
-                                </Button>
                             </form>
 
-                            <div className="mt-6 flex flex-wrap items-center gap-3">
+                            <div className="mt-5 flex flex-wrap items-center gap-2.5">
                                 <Button
                                     asChild
-                                    className="h-11 rounded-xl bg-emerald-600 px-5 text-white shadow-lg shadow-emerald-600/20 hover:bg-emerald-700"
+                                    className="h-10 rounded-xl bg-emerald-600 px-5 text-white shadow-md shadow-emerald-600/20 hover:bg-emerald-700"
                                 >
                                     <a href="#menu">
                                         Lihat menu
@@ -958,7 +1015,7 @@ export default function Welcome() {
                                     <Button
                                         asChild
                                         variant="outline"
-                                        className="h-11 rounded-xl border-emerald-200 bg-background px-5 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-900 dark:text-emerald-300 dark:hover:bg-emerald-950/40"
+                                        className="h-10 rounded-xl border-border bg-background/80 px-5 backdrop-blur hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
                                     >
                                         <Link href="/register">
                                             Daftar sekarang
@@ -967,134 +1024,37 @@ export default function Welcome() {
                                 )}
                             </div>
 
-                            <div className="mt-10 grid max-w-md grid-cols-3 gap-3">
+                            <dl className="mt-5 inline-flex divide-x divide-border/70 overflow-hidden rounded-xl border border-border/70 bg-background/75 shadow-sm backdrop-blur">
                                 {[
                                     {
-                                        icon: Utensils,
                                         value: masakans.length,
                                         label: 'Menu',
                                     },
                                     {
-                                        icon: Sparkles,
                                         value: kategoris.length,
                                         label: 'Kategori',
                                     },
                                     {
-                                        icon: Package,
                                         value: totalPorsi,
-                                        label: 'Total porsi',
+                                        label: 'Porsi',
                                     },
                                 ].map((stat) => (
                                     <div
                                         key={stat.label}
-                                        className="rounded-xl border border-border/70 bg-card/70 p-3 text-center shadow-sm backdrop-blur"
+                                        className="flex items-baseline gap-1.5 px-4 py-2"
                                     >
-                                        <stat.icon className="mx-auto mb-1 size-4 text-emerald-600 dark:text-emerald-400" />
-                                        <p className="text-xl font-bold tracking-tight">
+                                        <dd className="text-base leading-none font-bold tracking-tight">
                                             {stat.value}
-                                        </p>
-                                        <p className="text-[11px] text-muted-foreground">
+                                        </dd>
+                                        <dt className="text-[11px] tracking-wide text-muted-foreground uppercase">
                                             {stat.label}
-                                        </p>
+                                        </dt>
                                     </div>
                                 ))}
-                            </div>
+                            </dl>
                         </div>
-
-                        {/* Carousel menu unggulan */}
-                        <div className="relative mx-auto w-full max-w-xl pb-10 sm:pb-14 lg:max-w-none">
-                            <div className="absolute -inset-4 rounded-[2rem] bg-gradient-to-tr from-emerald-200/60 via-teal-100/40 to-transparent blur-2xl dark:from-emerald-500/15 dark:via-teal-500/10" />
-
-                            <Carousel className="relative w-full">
-                                <CarouselContent>
-                                    {featured.map((item) => (
-                                        <CarouselItem key={item.id}>
-                                            <Card className="overflow-hidden border-border/60 p-0 shadow-xl">
-                                                <div className="relative">
-                                                    <FotoMenu
-                                                        src={item.foto_url}
-                                                        alt={item.nama}
-                                                        className="aspect-[4/3] w-full"
-                                                        emoji="🍱"
-                                                    />
-                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
-                                                    <div className="absolute top-4 left-4 flex flex-wrap gap-2">
-                                                        <Badge className="border-0 bg-white/90 text-gray-800 backdrop-blur dark:bg-black/60 dark:text-white">
-                                                            {
-                                                                item.kategori
-                                                                    ?.icon
-                                                            }{' '}
-                                                            {item.kategori
-                                                                ?.nama ||
-                                                                'Menu'}
-                                                        </Badge>
-                                                        <Badge
-                                                            className={
-                                                                item.jumlah_porsi >
-                                                                0
-                                                                    ? 'border-0 bg-emerald-600 text-white'
-                                                                    : 'border-0 bg-red-600 text-white'
-                                                            }
-                                                        >
-                                                            {item.jumlah_porsi >
-                                                            0
-                                                                ? `Sisa ${item.jumlah_porsi} porsi`
-                                                                : 'Habis'}
-                                                        </Badge>
-                                                    </div>
-                                                    <div className="absolute right-4 bottom-4 left-4 flex items-end justify-between gap-3 text-white">
-                                                        <div className="min-w-0">
-                                                            <p className="truncate text-lg font-bold drop-shadow sm:text-xl">
-                                                                {item.nama}
-                                                            </p>
-                                                            <p className="line-clamp-1 text-sm text-white/85">
-                                                                {item.deskripsi ||
-                                                                    'Masakan spesial buatan rumahan.'}
-                                                            </p>
-                                                        </div>
-                                                        <span className="shrink-0 rounded-lg bg-white/95 px-3 py-1.5 text-sm font-bold text-emerald-700">
-                                                            {item.harga_format}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            </Card>
-                                        </CarouselItem>
-                                    ))}
-                                </CarouselContent>
-                                <CarouselPrevious className="left-3 size-9 border-0 bg-background/85 text-foreground backdrop-blur hover:bg-background" />
-                                <CarouselNext className="right-3 size-9 border-0 bg-background/85 text-foreground backdrop-blur hover:bg-background" />
-                            </Carousel>
-
-                            <Card className="absolute -bottom-2 left-2 hidden items-center gap-3 p-3 shadow-xl sm:left-4 sm:flex">
-                                <div className="flex -space-x-2">
-                                    {['RA', 'DS', 'NP'].map((inisialTesti) => (
-                                        <Avatar
-                                            key={inisialTesti}
-                                            className="size-8 border-2 border-background"
-                                        >
-                                            <AvatarFallback className="bg-emerald-100 text-[10px] font-semibold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
-                                                {inisialTesti}
-                                            </AvatarFallback>
-                                        </Avatar>
-                                    ))}
-                                </div>
-                                <div>
-                                    <div className="flex items-center gap-0.5 text-amber-500">
-                                        {[...Array(5)].map((_, index) => (
-                                            <Star
-                                                key={index}
-                                                className="size-3.5 fill-current"
-                                            />
-                                        ))}
-                                    </div>
-                                    <p className="text-xs font-medium text-muted-foreground">
-                                        Disukai pelanggan UmiqFood
-                                    </p>
-                                </div>
-                            </Card>
-                        </div>
-                    </div>
-                </section>
+                    }
+                />
 
                 {/* Keunggulan */}
                 <section className="border-y border-border/70 bg-muted/30">
