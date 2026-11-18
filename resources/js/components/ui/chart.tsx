@@ -55,10 +55,53 @@ function ChartContainer({
 }) {
   const uniqueId = React.useId()
   const chartId = `chart-${id ?? uniqueId.replace(/:/g, "")}`
+  const containerRef = React.useRef<HTMLDivElement>(null)
+  const [dimension, setDimension] = React.useState<{
+    width: number
+    height: number
+  } | null>(null)
+
+  // ResponsiveContainer warns when it measures a 0x0 container, which happens
+  // whenever the chart is mounted inside a hidden or zero-height element.
+  // Measure the wrapper ourselves and only render once it has a real size;
+  // passing fixed dimensions also keeps ResponsiveContainer's own
+  // ResizeObserver from ever observing a hidden container.
+  React.useLayoutEffect(() => {
+    const container = containerRef.current
+
+    if (container == null) {
+      return
+    }
+
+    const updateSize = () => {
+      const { width, height } = container.getBoundingClientRect()
+
+      if (width > 0 && height > 0) {
+        setDimension((previous) =>
+          previous?.width === Math.round(width) &&
+          previous?.height === Math.round(height)
+            ? previous
+            : { width: Math.round(width), height: Math.round(height) }
+        )
+      }
+    }
+
+    updateSize()
+
+    if (typeof ResizeObserver === "undefined") {
+      return
+    }
+
+    const observer = new ResizeObserver(updateSize)
+    observer.observe(container)
+
+    return () => observer.disconnect()
+  }, [])
 
   return (
     <ChartContext.Provider value={{ config }}>
       <div
+        ref={containerRef}
         data-slot="chart"
         data-chart={chartId}
         className={cn(
@@ -68,11 +111,15 @@ function ChartContainer({
         {...props}
       >
         <ChartStyle id={chartId} config={config} />
-        <RechartsPrimitive.ResponsiveContainer
-          initialDimension={initialDimension}
-        >
-          {children}
-        </RechartsPrimitive.ResponsiveContainer>
+        {dimension ? (
+          <RechartsPrimitive.ResponsiveContainer
+            width={dimension.width}
+            height={dimension.height}
+            initialDimension={initialDimension}
+          >
+            {children}
+          </RechartsPrimitive.ResponsiveContainer>
+        ) : null}
       </div>
     </ChartContext.Provider>
   )

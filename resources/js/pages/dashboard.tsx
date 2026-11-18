@@ -7,9 +7,19 @@ import {
     ArrowUpRight,
     Boxes,
     AlertTriangle,
+    ChartColumn,
 } from 'lucide-react';
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 import { dashboard } from '@/routes';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import {
+    ChartContainer,
+    ChartTooltip,
+    ChartTooltipContent,
+    type ChartConfig,
+} from '@/components/ui/chart';
 
 interface Kategori {
     id: number;
@@ -40,6 +50,22 @@ interface Props {
 }
 
 export default function Dashboard({ stats, masakans }: Props) {
+    const menuPerKategori = Object.entries(
+        masakans.reduce<Record<string, number>>((hasil, item) => {
+            const nama = item.kategori?.nama ?? 'Tanpa kategori';
+            hasil[nama] = (hasil[nama] ?? 0) + 1;
+
+            return hasil;
+        }, {}),
+    ).map(([nama, menu]) => ({ nama, menu }));
+
+    const chartConfig = {
+        menu: {
+            label: 'Jumlah Menu',
+            color: 'var(--color-emerald-600, #059669)',
+        },
+    } satisfies ChartConfig;
+
     const kartu = [
         {
             title: 'Total Menu',
@@ -120,6 +146,77 @@ export default function Dashboard({ stats, masakans }: Props) {
                         </div>
                     ))}
                 </div>
+
+                {/* Grafik Menu per Kategori */}
+                <Card className="p-5 sm:p-6">
+                    <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                            <p className="flex items-center gap-2 text-sm font-semibold">
+                                <ChartColumn className="size-4 text-emerald-600 dark:text-emerald-400" />
+                                Menu per kategori
+                            </p>
+                            <p className="mt-1 text-xs text-muted-foreground">
+                                Distribusi {stats.totalMenu} menu berdasarkan
+                                kategori.
+                            </p>
+                        </div>
+                        <Badge variant="secondary">
+                            {menuPerKategori.length} kategori
+                        </Badge>
+                    </div>
+
+                    {menuPerKategori.length === 0 ? (
+                        <p className="py-10 text-center text-sm text-muted-foreground">
+                            Belum ada menu untuk ditampilkan.
+                        </p>
+                    ) : (
+                        <ChartContainer
+                            config={chartConfig}
+                            className="h-56 w-full sm:h-64"
+                        >
+                            <BarChart
+                                data={menuPerKategori}
+                                margin={{
+                                    top: 8,
+                                    right: 8,
+                                    left: -12,
+                                    bottom: 0,
+                                }}
+                            >
+                                <CartesianGrid
+                                    vertical={false}
+                                    strokeDasharray="3 3"
+                                />
+                                <XAxis
+                                    dataKey="nama"
+                                    tickLine={false}
+                                    axisLine={false}
+                                    fontSize={11}
+                                    interval={0}
+                                />
+                                <YAxis
+                                    allowDecimals={false}
+                                    width={30}
+                                    tickLine={false}
+                                    axisLine={false}
+                                    fontSize={11}
+                                />
+                                <ChartTooltip
+                                    cursor={false}
+                                    content={
+                                        <ChartTooltipContent nameKey="menu" />
+                                    }
+                                />
+                                <Bar
+                                    dataKey="menu"
+                                    fill="var(--color-menu)"
+                                    radius={[6, 6, 0, 0]}
+                                    maxBarSize={64}
+                                />
+                            </BarChart>
+                        </ChartContainer>
+                    )}
+                </Card>
 
                 {/* Menu Terbaru */}
                 <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-neutral-900">
