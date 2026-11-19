@@ -2,7 +2,9 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Masakan;
 use App\Models\Order;
+use App\Models\Review;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -74,6 +76,49 @@ class HandleInertiaRequests extends Middleware
                         Order::STATUS_SIAP,
                     ])
                     ->count();
+            },
+            'authShowcase' => function () use ($request): ?array {
+                if (! $request->routeIs('login', 'register')) {
+                    return null;
+                }
+
+                return [
+                    'menus' => Masakan::query()
+                        ->with('kategori:id,nama,icon')
+                        ->withCount('reviews')
+                        ->withAvg('reviews', 'rating')
+                        ->where('tersedia', true)
+                        ->orderByDesc('reviews_count')
+                        ->latest()
+                        ->take(16)
+                        ->get()
+                        ->map(fn (Masakan $masakan): array => [
+                            'id' => $masakan->id,
+                            'nama' => $masakan->nama,
+                            'harga_format' => $masakan->harga_format,
+                            'kategori' => $masakan->kategori?->nama,
+                            'icon' => $masakan->kategori?->icon,
+                            'reviews_count' => (int) $masakan->getAttribute('reviews_count'),
+                            'reviews_avg_rating' => $masakan->getAttribute('reviews_avg_rating'),
+                        ])
+                        ->all(),
+                    'reviews' => Review::query()
+                        ->with('masakan:id,nama')
+                        ->whereNotNull('komentar')
+                        ->where('komentar', '!=', '')
+                        ->latest()
+                        ->take(12)
+                        ->get()
+                        ->map(fn (Review $review): array => [
+                            'id' => $review->id,
+                            'nama' => $review->nama,
+                            'komentar' => (string) $review->komentar,
+                            'rating' => $review->rating,
+                            'menu' => $review->masakan?->nama,
+                            'terverifikasi' => $review->terverifikasi,
+                        ])
+                        ->all(),
+                ];
             },
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];

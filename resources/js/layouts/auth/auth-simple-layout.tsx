@@ -1,22 +1,18 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import {
-    CheckCircle2,
-    Clock,
     Moon,
     ShieldCheck,
     ShoppingBag,
     Sun,
     UtensilsCrossed,
 } from 'lucide-react';
+import AuthShowcase from '@/components/auth-showcase';
 import { Button } from '@/components/ui/button';
 import { useAppearance } from '@/hooks/use-appearance';
-import type { AuthLayoutProps } from '@/types';
-
-const FITUR = [
-    'Pesan tanpa antre dari mana saja',
-    'Dimasak fresh sesuai pesanan',
-    'Ambil sendiri di outlet, bayar saat ambil',
-];
+import type {
+    AuthLayoutProps,
+    AuthShowcase as AuthShowcaseData,
+} from '@/types';
 
 export default function AuthSimpleLayout({
     children,
@@ -24,6 +20,9 @@ export default function AuthSimpleLayout({
     description,
 }: AuthLayoutProps) {
     const { resolvedAppearance, updateAppearance } = useAppearance();
+    const { authShowcase } = usePage<{
+        authShowcase?: AuthShowcaseData | null;
+    }>().props;
 
     return (
         <div className="grid min-h-svh bg-background text-foreground lg:grid-cols-[1.05fr_1fr]">
@@ -46,71 +45,30 @@ export default function AuthSimpleLayout({
                     </span>
                 </Link>
 
-                <div className="relative z-10 my-auto max-w-lg py-12">
-                    <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-medium text-emerald-50 backdrop-blur">
-                        <ShoppingBag className="size-3.5" />
-                        Pickup only · tanpa biaya antar
-                    </span>
-
-                    <h2 className="mt-5 text-4xl leading-[1.08] font-extrabold tracking-tight xl:text-[2.9rem]">
-                        Masakan rumahan,
-                        <br />
-                        <span className="text-emerald-200">
-                            siap diambil saat siap.
+                <div className="relative z-10 flex min-h-0 flex-1 [scrollbar-width:thin] [scrollbar-color:rgba(255,255,255,0.35)_transparent] flex-col lg:overflow-y-auto">
+                    <div className="my-auto w-full max-w-xl">
+                        <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-medium text-emerald-50 backdrop-blur">
+                            <ShoppingBag className="size-3.5" />
+                            Pickup only · tanpa biaya antar
                         </span>
-                    </h2>
 
-                    <p className="mt-4 max-w-md text-sm leading-relaxed text-emerald-50/85">
-                        Pesan menu favoritmu, pantau status masaknya, lalu ambil
-                        di outlet. Tanpa antre dan tanpa ongkir.
-                    </p>
+                        <h2 className="mt-4 text-[2rem] leading-[1.08] font-extrabold tracking-tight xl:text-[2.6rem]">
+                            Masakan rumahan,
+                            <br />
+                            <span className="text-emerald-200">
+                                siap diambil tanpa antre.
+                            </span>
+                        </h2>
 
-                    <ul className="mt-8 space-y-3">
-                        {FITUR.map((fitur) => (
-                            <li
-                                key={fitur}
-                                className="flex items-start gap-2.5 text-sm text-emerald-50/90"
-                            >
-                                <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-emerald-200" />
-                                {fitur}
-                            </li>
-                        ))}
-                    </ul>
-
-                    <div className="mt-10 max-w-sm rounded-2xl border border-white/20 bg-white/10 p-4 shadow-xl shadow-emerald-950/10 backdrop-blur">
-                        <div className="flex items-center justify-between gap-3 text-[11px] text-emerald-100">
-                            <span className="flex items-center gap-1.5">
-                                <Clock className="size-3.5" />
-                                Pesanan hari ini
-                            </span>
-                            <span className="rounded-full bg-emerald-300/20 px-2 py-0.5 font-semibold text-emerald-50">
-                                Siap diambil
-                            </span>
-                        </div>
-                        <div className="mt-3 flex items-center gap-3">
-                            <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-white/15 text-xl">
-                                🍚
-                            </span>
-                            <div className="min-w-0 flex-1">
-                                <p className="truncate text-sm font-semibold">
-                                    Nasi Goreng Spesial Umiq
-                                </p>
-                                <p className="text-xs text-emerald-100/75">
-                                    Antrian A-012 · 1 porsi
-                                </p>
-                            </div>
-                            <span className="shrink-0 text-sm font-bold">
-                                Rp 18.000
-                            </span>
-                        </div>
-                        <div className="mt-3 flex items-center gap-1.5 border-t border-white/10 pt-3 text-[11px] text-emerald-100/85">
-                            <ShieldCheck className="size-3.5" />
-                            Bayar cash atau QRIS saat ambil
-                        </div>
+                        <AuthShowcase
+                            showcase={authShowcase}
+                            tone="brand"
+                            className="mt-6"
+                        />
                     </div>
                 </div>
 
-                <p className="relative z-10 text-xs text-emerald-100/60">
+                <p className="relative z-10 pt-6 text-xs text-emerald-100/60">
                     © {new Date().getFullYear()} UmiqFood · Masakan rumahan,
                     diambil saat siap.
                 </p>
@@ -186,6 +144,12 @@ export default function AuthSimpleLayout({
                     >
                         Kembali ke beranda
                     </Link>
+
+                    <AuthShowcase
+                        showcase={authShowcase}
+                        tone="default"
+                        className="mt-8 border-t border-border/60 pt-6 lg:hidden"
+                    />
                 </div>
             </main>
         </div>

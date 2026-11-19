@@ -89,6 +89,36 @@ class UlasanTest extends TestCase
             );
     }
 
+    public function test_login_dan_register_menampilkan_showcase_menu_dan_ulasan(): void
+    {
+        $masakan = $this->buatMasakan();
+
+        Review::create([
+            'masakan_id' => $masakan->id,
+            'nama' => 'Rina Kurnia',
+            'rating' => 5,
+            'komentar' => 'Enak dan porsinya pas.',
+            'terverifikasi' => true,
+        ]);
+
+        foreach ([route('login'), route('register')] as $url) {
+            $this->get($url)
+                ->assertOk()
+                ->assertInertia(fn (Assert $page) => $page
+                    ->has('authShowcase.menus', 1)
+                    ->where('authShowcase.menus.0.nama', 'Nasi Goreng Test')
+                    ->where('authShowcase.menus.0.kategori', 'Nasi & Lauk')
+                    ->where('authShowcase.menus.0.icon', '🍚')
+                    ->where('authShowcase.menus.0.reviews_count', 1)
+                    ->has('authShowcase.reviews', 1)
+                    ->where('authShowcase.reviews.0.nama', 'Rina Kurnia')
+                    ->where('authShowcase.reviews.0.komentar', 'Enak dan porsinya pas.')
+                    ->where('authShowcase.reviews.0.menu', 'Nasi Goreng Test')
+                    ->where('authShowcase.reviews.0.terverifikasi', true)
+                );
+        }
+    }
+
     public function test_user_dengan_pesanan_selesai_bisa_mengirim_ulasan(): void
     {
         $user = User::factory()->create(['role' => 'user']);
