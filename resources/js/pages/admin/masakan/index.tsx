@@ -268,19 +268,21 @@ export default function MasakanIndex({
                     </Button>
                 </div>
 
-                {/* Tabel Daftar Masakan (layar sedang ke atas) */}
-                <div className="hidden overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm md:block dark:border-gray-800 dark:bg-neutral-900">
+                {/* Tabel Daftar Masakan (layar besar) */}
+                <div className="hidden overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm xl:block dark:border-gray-800 dark:bg-neutral-900">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-sm">
                             <thead className="border-b border-gray-200 bg-gray-50 text-gray-700 dark:border-gray-800 dark:bg-neutral-800/50 dark:text-gray-300">
                                 <tr>
-                                    <th className="px-6 py-4">Menu</th>
-                                    <th className="px-6 py-4">Kategori</th>
-                                    <th className="px-6 py-4">Harga</th>
-                                    <th className="px-6 py-4">Porsi Siap</th>
-                                    <th className="px-6 py-4">Resep</th>
-                                    <th className="px-6 py-4">Status</th>
-                                    <th className="px-6 py-4 text-right">
+                                    <th className="px-3 py-3">Menu</th>
+                                    <th className="px-3 py-3">Kategori</th>
+                                    <th className="px-3 py-3">Harga</th>
+                                    <th className="px-3 py-3">Porsi Siap</th>
+                                    <th className="hidden px-3 py-3 2xl:table-cell">
+                                        Resep
+                                    </th>
+                                    <th className="px-3 py-3">Status</th>
+                                    <th className="px-3 py-3 text-right">
                                         Aksi
                                     </th>
                                 </tr>
@@ -302,7 +304,7 @@ export default function MasakanIndex({
                                             key={item.id}
                                             className="transition hover:bg-gray-50/50 dark:hover:bg-neutral-800/30"
                                         >
-                                            <td className="px-6 py-4">
+                                            <td className="px-3 py-3">
                                                 <div className="flex items-center gap-3">
                                                     {item.foto_url ? (
                                                         <img
@@ -326,16 +328,16 @@ export default function MasakanIndex({
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4">
+                                            <td className="px-3 py-3">
                                                 <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300">
                                                     {item.kategori?.icon}{' '}
                                                     {item.kategori?.nama || '-'}
                                                 </span>
                                             </td>
-                                            <td className="px-6 py-4 font-semibold text-emerald-600">
+                                            <td className="px-3 py-3 font-semibold text-emerald-600">
                                                 {item.harga_format}
                                             </td>
-                                            <td className="px-6 py-4">
+                                            <td className="px-3 py-3">
                                                 <div className="flex flex-col">
                                                     <span className="font-semibold text-gray-900 dark:text-white">
                                                         {item.jumlah_porsi}{' '}
@@ -351,14 +353,14 @@ export default function MasakanIndex({
                                                     )}
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4">
+                                            <td className="hidden px-3 py-3 2xl:table-cell">
                                                 <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300">
                                                     {item.resep_items?.length ||
                                                         0}{' '}
                                                     bahan
                                                 </span>
                                             </td>
-                                            <td className="px-6 py-4">
+                                            <td className="px-3 py-3">
                                                 <span
                                                     className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${
                                                         item.tersedia
@@ -371,7 +373,7 @@ export default function MasakanIndex({
                                                         : 'Habis'}
                                                 </span>
                                             </td>
-                                            <td className="px-6 py-4 text-right">
+                                            <td className="px-3 py-3 text-right">
                                                 <div className="flex items-center justify-end gap-2">
                                                     <Button
                                                         variant="outline"
@@ -417,8 +419,8 @@ export default function MasakanIndex({
                     </div>
                 </div>
 
-                {/* Kartu Daftar Masakan (mobile) */}
-                <div className="space-y-3 md:hidden">
+                {/* Kartu Daftar Masakan (mobile & tablet) */}
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:hidden">
                     {masakans.length === 0 ? (
                         <div className="rounded-xl border border-dashed border-gray-200 bg-white p-8 text-center text-sm text-gray-400 dark:border-gray-700 dark:bg-neutral-900">
                             Belum ada menu masakan. Silakan klik tombol "Tambah

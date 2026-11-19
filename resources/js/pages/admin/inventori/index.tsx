@@ -161,8 +161,8 @@ export default function InventoriIndex({ bahanBakus, stats }: Props) {
                     ))}
                 </div>
 
-                {/* Tabel Bahan Baku (layar sedang ke atas) */}
-                <div className="hidden overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm md:block dark:border-gray-800 dark:bg-neutral-900">
+                {/* Tabel Bahan Baku (layar besar) */}
+                <div className="hidden overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm xl:block dark:border-gray-800 dark:bg-neutral-900">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-sm">
                             <thead className="border-b border-gray-200 bg-gray-50 text-gray-700 dark:border-gray-800 dark:bg-neutral-800/50 dark:text-gray-300">
@@ -269,8 +269,8 @@ export default function InventoriIndex({ bahanBakus, stats }: Props) {
                     </div>
                 </div>
 
-                {/* Kartu Bahan Baku (mobile) */}
-                <div className="space-y-3 md:hidden">
+                {/* Kartu Bahan Baku (mobile & tablet) */}
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:hidden">
                     {bahanBakus.length === 0 ? (
                         <div className="rounded-xl border border-dashed border-gray-200 bg-white p-8 text-center text-sm text-gray-400 dark:border-gray-700 dark:bg-neutral-900">
                             Belum ada bahan baku. Klik "Tambah Bahan" untuk
