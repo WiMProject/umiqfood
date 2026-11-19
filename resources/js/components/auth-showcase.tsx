@@ -43,22 +43,22 @@ const TONE = {
         starOff: 'text-muted-foreground/30',
     },
     ghost: {
-        accent: 'text-emerald-700/30 dark:text-emerald-300/30',
-        heading: 'text-emerald-950/30 dark:text-emerald-50/25',
-        muted: 'text-emerald-950/25 dark:text-emerald-50/20',
+        accent: 'text-emerald-700/55 dark:text-emerald-300/50',
+        heading: 'text-emerald-950/55 dark:text-emerald-50/45',
+        muted: 'text-emerald-950/45 dark:text-emerald-50/35',
         menuCard:
-            'border-emerald-900/10 bg-emerald-600/5 text-emerald-950/50 dark:border-emerald-100/10 dark:bg-emerald-300/5 dark:text-emerald-50/40',
+            'border-emerald-700/20 bg-emerald-600/10 text-emerald-950/70 dark:border-emerald-100/15 dark:bg-emerald-300/10 dark:text-emerald-50/60',
         menuIcon:
-            'bg-emerald-600/10 text-emerald-900/50 ring-1 ring-emerald-900/5 dark:bg-emerald-300/10 dark:text-emerald-50/40 dark:ring-emerald-100/5',
+            'bg-emerald-600/15 text-emerald-900/70 ring-1 ring-emerald-700/10 dark:bg-emerald-300/15 dark:text-emerald-50/60 dark:ring-emerald-100/10',
         category:
-            'bg-emerald-600/10 text-emerald-900/50 dark:bg-emerald-300/10 dark:text-emerald-50/40',
-        price: 'text-emerald-900/60 dark:text-emerald-100/50',
+            'bg-emerald-600/15 text-emerald-900/70 dark:bg-emerald-300/15 dark:text-emerald-50/60',
+        price: 'text-emerald-900/80 dark:text-emerald-100/70',
         reviewCard:
-            'border-emerald-900/10 bg-emerald-600/5 text-emerald-950/50 dark:border-emerald-100/10 dark:bg-emerald-300/5 dark:text-emerald-50/40',
-        reviewText: 'text-emerald-950/50 dark:text-emerald-50/40',
-        reviewName: 'text-emerald-950/60 dark:text-emerald-50/50',
-        starOn: 'fill-amber-500/50 text-amber-500/50 dark:fill-amber-300/40 dark:text-amber-300/40',
-        starOff: 'text-emerald-900/15 dark:text-emerald-50/10',
+            'border-emerald-700/20 bg-emerald-600/10 text-emerald-950/70 dark:border-emerald-100/15 dark:bg-emerald-300/10 dark:text-emerald-50/60',
+        reviewText: 'text-emerald-950/70 dark:text-emerald-50/60',
+        reviewName: 'text-emerald-950/80 dark:text-emerald-50/70',
+        starOn: 'fill-amber-500/70 text-amber-500/70 dark:fill-amber-300/60 dark:text-amber-300/60',
+        starOff: 'text-emerald-900/20 dark:text-emerald-50/15',
     },
 } as const;
 
@@ -314,7 +314,7 @@ export function AuthShowcaseBackdrop({
             aria-hidden="true"
             className="pointer-events-none absolute inset-0 z-0 overflow-hidden lg:hidden"
         >
-            <div className="absolute -top-16 -left-12 w-[140%] -rotate-2 [mask-image:linear-gradient(to_bottom,black_0%,black_35%,transparent_75%)] opacity-40">
+            <div className="absolute -top-16 -left-12 w-[140%] -rotate-2 [mask-image:linear-gradient(to_bottom,black_0%,black_45%,transparent_85%)] opacity-70">
                 <InfiniteMovingCards
                     items={menus}
                     renderItem={(menu) => <MenuCard menu={menu} tone="ghost" />}
@@ -324,7 +324,7 @@ export function AuthShowcaseBackdrop({
                 />
             </div>
 
-            <div className="absolute -right-12 -bottom-20 w-[140%] rotate-2 [mask-image:linear-gradient(to_top,black_0%,black_30%,transparent_70%)] opacity-30">
+            <div className="absolute -right-12 -bottom-14 w-[140%] rotate-2 [mask-image:linear-gradient(to_top,black_0%,black_40%,transparent_80%)] opacity-55">
                 <InfiniteMovingCards
                     items={reviews}
                     renderItem={(review) => (

@@ -36,6 +36,7 @@ import {
     HeroParallax,
     type HeroParallaxProduct,
 } from '@/components/ui/hero-parallax';
+import { InfiniteMovingCards } from '@/components/ui/infinite-moving-cards';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -416,6 +417,40 @@ function inisialNama(nama: string): string {
     );
 }
 
+function TestimoniCard({ ulasan }: { ulasan: Testimoni }) {
+    return (
+        <Card className="flex h-[198px] w-[300px] flex-col gap-3 border-border/70 p-5 shadow-sm sm:w-[340px]">
+            <div className="flex items-center justify-between gap-2">
+                <RatingStars value={ulasan.rating} size="md" />
+                <span className="max-w-[55%] truncate text-[11px] text-muted-foreground">
+                    {ulasan.menu}
+                </span>
+            </div>
+            <p className="line-clamp-3 text-sm leading-relaxed text-muted-foreground">
+                “{ulasan.isi}”
+            </p>
+            <div className="mt-auto flex items-center gap-3">
+                <Avatar className="size-10">
+                    <AvatarFallback className="bg-emerald-100 text-xs font-semibold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
+                        {ulasan.inisial}
+                    </AvatarFallback>
+                </Avatar>
+                <div className="min-w-0">
+                    <p className="flex items-center gap-1 text-sm font-semibold">
+                        <span className="truncate">{ulasan.nama}</span>
+                        {ulasan.terverifikasi && (
+                            <BadgeCheck className="size-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                        )}
+                    </p>
+                    <p className="truncate text-xs text-muted-foreground">
+                        {ulasan.peran}
+                    </p>
+                </div>
+            </div>
+        </Card>
+    );
+}
+
 export default function Welcome() {
     const { auth, masakans, kategoris } = usePage<{
         auth: { user: AuthUser | null };
@@ -473,7 +508,7 @@ export default function Welcome() {
                     new Date(b.ulasan.created_at).getTime() -
                     new Date(a.ulasan.created_at).getTime(),
             )
-            .slice(0, 3)
+            .slice(0, 12)
             .map(({ ulasan, menu }) => ({
                 nama: ulasan.nama,
                 peran: ulasan.terverifikasi
@@ -486,9 +521,7 @@ export default function Welcome() {
                 terverifikasi: ulasan.terverifikasi,
             }));
 
-        const cadangan = TESTIMONI.slice(0, Math.max(0, 3 - dariUlasan.length));
-
-        return [...dariUlasan, ...cadangan];
+        return dariUlasan.length > 0 ? dariUlasan : TESTIMONI;
     }, [masakans]);
 
     const hasilFilter = useMemo(() => {
@@ -1461,47 +1494,16 @@ export default function Welcome() {
                             align="center"
                         />
 
-                        <div className="mt-8 grid gap-4 md:grid-cols-3">
-                            {testimoni.map((ulasan) => (
-                                <Card
-                                    key={`${ulasan.nama}-${ulasan.menu}`}
-                                    className="gap-4 p-6"
-                                >
-                                    <div className="flex items-center justify-between gap-2">
-                                        <RatingStars
-                                            value={ulasan.rating}
-                                            size="md"
-                                        />
-                                        <span className="max-w-[55%] truncate text-[11px] text-muted-foreground">
-                                            {ulasan.menu}
-                                        </span>
-                                    </div>
-                                    <p className="text-sm leading-relaxed text-muted-foreground">
-                                        “{ulasan.isi}”
-                                    </p>
-                                    <div className="mt-auto flex items-center gap-3">
-                                        <Avatar className="size-10">
-                                            <AvatarFallback className="bg-emerald-100 text-xs font-semibold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
-                                                {ulasan.inisial}
-                                            </AvatarFallback>
-                                        </Avatar>
-                                        <div className="min-w-0">
-                                            <p className="flex items-center gap-1 text-sm font-semibold">
-                                                <span className="truncate">
-                                                    {ulasan.nama}
-                                                </span>
-                                                {ulasan.terverifikasi && (
-                                                    <BadgeCheck className="size-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
-                                                )}
-                                            </p>
-                                            <p className="truncate text-xs text-muted-foreground">
-                                                {ulasan.peran}
-                                            </p>
-                                        </div>
-                                    </div>
-                                </Card>
-                            ))}
-                        </div>
+                        <InfiniteMovingCards
+                            items={testimoni}
+                            renderItem={(ulasan) => (
+                                <TestimoniCard ulasan={ulasan} />
+                            )}
+                            direction="left"
+                            speed="slow"
+                            ariaLabel="Ulasan pelanggan UmiqFood"
+                            className="mt-8"
+                        />
                     </div>
                 </section>
 
