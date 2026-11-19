@@ -119,6 +119,97 @@ function formatRupiahSingkat(value: number): string {
     return `Rp ${value}`;
 }
 
+function formatTanggalPendek(tanggal: string): string {
+    return new Intl.DateTimeFormat('id-ID', {
+        day: 'numeric',
+        month: 'short',
+    }).format(new Date(`${tanggal}T00:00:00`));
+}
+
+function MobileRevenueList({ data }: { data: TrenPendapatan[] }) {
+    const maksimum = Math.max(...data.map((item) => item.pendapatan), 1);
+
+    return (
+        <div className="space-y-2.5 sm:hidden">
+            {data.map((item) => (
+                <div
+                    key={item.tanggal}
+                    className="rounded-xl border border-border/70 bg-muted/20 px-3 py-2.5"
+                >
+                    <div className="flex items-baseline justify-between gap-3">
+                        <p className="text-xs font-semibold">
+                            {item.label}{' '}
+                            <span className="font-normal text-muted-foreground">
+                                · {formatTanggalPendek(item.tanggal)}
+                            </span>
+                        </p>
+                        <p
+                            className={`shrink-0 text-xs font-bold ${
+                                item.pendapatan > 0
+                                    ? 'text-emerald-600 dark:text-emerald-400'
+                                    : 'text-muted-foreground'
+                            }`}
+                        >
+                            {item.pendapatan > 0
+                                ? formatRupiah(item.pendapatan)
+                                : 'Rp 0'}
+                        </p>
+                    </div>
+                    <div className="mt-2 h-2 overflow-hidden rounded-full bg-emerald-500/10">
+                        <div
+                            aria-hidden="true"
+                            className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-emerald-600 transition-[width] duration-300"
+                            style={{
+                                width: `${Math.max(
+                                    (item.pendapatan / maksimum) * 100,
+                                    item.pendapatan > 0 ? 8 : 0,
+                                )}%`,
+                            }}
+                        />
+                    </div>
+                    <p className="mt-1 text-[10px] text-muted-foreground">
+                        {item.transaksi} transaksi
+                    </p>
+                </div>
+            ))}
+        </div>
+    );
+}
+
+function MobileCategoryList({
+    data,
+}: {
+    data: { nama: string; menu: number }[];
+}) {
+    const maksimum = Math.max(...data.map((item) => item.menu), 1);
+
+    return (
+        <div className="space-y-3 sm:hidden">
+            {data.map((item) => (
+                <div key={item.nama}>
+                    <div className="flex items-baseline justify-between gap-3">
+                        <p className="min-w-0 truncate text-xs font-semibold">
+                            {item.nama}
+                        </p>
+                        <p className="shrink-0 text-xs font-bold text-teal-600 dark:text-teal-400">
+                            {item.menu} menu
+                        </p>
+                    </div>
+                    <div className="mt-1.5 h-2.5 overflow-hidden rounded-full bg-teal-500/10">
+                        <div
+                            aria-hidden="true"
+                            className="h-full rounded-full bg-gradient-to-r from-teal-400 to-emerald-500 transition-[width] duration-300"
+                            style={{
+                                width: `${(item.menu / maksimum) * 100}%`,
+                            }}
+                        />
+                    </div>
+                </div>
+            ))}
+        </div>
+    );
+}
+
 function StatCard({
     label,
     value,
@@ -588,91 +679,95 @@ export default function Dashboard({
                             </Badge>
                         </div>
 
-                        {totalTren === 0 ? (
-                            <div className="flex h-56 flex-col items-center justify-center gap-2 rounded-xl border border-dashed text-center sm:h-64">
-                                <Coins className="size-6 text-muted-foreground" />
-                                <p className="text-sm font-medium">
-                                    Belum ada pembayaran lunas
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                    Data akan muncul setelah pembayaran
-                                    divalidasi.
-                                </p>
-                            </div>
-                        ) : (
-                            <ChartContainer
-                                config={chartPendapatanConfig}
-                                className="h-56 w-full sm:h-64"
-                            >
-                                <BarChart
-                                    data={trenPendapatan}
-                                    margin={{
-                                        top: 8,
-                                        right: 4,
-                                        left: -8,
-                                        bottom: 0,
-                                    }}
+                        <MobileRevenueList data={trenPendapatan} />
+
+                        <div className="hidden sm:block">
+                            {totalTren === 0 ? (
+                                <div className="flex h-64 flex-col items-center justify-center gap-2 rounded-xl border border-dashed text-center">
+                                    <Coins className="size-6 text-muted-foreground" />
+                                    <p className="text-sm font-medium">
+                                        Belum ada pembayaran lunas
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">
+                                        Data akan muncul setelah pembayaran
+                                        divalidasi.
+                                    </p>
+                                </div>
+                            ) : (
+                                <ChartContainer
+                                    config={chartPendapatanConfig}
+                                    className="h-64 w-full"
                                 >
-                                    <defs>
-                                        <linearGradient
-                                            id="pendapatan-fill"
-                                            x1="0"
-                                            y1="0"
-                                            x2="0"
-                                            y2="1"
-                                        >
-                                            <stop
-                                                offset="0%"
-                                                stopColor="#34d399"
-                                                stopOpacity={1}
-                                            />
-                                            <stop
-                                                offset="100%"
-                                                stopColor="#059669"
-                                                stopOpacity={0.65}
-                                            />
-                                        </linearGradient>
-                                    </defs>
-                                    <CartesianGrid
-                                        vertical={false}
-                                        strokeDasharray="3 3"
-                                    />
-                                    <XAxis
-                                        dataKey="label"
-                                        tickLine={false}
-                                        axisLine={false}
-                                        fontSize={11}
-                                    />
-                                    <YAxis
-                                        width={58}
-                                        tickLine={false}
-                                        axisLine={false}
-                                        fontSize={10}
-                                        tickFormatter={(value: number) =>
-                                            formatRupiahSingkat(value)
-                                        }
-                                    />
-                                    <ChartTooltip
-                                        cursor={false}
-                                        content={
-                                            <ChartTooltipContent
-                                                formatter={(value) =>
-                                                    formatRupiah(
-                                                        Number(value ?? 0),
-                                                    )
-                                                }
-                                            />
-                                        }
-                                    />
-                                    <Bar
-                                        dataKey="pendapatan"
-                                        fill="url(#pendapatan-fill)"
-                                        radius={[8, 8, 0, 0]}
-                                        maxBarSize={56}
-                                    />
-                                </BarChart>
-                            </ChartContainer>
-                        )}
+                                    <BarChart
+                                        data={trenPendapatan}
+                                        margin={{
+                                            top: 8,
+                                            right: 4,
+                                            left: -8,
+                                            bottom: 0,
+                                        }}
+                                    >
+                                        <defs>
+                                            <linearGradient
+                                                id="pendapatan-fill"
+                                                x1="0"
+                                                y1="0"
+                                                x2="0"
+                                                y2="1"
+                                            >
+                                                <stop
+                                                    offset="0%"
+                                                    stopColor="#34d399"
+                                                    stopOpacity={1}
+                                                />
+                                                <stop
+                                                    offset="100%"
+                                                    stopColor="#059669"
+                                                    stopOpacity={0.65}
+                                                />
+                                            </linearGradient>
+                                        </defs>
+                                        <CartesianGrid
+                                            vertical={false}
+                                            strokeDasharray="3 3"
+                                        />
+                                        <XAxis
+                                            dataKey="label"
+                                            tickLine={false}
+                                            axisLine={false}
+                                            fontSize={11}
+                                        />
+                                        <YAxis
+                                            width={58}
+                                            tickLine={false}
+                                            axisLine={false}
+                                            fontSize={10}
+                                            tickFormatter={(value: number) =>
+                                                formatRupiahSingkat(value)
+                                            }
+                                        />
+                                        <ChartTooltip
+                                            cursor={false}
+                                            content={
+                                                <ChartTooltipContent
+                                                    formatter={(value) =>
+                                                        formatRupiah(
+                                                            Number(value ?? 0),
+                                                        )
+                                                    }
+                                                />
+                                            }
+                                        />
+                                        <Bar
+                                            dataKey="pendapatan"
+                                            fill="url(#pendapatan-fill)"
+                                            radius={[8, 8, 0, 0]}
+                                            maxBarSize={56}
+                                        />
+                                    </BarChart>
+                                </ChartContainer>
+                            )}
+                        </div>
 
                         <p className="mt-3 text-[11px] text-muted-foreground">
                             Total pendapatan tercatat:{' '}
@@ -699,72 +794,82 @@ export default function Dashboard({
                         </div>
 
                         {menuPerKategori.length === 0 ? (
-                            <p className="py-10 text-center text-sm text-muted-foreground">
+                            <p className="py-10 text-center text-sm text-muted-foreground sm:hidden">
                                 Belum ada menu untuk ditampilkan.
                             </p>
                         ) : (
-                            <ChartContainer
-                                config={chartKategoriConfig}
-                                className="h-56 w-full sm:h-64"
-                            >
-                                <BarChart
-                                    data={menuPerKategori}
-                                    layout="vertical"
-                                    margin={{
-                                        top: 4,
-                                        right: 16,
-                                        left: 0,
-                                        bottom: 4,
-                                    }}
-                                >
-                                    <defs>
-                                        <linearGradient
-                                            id="kategori-fill"
-                                            x1="0"
-                                            y1="0"
-                                            x2="1"
-                                            y2="0"
-                                        >
-                                            <stop
-                                                offset="0%"
-                                                stopColor="#14b8a6"
-                                                stopOpacity={0.75}
-                                            />
-                                            <stop
-                                                offset="100%"
-                                                stopColor="#10b981"
-                                                stopOpacity={1}
-                                            />
-                                        </linearGradient>
-                                    </defs>
-                                    <CartesianGrid
-                                        horizontal={false}
-                                        strokeDasharray="3 3"
-                                    />
-                                    <XAxis type="number" hide />
-                                    <YAxis
-                                        type="category"
-                                        dataKey="nama"
-                                        width={98}
-                                        tickLine={false}
-                                        axisLine={false}
-                                        fontSize={11}
-                                    />
-                                    <ChartTooltip
-                                        cursor={false}
-                                        content={
-                                            <ChartTooltipContent nameKey="menu" />
-                                        }
-                                    />
-                                    <Bar
-                                        dataKey="menu"
-                                        fill="url(#kategori-fill)"
-                                        radius={[0, 6, 6, 0]}
-                                        barSize={18}
-                                    />
-                                </BarChart>
-                            </ChartContainer>
+                            <MobileCategoryList data={menuPerKategori} />
                         )}
+
+                        <div className="hidden sm:block">
+                            {menuPerKategori.length === 0 ? (
+                                <p className="py-10 text-center text-sm text-muted-foreground">
+                                    Belum ada menu untuk ditampilkan.
+                                </p>
+                            ) : (
+                                <ChartContainer
+                                    config={chartKategoriConfig}
+                                    className="h-64 w-full"
+                                >
+                                    <BarChart
+                                        data={menuPerKategori}
+                                        layout="vertical"
+                                        margin={{
+                                            top: 4,
+                                            right: 16,
+                                            left: 0,
+                                            bottom: 4,
+                                        }}
+                                    >
+                                        <defs>
+                                            <linearGradient
+                                                id="kategori-fill"
+                                                x1="0"
+                                                y1="0"
+                                                x2="1"
+                                                y2="0"
+                                            >
+                                                <stop
+                                                    offset="0%"
+                                                    stopColor="#14b8a6"
+                                                    stopOpacity={0.75}
+                                                />
+                                                <stop
+                                                    offset="100%"
+                                                    stopColor="#10b981"
+                                                    stopOpacity={1}
+                                                />
+                                            </linearGradient>
+                                        </defs>
+                                        <CartesianGrid
+                                            horizontal={false}
+                                            strokeDasharray="3 3"
+                                        />
+                                        <XAxis type="number" hide />
+                                        <YAxis
+                                            type="category"
+                                            dataKey="nama"
+                                            width={98}
+                                            tickLine={false}
+                                            axisLine={false}
+                                            fontSize={11}
+                                        />
+                                        <ChartTooltip
+                                            cursor={false}
+                                            content={
+                                                <ChartTooltipContent nameKey="menu" />
+                                            }
+                                        />
+                                        <Bar
+                                            dataKey="menu"
+                                            fill="url(#kategori-fill)"
+                                            radius={[0, 6, 6, 0]}
+                                            barSize={18}
+                                        />
+                                    </BarChart>
+                                </ChartContainer>
+                            )}
+                        </div>
                     </Card>
                 </div>
 

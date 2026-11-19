@@ -98,7 +98,7 @@ export default function InventoriIndex({ bahanBakus, stats }: Props) {
         <>
             <Head title="Inventori Bahan Baku" />
 
-            <div className="flex flex-col gap-6 p-6">
+            <div className="flex flex-col gap-6 p-4 sm:p-6">
                 {/* Header */}
                 <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
                     <div>
@@ -161,8 +161,8 @@ export default function InventoriIndex({ bahanBakus, stats }: Props) {
                     ))}
                 </div>
 
-                {/* Tabel Bahan Baku */}
-                <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-neutral-900">
+                {/* Tabel Bahan Baku (layar sedang ke atas) */}
+                <div className="hidden overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm md:block dark:border-gray-800 dark:bg-neutral-900">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-sm">
                             <thead className="border-b border-gray-200 bg-gray-50 text-gray-700 dark:border-gray-800 dark:bg-neutral-800/50 dark:text-gray-300">
@@ -267,6 +267,94 @@ export default function InventoriIndex({ bahanBakus, stats }: Props) {
                             </tbody>
                         </table>
                     </div>
+                </div>
+
+                {/* Kartu Bahan Baku (mobile) */}
+                <div className="space-y-3 md:hidden">
+                    {bahanBakus.length === 0 ? (
+                        <div className="rounded-xl border border-dashed border-gray-200 bg-white p-8 text-center text-sm text-gray-400 dark:border-gray-700 dark:bg-neutral-900">
+                            Belum ada bahan baku. Klik "Tambah Bahan" untuk
+                            mulai mencatat inventori.
+                        </div>
+                    ) : (
+                        bahanBakus.map((item) => (
+                            <div
+                                key={item.id}
+                                className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-neutral-900"
+                            >
+                                <div className="flex items-start justify-between gap-3">
+                                    <div className="min-w-0">
+                                        <p className="truncate font-semibold text-gray-900 dark:text-white">
+                                            {item.nama}
+                                        </p>
+                                        <p className="mt-0.5 text-xs text-gray-400">
+                                            Dipakai di {item.resep_items_count}{' '}
+                                            menu
+                                        </p>
+                                    </div>
+                                    {item.stok <= 0 ? (
+                                        <span className="shrink-0 rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-medium text-red-700 dark:bg-red-950 dark:text-red-300">
+                                            Habis
+                                        </span>
+                                    ) : item.stok_menipis ? (
+                                        <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-700 dark:bg-amber-950 dark:text-amber-300">
+                                            <AlertTriangle className="h-3 w-3" />{' '}
+                                            Menipis
+                                        </span>
+                                    ) : (
+                                        <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-medium text-green-700 dark:bg-green-950 dark:text-green-300">
+                                            <PackageCheck className="h-3 w-3" />{' '}
+                                            Aman
+                                        </span>
+                                    )}
+                                </div>
+
+                                <div className="mt-3 grid grid-cols-2 gap-3 rounded-lg bg-gray-50 p-2.5 dark:bg-neutral-800/50">
+                                    <div>
+                                        <p className="text-[10px] font-medium tracking-wide text-gray-400 uppercase">
+                                            Stok
+                                        </p>
+                                        <p className="mt-0.5 font-semibold text-gray-900 dark:text-white">
+                                            {formatAngka(item.stok)}{' '}
+                                            <span className="text-xs font-normal text-gray-400">
+                                                {item.satuan}
+                                            </span>
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] font-medium tracking-wide text-gray-400 uppercase">
+                                            Stok minimum
+                                        </p>
+                                        <p className="mt-0.5 font-semibold text-gray-900 dark:text-white">
+                                            {formatAngka(item.stok_minimum)}{' '}
+                                            <span className="text-xs font-normal text-gray-400">
+                                                {item.satuan}
+                                            </span>
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="mt-3 grid grid-cols-2 gap-2">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => openEditModal(item)}
+                                        className="h-9 justify-center gap-1 px-2 text-xs text-gray-600 dark:text-gray-300"
+                                    >
+                                        <Pencil className="h-3.5 w-3.5" /> Edit
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handleDelete(item.id)}
+                                        className="h-9 justify-center gap-1 border-red-200 px-2 text-xs text-red-600 hover:bg-red-50 hover:text-red-700"
+                                    >
+                                        <Trash2 className="h-3.5 w-3.5" /> Hapus
+                                    </Button>
+                                </div>
+                            </div>
+                        ))
+                    )}
                 </div>
             </div>
 
