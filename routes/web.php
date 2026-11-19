@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\PesananController as AdminPesananController;
 use App\Http\Controllers\BahanBakuController;
 use App\Http\Controllers\CheckoutController;
@@ -8,13 +9,7 @@ use App\Http\Controllers\KeranjangController;
 use App\Http\Controllers\MasakanController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\UserDashboardController;
-use App\Models\BahanBaku;
-use App\Models\Kategori;
-use App\Models\Masakan;
-use App\Models\Order;
-use App\Models\Payment;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
 // Halaman depan (bisa diakses tanpa login)
 Route::get('/', [HomeController::class, 'welcome'])->name('welcome');
@@ -42,23 +37,8 @@ Route::middleware(['auth', 'verified', 'role:user'])->group(function () {
 
 // Rute untuk admin
 Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
-    Route::get('/dashboard', function () {
-        return Inertia::render('dashboard', [
-            'stats' => [
-                'totalMenu' => Masakan::count(),
-                'tersedia' => Masakan::where('tersedia', true)->count(),
-                'habis' => Masakan::where('tersedia', false)->count(),
-                'totalKategori' => Kategori::count(),
-                'totalBahan' => BahanBaku::count(),
-                'stokKritis' => BahanBaku::whereColumn('stok', '<=', 'stok_minimum')->count(),
-                'pesananAktif' => Order::whereIn('status', ['menunggu', 'dimasak', 'siap'])->count(),
-                'pendapatanHariIni' => (int) Payment::where('status', 'berhasil')
-                    ->whereHas('order', fn ($query) => $query->whereDate('tanggal', now()->toDateString()))
-                    ->sum('jumlah'),
-            ],
-            'masakans' => Masakan::with('kategori')->latest()->take(5)->get(),
-        ]);
-    })->name('dashboard');
+    Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+    Route::post('/dashboard/qris', [AdminDashboardController::class, 'uploadQris'])->name('admin.dashboard.qris');
 
     // Rute CRUD Masakan + aksi masak
     Route::resource('masakan', MasakanController::class)->except(['create', 'show', 'edit']);
@@ -71,6 +51,7 @@ Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
     // Pesanan pickup
     Route::get('/pesanan', [AdminPesananController::class, 'index'])->name('admin.pesanan.index');
     Route::patch('/pesanan/{order}/status', [AdminPesananController::class, 'updateStatus'])->name('admin.pesanan.status');
+    Route::patch('/pesanan/{order}/bayar', [AdminPesananController::class, 'konfirmasiPembayaran'])->name('admin.pesanan.bayar');
 });
 
 require __DIR__.'/settings.php';

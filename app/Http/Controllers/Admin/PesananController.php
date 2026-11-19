@@ -42,13 +42,28 @@ class PesananController extends Controller
                     ->count(),
                 'pendapatanHariIni' => (int) Payment::query()
                     ->where('status', Payment::STATUS_BERHASIL)
-                    ->whereHas('order', fn ($query) => $query->whereDate('tanggal', $hariIni))
+                    ->whereDate('dibayar_at', $hariIni)
                     ->sum('jumlah'),
                 'antrianTerakhir' => (int) Order::query()
                     ->whereDate('tanggal', $hariIni)
                     ->max('nomor_antrian'),
             ],
         ]);
+    }
+
+    /**
+     * Validasi pembayaran pesanan setelah admin mengecek kasir.
+     */
+    public function konfirmasiPembayaran(Order $order): RedirectResponse
+    {
+        $order = $this->orderService->confirmPayment($order);
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => "Pembayaran {$order->antrian_format} ditandai lunas.",
+        ]);
+
+        return back();
     }
 
     /**

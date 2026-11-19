@@ -202,6 +202,37 @@ class PesananTest extends TestCase
             ->assertRedirect(route('home'));
     }
 
+    public function test_admin_bisa_menandai_pembayaran_sebagai_lunas(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $user = User::factory()->create(['role' => 'user']);
+        $masakan = $this->buatMasakan(jumlahPorsi: 5);
+        $order = $this->buatPesananUntuk($user, $masakan, 1);
+
+        $this->actingAs($admin)
+            ->patch(route('admin.pesanan.bayar', $order))
+            ->assertRedirect();
+
+        $order->refresh();
+
+        $this->assertSame(Payment::STATUS_BERHASIL, $order->payment->status);
+        $this->assertNotNull($order->payment->dibayar_at);
+        $this->assertSame(Order::STATUS_MENUNGGU, $order->status);
+    }
+
+    public function test_user_biasa_tidak_bisa_menandai_pembayaran_lunas(): void
+    {
+        $user = User::factory()->create(['role' => 'user']);
+        $masakan = $this->buatMasakan(jumlahPorsi: 5);
+        $order = $this->buatPesananUntuk($user, $masakan, 1);
+
+        $this->actingAs($user)
+            ->patch(route('admin.pesanan.bayar', $order))
+            ->assertRedirect(route('home'));
+
+        $this->assertSame(Payment::STATUS_MENUNGGU, $order->payment->fresh()->status);
+    }
+
     public function test_user_bisa_membuka_dashboard_dan_melihat_data_pesanan(): void
     {
         $user = User::factory()->create(['role' => 'user']);

@@ -208,6 +208,35 @@ class OrderService
     }
 
     /**
+     * Tandai pembayaran pesanan sebagai lunas setelah dicek admin.
+     */
+    public function confirmPayment(Order $order): Order
+    {
+        return DB::transaction(function () use ($order) {
+            $order = Order::query()->lockForUpdate()->findOrFail($order->id);
+
+            if ($order->status === Order::STATUS_DIBATALKAN) {
+                throw ValidationException::withMessages([
+                    'pembayaran' => 'Pesanan yang sudah dibatalkan tidak bisa dibayar.',
+                ]);
+            }
+
+            $order->payment()->updateOrCreate(
+                ['order_id' => $order->id],
+                [
+                    'kode' => 'PAY-'.$order->kode,
+                    'metode' => $order->metode_pembayaran,
+                    'jumlah' => $order->total,
+                    'status' => Payment::STATUS_BERHASIL,
+                    'dibayar_at' => Carbon::now(),
+                ],
+            );
+
+            return $order->load(['items', 'payment', 'user']);
+        });
+    }
+
+    /**
      * Kembalikan jumlah porsi menu dari item pesanan yang dibatalkan.
      */
     private function restorePortions(Order $order): void
