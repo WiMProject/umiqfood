@@ -1,5 +1,7 @@
 import { Form, Head } from '@inertiajs/react';
+import { ArrowRight, LockKeyhole, Mail } from 'lucide-react';
 import InputError from '@/components/input-error';
+import PasskeyVerify from '@/components/passkey-verify';
 import PasswordInput from '@/components/password-input';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
@@ -10,7 +12,6 @@ import { Spinner } from '@/components/ui/spinner';
 import { register } from '@/routes';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
-import PasskeyVerify from '@/components/passkey-verify';
 
 type Props = {
     status?: string;
@@ -20,9 +21,13 @@ type Props = {
 export default function Login({ status, canResetPassword }: Props) {
     return (
         <>
-            <Head title="Log in" />
+            <Head title="Masuk" />
 
-            <PasskeyVerify />
+            {status && (
+                <div className="mb-4 text-center text-sm font-medium text-green-600">
+                    {status}
+                </div>
+            )}
 
             <Form
                 {...store.form()}
@@ -33,17 +38,21 @@ export default function Login({ status, canResetPassword }: Props) {
                     <>
                         <div className="grid gap-6">
                             <div className="grid gap-2">
-                                <Label htmlFor="email">Email address</Label>
-                                <Input
-                                    id="email"
-                                    type="email"
-                                    name="email"
-                                    required
-                                    autoFocus
-                                    tabIndex={1}
-                                    autoComplete="email"
-                                    placeholder="email@example.com"
-                                />
+                                <Label htmlFor="email">Email</Label>
+                                <div className="relative">
+                                    <Mail className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+                                    <Input
+                                        id="email"
+                                        type="email"
+                                        name="email"
+                                        required
+                                        autoFocus
+                                        tabIndex={1}
+                                        autoComplete="email"
+                                        placeholder="nama@email.com"
+                                        className="h-10 rounded-xl pl-10"
+                                    />
+                                </div>
                                 <InputError message={errors.email} />
                             </div>
 
@@ -56,7 +65,7 @@ export default function Login({ status, canResetPassword }: Props) {
                                             className="ml-auto text-sm"
                                             tabIndex={5}
                                         >
-                                            Forgot your password?
+                                            Lupa password?
                                         </TextLink>
                                     )}
                                 </div>
@@ -66,7 +75,9 @@ export default function Login({ status, canResetPassword }: Props) {
                                     required
                                     tabIndex={2}
                                     autoComplete="current-password"
-                                    placeholder="Password"
+                                    placeholder="Masukkan password"
+                                    className="h-10 rounded-xl"
+                                    icon={<LockKeyhole />}
                                 />
                                 <InputError message={errors.password} />
                             </div>
@@ -77,41 +88,48 @@ export default function Login({ status, canResetPassword }: Props) {
                                     name="remember"
                                     tabIndex={3}
                                 />
-                                <Label htmlFor="remember">Remember me</Label>
+                                <Label htmlFor="remember">Ingat saya</Label>
                             </div>
 
                             <Button
                                 type="submit"
-                                className="mt-4 w-full"
+                                className="mt-2 h-10 w-full gap-2 rounded-xl bg-emerald-600 text-white shadow-md shadow-emerald-600/20 hover:bg-emerald-700"
                                 tabIndex={4}
                                 disabled={processing}
                                 data-test="login-button"
                             >
-                                {processing && <Spinner />}
-                                Log in
+                                {processing ? (
+                                    <Spinner />
+                                ) : (
+                                    <ArrowRight className="size-4" />
+                                )}
+                                Masuk dengan password
                             </Button>
-                        </div>
-
-                        <div className="text-center text-sm text-muted-foreground">
-                            Don't have an account?{' '}
-                            <TextLink href={register()} tabIndex={5}>
-                                Sign up
-                            </TextLink>
                         </div>
                     </>
                 )}
             </Form>
 
-            {status && (
-                <div className="mb-4 text-center text-sm font-medium text-green-600">
-                    {status}
-                </div>
-            )}
+            <PasskeyVerify
+                separator="atau masuk dengan passkey"
+                separatorPosition="before"
+                label="Masuk dengan passkey"
+                loadingLabel="Memverifikasi passkey..."
+                hint="Passkey memakai sidik jari, wajah, atau PIN perangkatmu. Tidak perlu mengetik password."
+            />
+
+            <div className="mt-6 text-center text-sm text-muted-foreground">
+                Belum punya akun?{' '}
+                <TextLink href={register()} tabIndex={5}>
+                    Daftar
+                </TextLink>
+            </div>
         </>
     );
 }
 
 Login.layout = {
-    title: 'Log in to your account',
-    description: 'Enter your email and password below to log in',
+    title: 'Masuk ke UmiqFood',
+    description:
+        'Mau masuk pakai password atau passkey? Keduanya bisa, pilih yang paling nyaman.',
 };
