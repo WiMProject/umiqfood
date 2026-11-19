@@ -54,6 +54,41 @@ class UlasanTest extends TestCase
             );
     }
 
+    public function test_landing_publik_menampilkan_ulasan_tanpa_resep_atau_bahan_baku(): void
+    {
+        $masakan = $this->buatMasakan();
+
+        Review::create([
+            'masakan_id' => $masakan->id,
+            'nama' => 'Rina Kurnia',
+            'rating' => 4,
+            'komentar' => 'Enak dan porsinya pas.',
+            'terverifikasi' => true,
+        ]);
+
+        Review::create([
+            'masakan_id' => $masakan->id,
+            'nama' => 'Bagas Pratama',
+            'rating' => 5,
+            'komentar' => 'Mantap, pasti pesan lagi.',
+            'terverifikasi' => true,
+        ]);
+
+        $this->get(route('welcome'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('welcome')
+                ->has('masakans', 1)
+                ->where('masakans.0.jumlah_porsi', 6)
+                ->where('masakans.0.reviews_count', 2)
+                ->has('masakans.0.reviews', 2)
+                ->has('masakans.0.reviews_avg_rating')
+                ->missing('masakans.0.resep_items')
+                ->missing('masakans.0.resepItems')
+                ->missing('masakans.0.bahan_baku')
+            );
+    }
+
     public function test_user_dengan_pesanan_selesai_bisa_mengirim_ulasan(): void
     {
         $user = User::factory()->create(['role' => 'user']);

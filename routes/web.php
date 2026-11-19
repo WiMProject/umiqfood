@@ -17,19 +17,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 // Halaman depan (bisa diakses tanpa login)
-Route::get('/', function () {
-    $masakans = Masakan::with('kategori')
-        ->where('tersedia', true)
-        ->latest()
-        ->take(24)
-        ->get();
-    $kategoris = Kategori::withCount('masakans')->get();
-
-    return Inertia::render('welcome', [
-        'masakans' => $masakans,
-        'kategoris' => $kategoris,
-    ]);
-})->name('welcome');
+Route::get('/', [HomeController::class, 'welcome'])->name('welcome');
 
 // Rute untuk user tetap name('home')
 Route::middleware(['auth', 'verified', 'role:user'])->group(function () {

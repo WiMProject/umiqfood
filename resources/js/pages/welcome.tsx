@@ -3,6 +3,7 @@ import {
     ArrowRight,
     ArrowUpDown,
     ArrowUpRight,
+    BadgeCheck,
     ChefHat,
     Clock,
     Flame,
@@ -10,30 +11,23 @@ import {
     LogOut,
     Megaphone,
     Menu as MenuIcon,
+    Moon,
     Search,
     Settings,
     ShieldCheck,
     ShoppingBag,
     Sparkles,
-    Star,
+    Sun,
     Timer,
     Utensils,
     X,
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { cn } from 'cn';
 
+import { PublicMenuDialog } from '@/components/public-menu-dialog';
+import { RatingStars } from '@/components/rating-stars';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-    AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -42,16 +36,6 @@ import {
     HeroParallax,
     type HeroParallaxProduct,
 } from '@/components/ui/hero-parallax';
-import {
-    Drawer,
-    DrawerClose,
-    DrawerContent,
-    DrawerDescription,
-    DrawerFooter,
-    DrawerHeader,
-    DrawerTitle,
-    DrawerTrigger,
-} from '@/components/ui/drawer';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -85,29 +69,15 @@ import {
     Sheet,
     SheetClose,
     SheetContent,
+    SheetDescription,
+    SheetHeader,
+    SheetTitle,
     SheetTrigger,
 } from '@/components/ui/sheet';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Spinner } from '@/components/ui/spinner';
-import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
-
-interface Kategori {
-    id: number;
-    nama: string;
-    icon?: string;
-    masakans_count?: number;
-}
-
-interface Masakan {
-    id: number;
-    nama: string;
-    deskripsi: string | null;
-    harga: number;
-    harga_format: string;
-    foto_url: string | null;
-    jumlah_porsi: number;
-    kategori?: Kategori;
-}
+import { useAppearance } from '@/hooks/use-appearance';
+import type { Kategori, Masakan } from '@/types';
 
 interface AuthUser {
     name: string;
@@ -131,8 +101,8 @@ const FITUR_HERO = [
     ['Stok terpantau', 'Real-time', 'Sisa porsi selalu jelas.', '📦'],
     ['Resep otomatis', 'Per porsi', 'Bahan dihitung otomatis.', '🧾'],
     ['Bahan terjaga', 'Inventori', 'Stok bahan rapi dan akurat.', '🥬'],
-    ['Gratis ongkir', 'Pesanan pertama', 'Berlaku untuk semua menu.', '🚚'],
-    ['Fresh dimasak', 'Sesuai pesanan', 'Hangat saat sampai.', '🍳'],
+    ['Tanpa ongkir', 'Pickup only', 'Ambil sendiri di outlet.', '🛍️'],
+    ['Fresh dimasak', 'Sesuai pesanan', 'Hangat saat diambil.', '🍳'],
     ['Rasa rumahan', 'Bumbu khas', 'Dimasak dengan resep keluarga.', '💚'],
     ['Menu harian', 'Selalu baru', 'Pilihan berganti tiap hari.', '🍱'],
     ['Higienis', 'Terjaga', 'Proses bersih dan aman.', '🛡️'],
@@ -150,24 +120,40 @@ const OPSI_URUT = [
 
 type Urutan = (typeof OPSI_URUT)[number]['value'];
 
-const TESTIMONI = [
+interface Testimoni {
+    nama: string;
+    peran: string;
+    inisial: string;
+    rating: number;
+    menu: string;
+    isi: string;
+    terverifikasi?: boolean;
+}
+
+const TESTIMONI: Testimoni[] = [
     {
         nama: 'Rina Astuti',
         peran: 'Pelanggan setia',
         inisial: 'RA',
-        isi: 'Masakannya enak-enak dan porsinya pas. Pesannya juga gampang banget, tinggal pilih terus tunggu di rumah.',
+        rating: 5,
+        menu: 'Nasi Goreng Spesial Umiq',
+        isi: 'Masakannya enak dan porsinya pas. Pesannya gampang, tinggal datang ambil saat statusnya sudah siap.',
     },
     {
         nama: 'Dimas Saputra',
         peran: 'Mahasiswa',
         inisial: 'DS',
-        isi: 'Harga ramah kantong, rasa rumahan. Nasi gorengnya jadi langganan tiap akhir pekan.',
+        rating: 5,
+        menu: 'Ayam Geprek Sambal Korek',
+        isi: 'Harga ramah kantong, rasa rumahan. Ambil sendiri di outlet juga cepat, tidak perlu antre lama.',
     },
     {
         nama: 'Nadia Putri',
         peran: 'Karyawan',
         inisial: 'NP',
-        isi: 'Suka karena menunya jelas, ada info sisa porsi. Jadi tahu mana yang masih tersedia.',
+        rating: 4,
+        menu: 'Es Teh Manis Jumbo',
+        isi: 'Suka karena menunya jelas, ada info sisa porsi. Jadi tahu mana yang masih tersedia sebelum pesan.',
     },
 ];
 
@@ -287,163 +273,109 @@ function SectionHeading({
     );
 }
 
-function MenuCard({ item, tujuan }: { item: Masakan; tujuan: string }) {
+function MenuCard({
+    item,
+    onDetail,
+}: {
+    item: Masakan;
+    onDetail: (item: Masakan) => void;
+}) {
     const habis = item.jumlah_porsi <= 0;
+    const jumlahUlasan = item.reviews_count ?? item.reviews?.length ?? 0;
+    const rata = Number(item.reviews_avg_rating ?? 0);
 
     return (
-        <Card className="group flex flex-col gap-0 overflow-hidden border-border/70 p-0 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-900/5">
-            <Drawer>
-                <DrawerTrigger asChild>
-                    <button
-                        type="button"
-                        className="relative block w-full text-left focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none"
-                        aria-label={`Lihat detail ${item.nama}`}
+        <Card
+            role="button"
+            tabIndex={0}
+            aria-label={`Lihat detail ${item.nama}`}
+            onClick={() => onDetail(item)}
+            onKeyDown={(event) => {
+                if (event.target !== event.currentTarget) {
+                    return;
+                }
+
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    onDetail(item);
+                }
+            }}
+            className="group flex cursor-pointer flex-col gap-0 overflow-hidden border-border/70 p-0 shadow-sm transition duration-300 outline-none hover:-translate-y-1 hover:border-emerald-300/70 hover:shadow-xl hover:shadow-emerald-900/5 focus-visible:ring-2 focus-visible:ring-emerald-500/60 dark:hover:border-emerald-800"
+        >
+            <div className="relative">
+                <FotoMenu
+                    src={item.foto_url}
+                    alt={item.nama}
+                    className={`aspect-[4/3] w-full transition duration-500 group-hover:scale-[1.03] ${
+                        habis ? 'grayscale' : ''
+                    }`}
+                    emoji="🍱"
+                />
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent opacity-70" />
+                <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
+                    <Badge className="border-0 bg-white/90 text-gray-800 backdrop-blur dark:bg-black/60 dark:text-white">
+                        {item.kategori?.icon} {item.kategori?.nama || 'Menu'}
+                    </Badge>
+                </div>
+                <div className="absolute top-3 right-3">
+                    <Badge
+                        className={
+                            habis
+                                ? 'border-0 bg-red-600 text-white'
+                                : 'border-0 bg-emerald-600 text-white'
+                        }
                     >
-                        <FotoMenu
-                            src={item.foto_url}
-                            alt={item.nama}
-                            className={`aspect-[4/3] w-full transition duration-500 group-hover:scale-[1.03] ${
-                                habis ? 'grayscale' : ''
-                            }`}
-                            emoji="🍱"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent opacity-70" />
-                        <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
-                            <Badge className="border-0 bg-white/90 text-gray-800 backdrop-blur dark:bg-black/60 dark:text-white">
-                                {item.kategori?.icon}{' '}
-                                {item.kategori?.nama || 'Menu'}
-                            </Badge>
-                        </div>
-                        <div className="absolute top-3 right-3">
-                            <Badge
-                                className={
-                                    habis
-                                        ? 'border-0 bg-red-600 text-white'
-                                        : 'border-0 bg-emerald-600 text-white'
-                                }
-                            >
-                                {habis ? 'Habis' : `${item.jumlah_porsi} porsi`}
-                            </Badge>
-                        </div>
-                        {habis && (
-                            <div className="absolute inset-0 flex items-center justify-center bg-background/55 backdrop-blur-[1px]">
-                                <span className="rounded-full bg-background px-4 py-1.5 text-xs font-semibold text-foreground shadow">
-                                    Stok habis
-                                </span>
-                            </div>
-                        )}
-                        {!habis && (
-                            <span className="absolute right-3 bottom-3 inline-flex items-center gap-1 rounded-full bg-white/95 px-3 py-1 text-[11px] font-semibold text-emerald-700 opacity-0 shadow transition group-hover:opacity-100 dark:bg-black/70 dark:text-emerald-300">
-                                Lihat detail
-                                <ArrowUpRight className="size-3" />
-                            </span>
-                        )}
-                    </button>
-                </DrawerTrigger>
-
-                <DrawerContent className="max-h-[90vh]">
-                    <div className="mx-auto w-full max-w-lg overflow-y-auto pb-2">
-                        <DrawerHeader>
-                            <DrawerTitle className="text-xl">
-                                {item.kategori?.icon} {item.nama}
-                            </DrawerTitle>
-                            <DrawerDescription>
-                                {item.deskripsi ||
-                                    'Masakan spesial buatan rumahan.'}
-                            </DrawerDescription>
-                        </DrawerHeader>
-
-                        <div className="px-4">
-                            <FotoMenu
-                                src={item.foto_url}
-                                alt={item.nama}
-                                className="aspect-video w-full rounded-xl"
-                                emoji="🍱"
-                            />
-                            <Table className="mt-4">
-                                <TableBody>
-                                    <TableRow>
-                                        <TableCell className="text-muted-foreground">
-                                            Kategori
-                                        </TableCell>
-                                        <TableCell className="text-right font-medium">
-                                            {item.kategori?.icon}{' '}
-                                            {item.kategori?.nama || '-'}
-                                        </TableCell>
-                                    </TableRow>
-                                    <TableRow>
-                                        <TableCell className="text-muted-foreground">
-                                            Harga
-                                        </TableCell>
-                                        <TableCell className="text-right font-bold text-emerald-600 dark:text-emerald-400">
-                                            {item.harga_format}
-                                        </TableCell>
-                                    </TableRow>
-                                    <TableRow>
-                                        <TableCell className="text-muted-foreground">
-                                            Sisa porsi
-                                        </TableCell>
-                                        <TableCell className="text-right font-medium">
-                                            {habis
-                                                ? 'Habis'
-                                                : `${item.jumlah_porsi} porsi`}
-                                        </TableCell>
-                                    </TableRow>
-                                    <TableRow>
-                                        <TableCell className="text-muted-foreground">
-                                            Status
-                                        </TableCell>
-                                        <TableCell className="text-right">
-                                            <Badge
-                                                className={
-                                                    habis
-                                                        ? 'border-0 bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300'
-                                                        : 'border-0 bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300'
-                                                }
-                                            >
-                                                {habis
-                                                    ? 'Tidak tersedia'
-                                                    : 'Tersedia'}
-                                            </Badge>
-                                        </TableCell>
-                                    </TableRow>
-                                </TableBody>
-                            </Table>
-                        </div>
-
-                        <DrawerFooter>
-                            {habis ? (
-                                <Button disabled className="w-full">
-                                    Stok habis
-                                </Button>
-                            ) : (
-                                <Button
-                                    asChild
-                                    className="w-full bg-emerald-600 text-white hover:bg-emerald-700"
-                                >
-                                    <Link href={tujuan}>
-                                        <ShoppingBag className="size-4" />
-                                        Pesan sekarang
-                                    </Link>
-                                </Button>
-                            )}
-                            <DrawerClose asChild>
-                                <Button variant="outline" className="w-full">
-                                    Tutup
-                                </Button>
-                            </DrawerClose>
-                        </DrawerFooter>
+                        {habis ? 'Habis' : `${item.jumlah_porsi} porsi`}
+                    </Badge>
+                </div>
+                {habis && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-background/55 backdrop-blur-[1px]">
+                        <span className="rounded-full bg-background px-4 py-1.5 text-xs font-semibold text-foreground shadow">
+                            Stok habis
+                        </span>
                     </div>
-                </DrawerContent>
-            </Drawer>
+                )}
+                {!habis && (
+                    <span className="absolute right-3 bottom-3 inline-flex items-center gap-1 rounded-full bg-white/95 px-3 py-1 text-[11px] font-semibold text-emerald-700 opacity-0 shadow transition group-hover:opacity-100 dark:bg-black/70 dark:text-emerald-300">
+                        Lihat detail
+                        <ArrowUpRight className="size-3" />
+                    </span>
+                )}
+            </div>
 
             <div className="flex flex-1 flex-col p-5">
-                <h3 className="text-base font-semibold text-foreground">
-                    {item.nama}
-                </h3>
+                <div className="flex items-start justify-between gap-3">
+                    <h3 className="text-base font-semibold text-foreground">
+                        {item.nama}
+                    </h3>
+                    <span className="shrink-0 text-sm font-bold text-emerald-600 dark:text-emerald-400">
+                        {item.harga_format}
+                    </span>
+                </div>
                 <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
                     {item.deskripsi || 'Masakan spesial buatan rumahan.'}
                 </p>
+
+                <div className="mt-3 flex min-w-0 items-center gap-1.5 text-[11px] text-muted-foreground">
+                    {jumlahUlasan > 0 ? (
+                        <>
+                            <RatingStars value={rata} />
+                            <span className="font-semibold text-foreground">
+                                {rata.toFixed(1)}
+                            </span>
+                            <span className="truncate">
+                                ({jumlahUlasan} ulasan)
+                            </span>
+                        </>
+                    ) : (
+                        <>
+                            <Sparkles className="size-3.5 shrink-0 text-amber-500" />
+                            <span className="truncate">
+                                Menu baru · belum ada ulasan
+                            </span>
+                        </>
+                    )}
+                </div>
 
                 <div className="mt-auto flex items-end justify-between gap-3 pt-4">
                     <div>
@@ -455,48 +387,32 @@ function MenuCard({ item, tujuan }: { item: Masakan; tujuan: string }) {
                         </p>
                     </div>
 
-                    {habis ? (
-                        <Button size="sm" variant="secondary" disabled>
-                            Habis
-                        </Button>
-                    ) : (
-                        <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                                <Button
-                                    size="sm"
-                                    className="gap-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white dark:bg-emerald-950 dark:text-emerald-300 dark:hover:bg-emerald-600 dark:hover:text-white"
-                                >
-                                    <ShoppingBag className="size-3.5" />
-                                    Pesan
-                                </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                                <AlertDialogHeader>
-                                    <AlertDialogTitle>
-                                        Lanjut ke pemesanan?
-                                    </AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                        Kamu akan diarahkan ke katalog lengkap
-                                        untuk memesan {item.nama} (
-                                        {item.harga_format}).
-                                    </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                    <AlertDialogCancel>Batal</AlertDialogCancel>
-                                    <AlertDialogAction asChild>
-                                        <Link href={tujuan}>
-                                            {tujuan === '/login'
-                                                ? 'Login dulu'
-                                                : 'Lanjut'}
-                                        </Link>
-                                    </AlertDialogAction>
-                                </AlertDialogFooter>
-                            </AlertDialogContent>
-                        </AlertDialog>
-                    )}
+                    <Button
+                        type="button"
+                        size="sm"
+                        onClick={(event) => {
+                            event.stopPropagation();
+                            onDetail(item);
+                        }}
+                        className="gap-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white dark:bg-emerald-950 dark:text-emerald-300 dark:hover:bg-emerald-600 dark:hover:text-white"
+                    >
+                        Detail
+                        <ArrowUpRight className="size-3.5" />
+                    </Button>
                 </div>
             </div>
         </Card>
+    );
+}
+
+function inisialNama(nama: string): string {
+    return (
+        nama
+            .split(' ')
+            .map((bagian) => bagian[0])
+            .slice(0, 2)
+            .join('')
+            .toUpperCase() || 'U'
     );
 }
 
@@ -507,20 +423,22 @@ export default function Welcome() {
         kategoris: Kategori[];
     }>().props;
 
+    const { resolvedAppearance, updateAppearance } = useAppearance();
     const [promoTerbuka, setPromoTerbuka] = useState(true);
     const [halaman, setHalaman] = useState(1);
     const [query, setQuery] = useState('');
     const [kategoriAktif, setKategoriAktif] = useState<number | null>(null);
     const [urutan, setUrutan] = useState<Urutan>('terbaru');
+    const [detail, setDetail] = useState<Masakan | null>(null);
 
-    const tujuan = auth.user ? '/home' : '/login';
-    const inisial =
-        auth.user?.name
-            .split(' ')
-            .map((bagian) => bagian[0])
-            .slice(0, 2)
-            .join('')
-            .toUpperCase() || 'U';
+    const admin = auth.user?.role === 'admin';
+    const tujuan = admin ? '/dashboard' : '/home';
+    const labelTujuan = admin ? 'Buka dashboard' : 'Pesan sekarang';
+    const inisial = inisialNama(auth.user?.name ?? 'U');
+
+    const toggleTema = () => {
+        updateAppearance(resolvedAppearance === 'dark' ? 'light' : 'dark');
+    };
 
     const totalPorsi = useMemo(
         () =>
@@ -530,6 +448,48 @@ export default function Welcome() {
             ),
         [masakans],
     );
+
+    const totalUlasan = useMemo(
+        () =>
+            masakans.reduce(
+                (total, item) =>
+                    total + (item.reviews_count ?? item.reviews?.length ?? 0),
+                0,
+            ),
+        [masakans],
+    );
+
+    const testimoni = useMemo<Testimoni[]>(() => {
+        const dariUlasan = masakans
+            .flatMap((item) =>
+                (item.reviews ?? []).map((ulasan) => ({
+                    ulasan,
+                    menu: item.nama,
+                })),
+            )
+            .filter(({ ulasan }) => (ulasan.komentar ?? '').trim().length > 0)
+            .sort(
+                (a, b) =>
+                    new Date(b.ulasan.created_at).getTime() -
+                    new Date(a.ulasan.created_at).getTime(),
+            )
+            .slice(0, 3)
+            .map(({ ulasan, menu }) => ({
+                nama: ulasan.nama,
+                peran: ulasan.terverifikasi
+                    ? 'Pembeli terverifikasi'
+                    : 'Pelanggan',
+                inisial: inisialNama(ulasan.nama),
+                rating: ulasan.rating,
+                menu,
+                isi: ulasan.komentar ?? '',
+                terverifikasi: ulasan.terverifikasi,
+            }));
+
+        const cadangan = TESTIMONI.slice(0, Math.max(0, 3 - dariUlasan.length));
+
+        return [...dariUlasan, ...cadangan];
+    }, [masakans]);
 
     const hasilFilter = useMemo(() => {
         const kataKunci = query.trim().toLowerCase();
@@ -637,11 +597,12 @@ export default function Welcome() {
                         <Alert className="mx-auto flex max-w-7xl items-center gap-2 border-none bg-transparent px-4 py-1.5 text-emerald-50 sm:px-6 lg:px-8">
                             <Megaphone className="size-4 shrink-0" />
                             <AlertTitle className="mb-0 flex-1 text-xs font-medium text-emerald-50 sm:text-sm">
-                                Promo hari ini: gratis ongkir untuk pemesanan
-                                pertamamu!
+                                Pickup only: pesan sekarang, ambil saat siap —
+                                tanpa biaya antar.
                             </AlertTitle>
                             <AlertDescription className="sr-only">
-                                Berlaku untuk semua menu di UmiqFood.
+                                Semua pesanan diambil sendiri di outlet
+                                UmiqFood.
                             </AlertDescription>
                             <button
                                 type="button"
@@ -728,13 +689,25 @@ export default function Welcome() {
                             </NavigationMenuList>
                         </NavigationMenu>
 
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1.5 sm:gap-2">
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                onClick={toggleTema}
+                                aria-label="Ganti tema"
+                                className="hidden rounded-full md:inline-flex"
+                            >
+                                <Sun className="hidden size-4.5 dark:block" />
+                                <Moon className="size-4.5 dark:hidden" />
+                            </Button>
+
                             {auth.user ? (
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                         <button
                                             type="button"
-                                            className="flex items-center gap-2 rounded-full border border-border p-1 pr-3 transition hover:bg-muted"
+                                            className="hidden items-center gap-2 rounded-full border border-border p-1 pr-3 transition hover:bg-muted md:flex"
                                         >
                                             <Avatar className="size-8">
                                                 <AvatarFallback className="bg-emerald-600 text-xs font-semibold text-white">
@@ -815,7 +788,7 @@ export default function Welcome() {
                                     <Button
                                         variant="outline"
                                         size="icon"
-                                        className="lg:hidden"
+                                        className="rounded-full lg:hidden"
                                         aria-label="Buka menu"
                                     >
                                         <MenuIcon className="size-5" />
@@ -823,12 +796,51 @@ export default function Welcome() {
                                 </SheetTrigger>
                                 <SheetContent
                                     side="right"
-                                    className="w-[86vw] overflow-y-auto"
+                                    className="w-[86vw] overflow-y-auto sm:max-w-sm"
                                 >
-                                    <div className="flex items-center justify-between p-4 pr-12">
+                                    <SheetHeader className="pr-12">
+                                        <SheetTitle className="sr-only">
+                                            Menu UmiqFood
+                                        </SheetTitle>
+                                        <SheetDescription className="sr-only">
+                                            Navigasi halaman, kategori, dan akun
+                                            UmiqFood.
+                                        </SheetDescription>
                                         <Brand />
-                                    </div>
-                                    <Separator />
+                                    </SheetHeader>
+
+                                    {auth.user && (
+                                        <>
+                                            <div className="mx-3 rounded-2xl border border-border/70 bg-muted/30 p-3">
+                                                <div className="flex items-center gap-3">
+                                                    <Avatar className="size-10">
+                                                        <AvatarFallback className="bg-emerald-600 text-xs font-semibold text-white">
+                                                            {inisial}
+                                                        </AvatarFallback>
+                                                    </Avatar>
+                                                    <div className="min-w-0">
+                                                        <p className="truncate text-sm font-semibold">
+                                                            {auth.user.name}
+                                                        </p>
+                                                        <p className="truncate text-xs text-muted-foreground">
+                                                            {auth.user.email}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <SheetClose asChild>
+                                                    <Link
+                                                        href="/settings/profile"
+                                                        className="mt-3 flex items-center gap-2 rounded-lg border border-border/70 bg-background px-3 py-2 text-xs font-medium transition hover:bg-muted"
+                                                    >
+                                                        <Settings className="size-3.5" />
+                                                        Profil &amp; pengaturan
+                                                    </Link>
+                                                </SheetClose>
+                                            </div>
+                                            <Separator />
+                                        </>
+                                    )}
+
                                     <nav className="flex flex-col gap-1 px-3">
                                         <SheetClose asChild>
                                             <a
@@ -881,6 +893,56 @@ export default function Welcome() {
                                                 </SheetClose>
                                             ))}
                                         </div>
+                                    </div>
+                                    <Separator />
+                                    <div className="px-3">
+                                        <p className="mb-2 px-1 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+                                            Tampilan
+                                        </p>
+                                        <button
+                                            type="button"
+                                            onClick={toggleTema}
+                                            aria-pressed={
+                                                resolvedAppearance === 'dark'
+                                            }
+                                            className="flex w-full items-center gap-3 rounded-xl border border-border/70 bg-background px-3 py-2.5 text-left transition hover:bg-muted"
+                                        >
+                                            <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">
+                                                <Sun className="hidden size-4 dark:block" />
+                                                <Moon className="size-4 dark:hidden" />
+                                            </span>
+                                            <span className="min-w-0 flex-1">
+                                                <span className="block text-sm font-medium">
+                                                    {resolvedAppearance ===
+                                                    'dark'
+                                                        ? 'Mode terang'
+                                                        : 'Mode gelap'}
+                                                </span>
+                                                <span className="block text-[11px] text-muted-foreground">
+                                                    Ketuk untuk mengganti tema
+                                                </span>
+                                            </span>
+                                            <span
+                                                aria-hidden="true"
+                                                className={cn(
+                                                    'relative h-6 w-11 shrink-0 rounded-full transition-colors',
+                                                    resolvedAppearance ===
+                                                        'dark'
+                                                        ? 'bg-emerald-600'
+                                                        : 'bg-muted-foreground/30',
+                                                )}
+                                            >
+                                                <span
+                                                    className={cn(
+                                                        'absolute top-0.5 size-5 rounded-full bg-white shadow-sm transition-all',
+                                                        resolvedAppearance ===
+                                                            'dark'
+                                                            ? 'left-[22px]'
+                                                            : 'left-0.5',
+                                                    )}
+                                                />
+                                            </span>
+                                        </button>
                                     </div>
                                     <div className="mt-auto space-y-2 p-4">
                                         {auth.user ? (
@@ -1037,6 +1099,10 @@ export default function Welcome() {
                                     {
                                         value: totalPorsi,
                                         label: 'Porsi',
+                                    },
+                                    {
+                                        value: totalUlasan,
+                                        label: 'Ulasan',
                                     },
                                 ].map((stat) => (
                                     <div
@@ -1317,7 +1383,7 @@ export default function Welcome() {
                                     <MenuCard
                                         key={item.id}
                                         item={item}
-                                        tujuan={tujuan}
+                                        onDetail={setDetail}
                                     />
                                 ))}
                             </div>
@@ -1396,34 +1462,40 @@ export default function Welcome() {
                         />
 
                         <div className="mt-8 grid gap-4 md:grid-cols-3">
-                            {TESTIMONI.map((testimoni) => (
+                            {testimoni.map((ulasan) => (
                                 <Card
-                                    key={testimoni.nama}
+                                    key={`${ulasan.nama}-${ulasan.menu}`}
                                     className="gap-4 p-6"
                                 >
-                                    <div className="flex items-center gap-1 text-amber-500">
-                                        {[...Array(5)].map((_, index) => (
-                                            <Star
-                                                key={index}
-                                                className="size-4 fill-current"
-                                            />
-                                        ))}
+                                    <div className="flex items-center justify-between gap-2">
+                                        <RatingStars
+                                            value={ulasan.rating}
+                                            size="md"
+                                        />
+                                        <span className="max-w-[55%] truncate text-[11px] text-muted-foreground">
+                                            {ulasan.menu}
+                                        </span>
                                     </div>
                                     <p className="text-sm leading-relaxed text-muted-foreground">
-                                        “{testimoni.isi}”
+                                        “{ulasan.isi}”
                                     </p>
                                     <div className="mt-auto flex items-center gap-3">
                                         <Avatar className="size-10">
                                             <AvatarFallback className="bg-emerald-100 text-xs font-semibold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
-                                                {testimoni.inisial}
+                                                {ulasan.inisial}
                                             </AvatarFallback>
                                         </Avatar>
-                                        <div>
-                                            <p className="text-sm font-semibold">
-                                                {testimoni.nama}
+                                        <div className="min-w-0">
+                                            <p className="flex items-center gap-1 text-sm font-semibold">
+                                                <span className="truncate">
+                                                    {ulasan.nama}
+                                                </span>
+                                                {ulasan.terverifikasi && (
+                                                    <BadgeCheck className="size-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                                                )}
                                             </p>
-                                            <p className="text-xs text-muted-foreground">
-                                                {testimoni.peran}
+                                            <p className="truncate text-xs text-muted-foreground">
+                                                {ulasan.peran}
                                             </p>
                                         </div>
                                     </div>
@@ -1650,6 +1722,14 @@ export default function Welcome() {
                         </div>
                     </div>
                 </footer>
+
+                <PublicMenuDialog
+                    menu={detail}
+                    onClose={() => setDetail(null)}
+                    pesanHref={tujuan}
+                    pesanLabel={labelTujuan}
+                    tamu={!auth.user}
+                />
             </div>
         </>
     );
