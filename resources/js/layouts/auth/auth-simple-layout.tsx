@@ -6,7 +6,7 @@ import {
     Sun,
     UtensilsCrossed,
 } from 'lucide-react';
-import AuthShowcase from '@/components/auth-showcase';
+import AuthShowcase, { AuthShowcaseBackdrop } from '@/components/auth-showcase';
 import { Button } from '@/components/ui/button';
 import { useAppearance } from '@/hooks/use-appearance';
 import type {
@@ -75,6 +75,8 @@ export default function AuthSimpleLayout({
             </aside>
 
             <main className="relative flex min-h-svh flex-col overflow-hidden bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.08),transparent_42%)] px-4 py-8 sm:px-6 lg:overflow-y-auto lg:px-10 lg:py-10 dark:bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.12),transparent_42%)]">
+                <AuthShowcaseBackdrop showcase={authShowcase} />
+
                 <div className="pointer-events-none absolute -top-28 -right-28 size-72 rounded-full bg-emerald-500/10 blur-3xl lg:hidden" />
 
                 <Button
@@ -144,12 +146,6 @@ export default function AuthSimpleLayout({
                     >
                         Kembali ke beranda
                     </Link>
-
-                    <AuthShowcase
-                        showcase={authShowcase}
-                        tone="default"
-                        className="mt-8 border-t border-border/60 pt-6 lg:hidden"
-                    />
                 </div>
             </main>
         </div>

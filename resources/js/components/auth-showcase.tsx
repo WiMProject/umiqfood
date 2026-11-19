@@ -7,7 +7,7 @@ import type {
     AuthShowcaseReview,
 } from '@/types';
 
-type Tone = 'brand' | 'default';
+type Tone = 'brand' | 'default' | 'ghost';
 
 const TONE = {
     brand: {
@@ -41,6 +41,24 @@ const TONE = {
         reviewName: 'text-foreground',
         starOn: 'fill-amber-400 text-amber-400',
         starOff: 'text-muted-foreground/30',
+    },
+    ghost: {
+        accent: 'text-emerald-700/30 dark:text-emerald-300/30',
+        heading: 'text-emerald-950/30 dark:text-emerald-50/25',
+        muted: 'text-emerald-950/25 dark:text-emerald-50/20',
+        menuCard:
+            'border-emerald-900/10 bg-emerald-600/5 text-emerald-950/50 dark:border-emerald-100/10 dark:bg-emerald-300/5 dark:text-emerald-50/40',
+        menuIcon:
+            'bg-emerald-600/10 text-emerald-900/50 ring-1 ring-emerald-900/5 dark:bg-emerald-300/10 dark:text-emerald-50/40 dark:ring-emerald-100/5',
+        category:
+            'bg-emerald-600/10 text-emerald-900/50 dark:bg-emerald-300/10 dark:text-emerald-50/40',
+        price: 'text-emerald-900/60 dark:text-emerald-100/50',
+        reviewCard:
+            'border-emerald-900/10 bg-emerald-600/5 text-emerald-950/50 dark:border-emerald-100/10 dark:bg-emerald-300/5 dark:text-emerald-50/40',
+        reviewText: 'text-emerald-950/50 dark:text-emerald-50/40',
+        reviewName: 'text-emerald-950/60 dark:text-emerald-50/50',
+        starOn: 'fill-amber-500/50 text-amber-500/50 dark:fill-amber-300/40 dark:text-amber-300/40',
+        starOff: 'text-emerald-900/15 dark:text-emerald-50/10',
     },
 } as const;
 
@@ -271,6 +289,52 @@ export default function AuthShowcase({
                     />
                 </section>
             )}
+        </div>
+    );
+}
+
+/**
+ * Latar dekoratif untuk halaman auth di mobile/tablet.
+ * Kartu bergerak tetap terlihat tanpa menambah tinggi halaman.
+ */
+export function AuthShowcaseBackdrop({
+    showcase,
+}: {
+    showcase?: AuthShowcaseData | null;
+}) {
+    const menus = showcase?.menus ?? [];
+    const reviews = showcase?.reviews ?? [];
+
+    if (menus.length === 0 && reviews.length === 0) {
+        return null;
+    }
+
+    return (
+        <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 z-0 overflow-hidden lg:hidden"
+        >
+            <div className="absolute -top-16 -left-12 w-[140%] -rotate-2 [mask-image:linear-gradient(to_bottom,black_0%,black_35%,transparent_75%)] opacity-40">
+                <InfiniteMovingCards
+                    items={menus}
+                    renderItem={(menu) => <MenuCard menu={menu} tone="ghost" />}
+                    direction="left"
+                    speed="slow"
+                    pauseOnHover={false}
+                />
+            </div>
+
+            <div className="absolute -right-12 -bottom-20 w-[140%] rotate-2 [mask-image:linear-gradient(to_top,black_0%,black_30%,transparent_70%)] opacity-30">
+                <InfiniteMovingCards
+                    items={reviews}
+                    renderItem={(review) => (
+                        <ReviewCard review={review} tone="ghost" />
+                    )}
+                    direction="right"
+                    speed="slow"
+                    pauseOnHover={false}
+                />
+            </div>
         </div>
     );
 }
