@@ -1268,7 +1268,7 @@ export default function Welcome() {
                             <div>
                                 <SectionHeading
                                     eyebrow="Menu"
-                                    title="Menu andalan"
+                                    title="Menu Hari Ini"
                                     description={`${hasilFilter.length} dari ${masakans.length} masakan siap dipesan.`}
                                 />
                             </div>
