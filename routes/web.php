@@ -3,8 +3,10 @@
 use App\Http\Controllers\Admin\PesananController as AdminPesananController;
 use App\Http\Controllers\BahanBakuController;
 use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\KeranjangController;
 use App\Http\Controllers\MasakanController;
+use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\UserDashboardController;
 use App\Models\BahanBaku;
 use App\Models\Kategori;
@@ -31,22 +33,14 @@ Route::get('/', function () {
 
 // Rute untuk user tetap name('home')
 Route::middleware(['auth', 'verified', 'role:user'])->group(function () {
-    Route::get('/home', function () {
-        $masakans = Masakan::with('kategori')
-            ->where('tersedia', true)
-            ->latest()
-            ->get();
-        $kategoris = Kategori::all();
-
-        return Inertia::render('user/home', [
-            'masakans' => $masakans,
-            'kategoris' => $kategoris,
-        ]);
-    })->name('home');
+    Route::get('/home', [HomeController::class, 'index'])->name('home');
 
     // Dashboard user: ringkasan, keranjang, pesanan, pembayaran
     Route::get('/akun', [UserDashboardController::class, 'index'])->name('user.dashboard');
     Route::post('/pesanan/{order}/batal', [UserDashboardController::class, 'batal'])->name('pesanan.batal');
+
+    // Ulasan menu (hanya setelah pesanan selesai)
+    Route::post('/menu/{masakan}/ulasan', [ReviewController::class, 'store'])->name('ulasan.store');
 
     // Keranjang
     Route::post('/keranjang/{masakan}', [KeranjangController::class, 'store'])->name('keranjang.store');

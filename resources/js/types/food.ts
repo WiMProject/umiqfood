@@ -6,6 +6,18 @@ export interface Kategori {
     masakans_count?: number;
 }
 
+export interface Review {
+    id: number;
+    masakan_id: number;
+    user_id: number | null;
+    nama: string;
+    rating: number;
+    rating_bintang: string;
+    komentar: string | null;
+    terverifikasi: boolean;
+    created_at: string;
+}
+
 export interface Masakan {
     id: number;
     nama: string;
@@ -18,6 +30,9 @@ export interface Masakan {
     jumlah_porsi: number;
     kategori_id: number;
     kategori?: Kategori;
+    reviews?: Review[];
+    reviews_count?: number;
+    reviews_avg_rating?: number | string | null;
 }
 
 export interface CartItem {

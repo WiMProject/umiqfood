@@ -1,46 +1,134 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import {
     ArrowRight,
+    BadgeCheck,
     CheckCircle2,
     ChefHat,
+    ChevronRight,
     ClipboardList,
     Clock,
     Flame,
     MapPin,
+    MessageSquareQuote,
+    Minus,
     Plus,
     Search,
+    Send,
     ShoppingBag,
     Sparkles,
+    Star,
     UtensilsCrossed,
 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { cn } from 'cn';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import type { Kategori, KeranjangRingkas, Masakan } from '@/types';
+import { Separator } from '@/components/ui/separator';
+import type { Kategori, KeranjangRingkas, Masakan, Review } from '@/types';
 
 interface Props {
     auth: {
-        user: { name: string; role: string } | null;
+        user: {
+            id: number;
+            name: string;
+            role: string;
+        } | null;
     };
     masakans: Masakan[];
     kategoris: Kategori[];
     keranjang: KeranjangRingkas;
     pesananAktif: number;
+    menuSelesai: number[];
+    errors?: {
+        ulasan?: string;
+    };
     [key: string]: unknown;
 }
 
+function formatRupiah(value: number): string {
+    return 'Rp ' + new Intl.NumberFormat('id-ID').format(value);
+}
+
+function formatTanggal(value: string): string {
+    return new Intl.DateTimeFormat('id-ID', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+    }).format(new Date(value));
+}
+
+function rataRating(item: Masakan): number {
+    return Number(item.reviews_avg_rating ?? 0);
+}
+
+function jumlahUlasan(item: Masakan): number {
+    return item.reviews_count ?? item.reviews?.length ?? 0;
+}
+
+function Bintang({ nilai, className }: { nilai: number; className?: string }) {
+    return (
+        <span
+            className={cn('flex items-center gap-0.5', className)}
+            aria-label={`${nilai} dari 5 bintang`}
+        >
+            {[1, 2, 3, 4, 5].map((bintang) => (
+                <Star
+                    key={bintang}
+                    className={cn(
+                        'size-3.5',
+                        bintang <= Math.round(nilai)
+                            ? 'fill-amber-400 text-amber-400'
+                            : 'text-muted-foreground/35',
+                    )}
+                />
+            ))}
+        </span>
+    );
+}
+
 export default function UserHome() {
-    const { auth, masakans, kategoris, keranjang, pesananAktif } =
-        usePage<Props>().props;
+    const {
+        auth,
+        masakans,
+        kategoris,
+        keranjang,
+        pesananAktif,
+        menuSelesai,
+        errors,
+    } = usePage<Props>().props;
 
     const [search, setSearch] = useState('');
     const [kategoriAktif, setKategoriAktif] = useState<number | 'semua'>(
         'semua',
     );
     const [menambah, setMenambah] = useState<number | null>(null);
+    const [detail, setDetail] = useState<Masakan | null>(null);
+    const [jumlah, setJumlah] = useState(1);
+    const [rating, setRating] = useState(5);
+    const [komentar, setKomentar] = useState('');
+    const [mengirimUlasan, setMengirimUlasan] = useState(false);
+
+    // Setelah ulasan tersimpan, segarkan data di dialog tanpa menutupnya.
+    useEffect(() => {
+        setDetail((sebelumnya) => {
+            if (!sebelumnya) {
+                return sebelumnya;
+            }
+
+            return (
+                masakans.find((item) => item.id === sebelumnya.id) ?? sebelumnya
+            );
+        });
+    }, [masakans]);
 
     const hasil = useMemo(() => {
         const kataKunci = search.trim().toLowerCase();
@@ -62,11 +150,23 @@ export default function UserHome() {
         [masakans],
     );
 
-    const tambahKeKeranjang = (item: Masakan) => {
+    const bukaDetail = (item: Masakan) => {
+        setDetail(item);
+        setJumlah(1);
+
+        const ulasanMilikSaya = item.reviews?.find(
+            (ulasan) => ulasan.user_id === auth.user?.id,
+        );
+
+        setRating(ulasanMilikSaya?.rating ?? 5);
+        setKomentar(ulasanMilikSaya?.komentar ?? '');
+    };
+
+    const tambahKeKeranjang = (item: Masakan, banyak = 1) => {
         setMenambah(item.id);
         router.post(
             `/keranjang/${item.id}`,
-            { jumlah: 1 },
+            { jumlah: banyak },
             {
                 preserveScroll: true,
                 preserveState: true,
@@ -74,6 +174,47 @@ export default function UserHome() {
             },
         );
     };
+
+    const tambahDariDetail = () => {
+        if (!detail) {
+            return;
+        }
+
+        setMenambah(detail.id);
+        router.post(
+            `/keranjang/${detail.id}`,
+            { jumlah },
+            {
+                preserveScroll: true,
+                preserveState: true,
+                onSuccess: () => setDetail(null),
+                onFinish: () => setMenambah(null),
+            },
+        );
+    };
+
+    const kirimUlasan = () => {
+        if (!detail) {
+            return;
+        }
+
+        setMengirimUlasan(true);
+        router.post(
+            `/menu/${detail.id}/ulasan`,
+            { rating, komentar },
+            {
+                preserveScroll: true,
+                preserveState: true,
+                onFinish: () => setMengirimUlasan(false),
+            },
+        );
+    };
+
+    const daftarUlasan: Review[] = detail?.reviews ?? [];
+    const ulasanSaya = daftarUlasan.find(
+        (ulasan) => ulasan.user_id === auth.user?.id,
+    );
+    const bolehMengulas = detail ? menuSelesai.includes(detail.id) : false;
 
     return (
         <>
@@ -277,11 +418,33 @@ export default function UserHome() {
                             {hasil.map((item) => {
                                 const habis = item.jumlah_porsi < 1;
                                 const sedangMenambah = menambah === item.id;
+                                const ulasan = jumlahUlasan(item);
+                                const rata = rataRating(item);
 
                                 return (
                                     <Card
                                         key={item.id}
-                                        className="group overflow-hidden border-border/70 p-0 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
+                                        role="button"
+                                        tabIndex={0}
+                                        aria-label={`Lihat detail ${item.nama}`}
+                                        onClick={() => bukaDetail(item)}
+                                        onKeyDown={(event) => {
+                                            if (
+                                                event.target !==
+                                                event.currentTarget
+                                            ) {
+                                                return;
+                                            }
+
+                                            if (
+                                                event.key === 'Enter' ||
+                                                event.key === ' '
+                                            ) {
+                                                event.preventDefault();
+                                                bukaDetail(item);
+                                            }
+                                        }}
+                                        className="group cursor-pointer overflow-hidden border-border/70 p-0 shadow-sm transition duration-300 outline-none hover:-translate-y-1 hover:border-emerald-300/70 hover:shadow-xl focus-visible:ring-2 focus-visible:ring-emerald-500/60 dark:hover:border-emerald-800"
                                     >
                                         <div className="relative aspect-[4/3] overflow-hidden bg-muted">
                                             {item.foto_url ? (
@@ -338,25 +501,47 @@ export default function UserHome() {
                                                     'Masakan spesial buatan rumahan.'}
                                             </p>
 
-                                            <div className="mt-3 flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                                                <CheckCircle2 className="size-3.5 text-emerald-600 dark:text-emerald-400" />
-                                                Halal · dimasak fresh
-                                                <span className="mx-0.5">
-                                                    ·
+                                            <div className="mt-3 flex items-center justify-between gap-2">
+                                                <div className="flex min-w-0 items-center gap-1.5 text-[11px] text-muted-foreground">
+                                                    {ulasan > 0 ? (
+                                                        <>
+                                                            <Star className="size-3.5 shrink-0 fill-amber-400 text-amber-400" />
+                                                            <span className="font-semibold text-foreground">
+                                                                {rata.toFixed(
+                                                                    1,
+                                                                )}
+                                                            </span>
+                                                            <span className="truncate">
+                                                                ({ulasan}{' '}
+                                                                ulasan)
+                                                            </span>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Sparkles className="size-3.5 shrink-0 text-amber-500" />
+                                                            <span className="truncate">
+                                                                Menu baru ·
+                                                                belum ada ulasan
+                                                            </span>
+                                                        </>
+                                                    )}
+                                                </div>
+                                                <span className="flex shrink-0 items-center gap-0.5 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300">
+                                                    Detail
+                                                    <ChevronRight className="size-3.5 transition group-hover:translate-x-0.5" />
                                                 </span>
-                                                <Sparkles className="size-3.5 text-amber-500" />
-                                                Favorit pelanggan
                                             </div>
 
                                             <Button
                                                 type="button"
-                                                onClick={() =>
-                                                    tambahKeKeranjang(item)
-                                                }
+                                                onClick={(event) => {
+                                                    event.stopPropagation();
+                                                    tambahKeKeranjang(item);
+                                                }}
                                                 disabled={
                                                     habis || sedangMenambah
                                                 }
-                                                className="mt-4 h-10 w-full gap-2 rounded-xl bg-emerald-600 text-white shadow-sm shadow-emerald-600/20 hover:bg-emerald-700 disabled:bg-muted disabled:text-muted-foreground"
+                                                className="mt-3 h-10 w-full gap-2 rounded-xl bg-emerald-600 text-white shadow-sm shadow-emerald-600/20 hover:bg-emerald-700 disabled:bg-muted disabled:text-muted-foreground"
                                             >
                                                 {sedangMenambah ? (
                                                     'Menambahkan...'
@@ -408,6 +593,399 @@ export default function UserHome() {
                     </div>
                 </section>
             </div>
+
+            {/* Dialog detail menu */}
+            <Dialog
+                open={detail !== null}
+                onOpenChange={(terbuka) => {
+                    if (!terbuka) {
+                        setDetail(null);
+                    }
+                }}
+            >
+                <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-2xl">
+                    {detail && (
+                        <>
+                            <DialogHeader className="sr-only">
+                                <DialogTitle>{detail.nama}</DialogTitle>
+                                <DialogDescription>
+                                    Foto, harga, ketersediaan porsi, dan
+                                    komentar pelanggan untuk {detail.nama}.
+                                </DialogDescription>
+                            </DialogHeader>
+
+                            <div className="relative h-56 overflow-hidden rounded-xl bg-muted sm:h-72">
+                                {detail.foto_url ? (
+                                    <img
+                                        src={detail.foto_url}
+                                        alt={detail.nama}
+                                        className="h-full w-full object-cover"
+                                    />
+                                ) : (
+                                    <div className="flex h-full w-full items-center justify-center bg-[radial-gradient(circle_at_30%_20%,rgba(16,185,129,0.3),transparent_55%),radial-gradient(circle_at_75%_80%,rgba(20,184,166,0.26),transparent_50%)]">
+                                        <span className="text-6xl drop-shadow-sm">
+                                            {detail.kategori?.icon ?? '🍱'}
+                                        </span>
+                                    </div>
+                                )}
+
+                                <div className="absolute inset-x-0 top-0 flex items-start justify-between gap-2 p-3">
+                                    <Badge className="gap-1 border-0 bg-background/85 text-foreground shadow-sm backdrop-blur">
+                                        <span>
+                                            {detail.kategori?.icon ?? '🍽️'}
+                                        </span>
+                                        {detail.kategori?.nama ?? 'Menu'}
+                                    </Badge>
+                                    <Badge
+                                        className={cn(
+                                            'border-0 shadow-sm backdrop-blur',
+                                            detail.jumlah_porsi < 1
+                                                ? 'bg-red-600/90 text-white'
+                                                : 'bg-emerald-600/90 text-white',
+                                        )}
+                                    >
+                                        {detail.jumlah_porsi < 1
+                                            ? 'Habis'
+                                            : `Sisa ${detail.jumlah_porsi} porsi`}
+                                    </Badge>
+                                </div>
+                            </div>
+
+                            <div className="flex flex-wrap items-start justify-between gap-3">
+                                <div className="min-w-0">
+                                    <h2 className="text-xl font-extrabold tracking-tight sm:text-2xl">
+                                        {detail.nama}
+                                    </h2>
+                                    <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                                        <span className="flex items-center gap-1">
+                                            <Clock className="size-3.5 text-emerald-600 dark:text-emerald-400" />
+                                            ± 30 menit
+                                        </span>
+                                        <span className="flex items-center gap-1">
+                                            <MapPin className="size-3.5 text-emerald-600 dark:text-emerald-400" />
+                                            Ambil di outlet
+                                        </span>
+                                        <span className="flex items-center gap-1">
+                                            <CheckCircle2 className="size-3.5 text-emerald-600 dark:text-emerald-400" />
+                                            Halal · dimasak fresh
+                                        </span>
+                                    </div>
+                                </div>
+                                <span className="shrink-0 rounded-xl bg-emerald-50 px-3 py-1.5 text-lg font-extrabold text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">
+                                    {detail.harga_format}
+                                </span>
+                            </div>
+
+                            <div className="flex flex-wrap items-center gap-3 rounded-xl border border-border/70 bg-muted/30 px-3.5 py-2.5">
+                                <div className="flex items-center gap-2.5">
+                                    <span className="text-2xl font-extrabold tracking-tight">
+                                        {jumlahUlasan(detail) > 0
+                                            ? rataRating(detail).toFixed(1)
+                                            : '—'}
+                                    </span>
+                                    <div>
+                                        <Bintang nilai={rataRating(detail)} />
+                                        <p className="mt-0.5 text-[11px] text-muted-foreground">
+                                            {jumlahUlasan(detail)} ulasan
+                                            pelanggan
+                                        </p>
+                                    </div>
+                                </div>
+                                <span className="ml-auto flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                                    <MessageSquareQuote className="size-3.5 text-emerald-600 dark:text-emerald-400" />
+                                    Komentar asli pembeli
+                                </span>
+                            </div>
+
+                            <p className="text-sm leading-relaxed text-muted-foreground">
+                                {detail.deskripsi ||
+                                    'Masakan spesial buatan rumahan, dimasak fresh saat dipesan.'}
+                            </p>
+
+                            <div
+                                className={cn(
+                                    'flex items-start gap-2.5 rounded-xl border px-3.5 py-3',
+                                    detail.jumlah_porsi < 1
+                                        ? 'border-red-200 bg-red-50/70 dark:border-red-900/60 dark:bg-red-950/30'
+                                        : detail.jumlah_porsi <= 3
+                                          ? 'border-amber-200 bg-amber-50/70 dark:border-amber-900/60 dark:bg-amber-950/30'
+                                          : 'border-emerald-200 bg-emerald-50/60 dark:border-emerald-900/60 dark:bg-emerald-950/25',
+                                )}
+                            >
+                                <span
+                                    className={cn(
+                                        'flex size-8 shrink-0 items-center justify-center rounded-lg',
+                                        detail.jumlah_porsi < 1
+                                            ? 'bg-red-100 text-red-600 dark:bg-red-900/60 dark:text-red-300'
+                                            : detail.jumlah_porsi <= 3
+                                              ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/60 dark:text-amber-300'
+                                              : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300',
+                                    )}
+                                >
+                                    <Flame className="size-4" />
+                                </span>
+                                <div className="min-w-0">
+                                    <p className="text-sm font-semibold">
+                                        {detail.jumlah_porsi < 1
+                                            ? 'Porsi hari ini habis'
+                                            : `Tersedia ${detail.jumlah_porsi} porsi hari ini`}
+                                    </p>
+                                    <p className="mt-0.5 text-xs text-muted-foreground">
+                                        {detail.jumlah_porsi < 1
+                                            ? 'Coba menu lain atau cek lagi besok ya.'
+                                            : detail.jumlah_porsi <= 3
+                                              ? 'Tinggal sedikit — amankan porsimu sekarang.'
+                                              : 'Porsi terbatas dan dimasak fresh setelah dipesan.'}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                                <div className="inline-flex h-11 shrink-0 items-center justify-between rounded-xl border border-border/80 bg-card">
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            setJumlah((nilai) =>
+                                                Math.max(1, nilai - 1),
+                                            )
+                                        }
+                                        disabled={jumlah <= 1}
+                                        className="flex size-11 items-center justify-center rounded-l-xl transition hover:bg-muted disabled:opacity-40"
+                                        aria-label="Kurangi jumlah"
+                                    >
+                                        <Minus className="size-4" />
+                                    </button>
+                                    <span className="w-10 text-center text-sm font-bold">
+                                        {jumlah}
+                                    </span>
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            setJumlah((nilai) =>
+                                                Math.min(
+                                                    detail.jumlah_porsi,
+                                                    nilai + 1,
+                                                ),
+                                            )
+                                        }
+                                        disabled={
+                                            jumlah >= detail.jumlah_porsi ||
+                                            detail.jumlah_porsi < 1
+                                        }
+                                        className="flex size-11 items-center justify-center rounded-r-xl transition hover:bg-muted disabled:opacity-40"
+                                        aria-label="Tambah jumlah"
+                                    >
+                                        <Plus className="size-4" />
+                                    </button>
+                                </div>
+
+                                <Button
+                                    type="button"
+                                    onClick={tambahDariDetail}
+                                    disabled={
+                                        detail.jumlah_porsi < 1 ||
+                                        menambah === detail.id
+                                    }
+                                    className="h-11 flex-1 gap-2 rounded-xl bg-emerald-600 text-white shadow-md shadow-emerald-600/20 hover:bg-emerald-700 disabled:bg-muted disabled:text-muted-foreground"
+                                >
+                                    <ShoppingBag className="size-4" />
+                                    {menambah === detail.id
+                                        ? 'Menambahkan...'
+                                        : detail.jumlah_porsi < 1
+                                          ? 'Porsi habis'
+                                          : `Tambah ke keranjang · ${formatRupiah(detail.harga * jumlah)}`}
+                                </Button>
+                            </div>
+
+                            <Separator />
+
+                            <section>
+                                <div className="flex items-center justify-between gap-3">
+                                    <h3 className="flex items-center gap-2 font-semibold">
+                                        <MessageSquareQuote className="size-4 text-emerald-600 dark:text-emerald-400" />
+                                        Komentar pelanggan
+                                    </h3>
+                                    <span className="text-xs text-muted-foreground">
+                                        {jumlahUlasan(detail)} ulasan
+                                    </span>
+                                </div>
+
+                                <div className="mt-3 space-y-2.5">
+                                    {daftarUlasan.length === 0 ? (
+                                        <div className="rounded-xl border border-dashed border-border px-4 py-6 text-center">
+                                            <MessageSquareQuote className="mx-auto size-5 text-muted-foreground" />
+                                            <p className="mt-2 text-sm font-medium">
+                                                Belum ada komentar
+                                            </p>
+                                            <p className="mt-0.5 text-xs text-muted-foreground">
+                                                Jadi yang pertama mencoba dan
+                                                bagikan pendapatmu.
+                                            </p>
+                                        </div>
+                                    ) : (
+                                        daftarUlasan.map((ulasan) => (
+                                            <div
+                                                key={ulasan.id}
+                                                className="rounded-xl border border-border/70 p-3.5"
+                                            >
+                                                <div className="flex items-start gap-3">
+                                                    <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-sm font-bold text-emerald-700 dark:bg-emerald-950/70 dark:text-emerald-300">
+                                                        {ulasan.nama
+                                                            .charAt(0)
+                                                            .toUpperCase()}
+                                                    </span>
+                                                    <div className="min-w-0 flex-1">
+                                                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                                                            <p className="text-sm font-semibold">
+                                                                {ulasan.nama}
+                                                            </p>
+                                                            {ulasan.terverifikasi && (
+                                                                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">
+                                                                    <BadgeCheck className="size-3" />
+                                                                    Pembeli
+                                                                    terverifikasi
+                                                                </span>
+                                                            )}
+                                                            {ulasan.user_id ===
+                                                                auth.user
+                                                                    ?.id && (
+                                                                <span className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                                                                    Ulasanmu
+                                                                </span>
+                                                            )}
+                                                            <span className="ml-auto text-[11px] text-muted-foreground">
+                                                                {formatTanggal(
+                                                                    ulasan.created_at,
+                                                                )}
+                                                            </span>
+                                                        </div>
+                                                        <Bintang
+                                                            nilai={
+                                                                ulasan.rating
+                                                            }
+                                                            className="mt-1"
+                                                        />
+                                                        {ulasan.komentar && (
+                                                            <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+                                                                {
+                                                                    ulasan.komentar
+                                                                }
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+
+                                <div className="mt-3 rounded-xl border border-border/70 bg-muted/30 p-3.5">
+                                    {bolehMengulas ? (
+                                        <>
+                                            <h4 className="text-sm font-semibold">
+                                                {ulasanSaya
+                                                    ? 'Perbarui ulasanmu'
+                                                    : 'Bagikan pengalamanmu'}
+                                            </h4>
+                                            <p className="mt-0.5 text-xs text-muted-foreground">
+                                                Kamu sudah mencoba menu ini.
+                                                Beri bintang dan komentar
+                                                singkat.
+                                            </p>
+
+                                            <div className="mt-2.5 flex items-center gap-1">
+                                                {[1, 2, 3, 4, 5].map(
+                                                    (bintang) => (
+                                                        <button
+                                                            key={bintang}
+                                                            type="button"
+                                                            onClick={() =>
+                                                                setRating(
+                                                                    bintang,
+                                                                )
+                                                            }
+                                                            aria-label={`Beri ${bintang} bintang`}
+                                                            className="rounded-md p-0.5 transition hover:scale-110"
+                                                        >
+                                                            <Star
+                                                                className={cn(
+                                                                    'size-6',
+                                                                    bintang <=
+                                                                        rating
+                                                                        ? 'fill-amber-400 text-amber-400'
+                                                                        : 'text-muted-foreground/35',
+                                                                )}
+                                                            />
+                                                        </button>
+                                                    ),
+                                                )}
+                                                <span className="ml-1 text-xs font-medium text-muted-foreground">
+                                                    {rating}/5
+                                                </span>
+                                            </div>
+
+                                            <textarea
+                                                value={komentar}
+                                                onChange={(event) =>
+                                                    setKomentar(
+                                                        event.target.value,
+                                                    )
+                                                }
+                                                rows={2}
+                                                maxLength={500}
+                                                placeholder="Bagaimana rasa, porsi, dan pelayanannya?"
+                                                className="mt-2 w-full resize-none rounded-xl border border-input bg-transparent px-3 py-2 text-sm shadow-xs transition outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 dark:bg-input/30"
+                                            />
+
+                                            {errors?.ulasan && (
+                                                <p className="mt-1 text-xs text-red-600">
+                                                    {errors.ulasan}
+                                                </p>
+                                            )}
+
+                                            <div className="mt-2 flex items-center justify-between gap-2">
+                                                <span className="text-[11px] text-muted-foreground">
+                                                    {komentar.length}/500
+                                                </span>
+                                                <Button
+                                                    type="button"
+                                                    onClick={kirimUlasan}
+                                                    disabled={mengirimUlasan}
+                                                    size="sm"
+                                                    className="gap-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700"
+                                                >
+                                                    <Send className="size-3.5" />
+                                                    {mengirimUlasan
+                                                        ? 'Mengirim...'
+                                                        : ulasanSaya
+                                                          ? 'Perbarui ulasan'
+                                                          : 'Kirim ulasan'}
+                                                </Button>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <div className="flex items-start gap-2.5">
+                                            <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">
+                                                <MessageSquareQuote className="size-4" />
+                                            </span>
+                                            <div>
+                                                <p className="text-sm font-semibold">
+                                                    Ingin ikut berkomentar?
+                                                </p>
+                                                <p className="mt-0.5 text-xs text-muted-foreground">
+                                                    Ulasan terbuka setelah
+                                                    pesananmu berstatus selesai.
+                                                    Yuk pesan menu ini dulu!
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </section>
+                        </>
+                    )}
+                </DialogContent>
+            </Dialog>
         </>
     );
 }

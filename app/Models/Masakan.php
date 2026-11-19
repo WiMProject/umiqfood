@@ -46,6 +46,15 @@ class Masakan extends Model
         return $this->hasMany(ResepItem::class);
     }
 
+    // Relasi: ulasan/komentar pelanggan (tanpa resep atau bahan baku)
+    /**
+     * @return HasMany<Review, $this>
+     */
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(Review::class);
+    }
+
     // Relasi: bahan baku yang dipakai (dengan takaran per porsi di pivot)
     /**
      * @return BelongsToMany<BahanBaku, $this>
