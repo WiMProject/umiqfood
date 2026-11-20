@@ -177,18 +177,18 @@ export default function InventoriIndex({ bahanBakus, stats }: Props) {
                     <table className="w-full text-left text-sm">
                         <thead className="border-b border-border/70 bg-muted/30">
                             <tr>
-                                <TableHead className="min-w-48 pl-[3.875rem]!">
+                                <TableHead className="min-w-48">
                                     Bahan
                                 </TableHead>
-                                <TableHead align="right">Stok</TableHead>
-                                <TableHead align="right">
+                                <TableHead align="center">Stok</TableHead>
+                                <TableHead align="center">
                                     Stok Minimum
                                 </TableHead>
                                 <TableHead align="center">
                                     Dipakai di Resep
                                 </TableHead>
                                 <TableHead align="center">Status</TableHead>
-                                <TableHead align="right">Aksi</TableHead>
+                                <TableHead align="center">Aksi</TableHead>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border/60">
@@ -226,13 +226,13 @@ export default function InventoriIndex({ bahanBakus, stats }: Props) {
                                                 {item.nama}
                                             </div>
                                         </td>
-                                        <td className="px-4 py-3.5 text-right font-semibold text-foreground tabular-nums">
+                                        <td className="px-4 py-3.5 text-center font-semibold text-foreground tabular-nums">
                                             {formatAngka(item.stok)}{' '}
                                             <span className="text-xs font-normal text-muted-foreground">
                                                 {item.satuan}
                                             </span>
                                         </td>
-                                        <td className="px-4 py-3.5 text-right text-muted-foreground tabular-nums">
+                                        <td className="px-4 py-3.5 text-center text-muted-foreground tabular-nums">
                                             {formatAngka(item.stok_minimum)}{' '}
                                             <span className="text-xs">
                                                 {item.satuan}
@@ -265,7 +265,7 @@ export default function InventoriIndex({ bahanBakus, stats }: Props) {
                                             )}
                                         </td>
                                         <td className="px-4 py-3.5 text-right">
-                                            <div className="flex items-center justify-end gap-1.5">
+                                            <div className="flex items-center justify-center gap-1.5">
                                                 <TableAction
                                                     label={`Edit ${item.nama}`}
                                                     icon={Pencil}

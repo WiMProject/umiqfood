@@ -284,12 +284,10 @@ export default function MasakanIndex({
                     <table className="w-full text-left text-sm">
                         <thead className="border-b border-border/70 bg-muted/30">
                             <tr>
-                                <TableHead className="min-w-56 pl-[4.5rem]!">
-                                    Menu
-                                </TableHead>
+                                <TableHead className="min-w-56">Menu</TableHead>
                                 <TableHead align="center">Kategori</TableHead>
-                                <TableHead align="right">Harga</TableHead>
-                                <TableHead align="right">Porsi Siap</TableHead>
+                                <TableHead align="center">Harga</TableHead>
+                                <TableHead align="center">Porsi Siap</TableHead>
                                 <TableHead
                                     align="center"
                                     className="hidden 2xl:table-cell"
@@ -297,7 +295,7 @@ export default function MasakanIndex({
                                     Resep
                                 </TableHead>
                                 <TableHead align="center">Status</TableHead>
-                                <TableHead align="right">Aksi</TableHead>
+                                <TableHead align="center">Aksi</TableHead>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border/60">
@@ -357,11 +355,11 @@ export default function MasakanIndex({
                                                 {item.kategori?.nama || '-'}
                                             </StatusPill>
                                         </td>
-                                        <td className="px-4 py-3.5 text-right font-semibold text-emerald-700 tabular-nums dark:text-emerald-300">
+                                        <td className="px-4 py-3.5 text-center font-semibold text-emerald-700 tabular-nums dark:text-emerald-300">
                                             {item.harga_format}
                                         </td>
-                                        <td className="px-4 py-3.5 text-right">
-                                            <div className="flex flex-col items-end">
+                                        <td className="px-4 py-3.5 text-center">
+                                            <div className="flex flex-col items-center">
                                                 <span className="font-semibold text-foreground tabular-nums">
                                                     {item.jumlah_porsi} porsi
                                                 </span>
@@ -398,7 +396,7 @@ export default function MasakanIndex({
                                             </StatusPill>
                                         </td>
                                         <td className="px-4 py-3.5 text-right">
-                                            <div className="flex items-center justify-end gap-1.5">
+                                            <div className="flex items-center justify-center gap-1.5">
                                                 <Button
                                                     type="button"
                                                     variant="outline"
