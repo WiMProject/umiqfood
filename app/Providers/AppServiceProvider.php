@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Http\Responses\LoginResponse;
 use App\Models\User;
 use Carbon\CarbonImmutable;
+use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Support\Facades\Date;
@@ -29,14 +30,40 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Kustomisasi Template Email Verifikasi Standar Profesional
+        // Template email verifikasi dan reset password dengan tema UmiqFood.
         VerifyEmail::toMailUsing(function (User $notifiable, string $url) {
+            $data = [
+                'userName' => $notifiable->name,
+                'verificationUrl' => $url,
+            ];
+
             return (new MailMessage)
-                ->subject('Verifikasi Alamat Email Anda — UmiqFood')
-                ->view('emails.verify-email', [
-                    'userName' => $notifiable->name,
-                    'verificationUrl' => $url,
-                ]);
+                ->subject('Verifikasi alamat email — UmiqFood')
+                ->view('emails.verify-email', $data)
+                ->text('emails.verify-email-text', $data);
+        });
+
+        ResetPassword::toMailUsing(function (User $notifiable, string $token) {
+            $email = $notifiable->getEmailForPasswordReset();
+            $url = url(route('password.reset', [
+                'token' => $token,
+                'email' => $email,
+            ], false));
+            $data = [
+                'userName' => $notifiable->name,
+                'email' => $email,
+                'resetUrl' => $url,
+                'expire' => config(
+                    'auth.passwords.'.
+                    config('auth.defaults.passwords').
+                    '.expire'
+                ),
+            ];
+
+            return (new MailMessage)
+                ->subject('Ganti kata sandi akun UmiqFood')
+                ->view('emails.reset-password', $data)
+                ->text('emails.reset-password-text', $data);
         });
     }
 
