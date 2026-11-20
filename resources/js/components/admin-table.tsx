@@ -10,14 +10,12 @@ import { cn } from '@/lib/utils';
  */
 export function AdminTableCard({
     title,
-    description,
     count,
     icon: Icon,
     className,
     children,
 }: {
     title: string;
-    description?: string;
     count?: number;
     icon?: LucideIcon;
     className?: string;
@@ -30,27 +28,18 @@ export function AdminTableCard({
                 className,
             )}
         >
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/70 bg-emerald-50/40 px-4 py-4 sm:px-5 dark:bg-emerald-950/20">
-                <div className="flex items-center gap-3">
-                    {Icon && (
-                        <div className="flex size-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
-                            <Icon className="size-5" />
-                        </div>
-                    )}
-                    <div>
-                        <h2 className="text-base font-semibold text-foreground">
-                            {title}
-                        </h2>
-                        {description && (
-                            <p className="mt-0.5 text-xs text-muted-foreground">
-                                {description}
-                            </p>
-                        )}
+            <div className="relative flex items-center justify-center border-b border-border/70 bg-emerald-50/40 px-14 py-3 dark:bg-emerald-950/20">
+                {Icon && (
+                    <div className="absolute left-4 flex size-7 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
+                        <Icon className="size-4" />
                     </div>
-                </div>
+                )}
+                <h2 className="text-center text-sm font-semibold tracking-wide text-foreground">
+                    {title}
+                </h2>
                 {count !== undefined && (
-                    <span className="rounded-full border border-emerald-200/70 bg-white/80 px-2.5 py-1 text-xs font-semibold text-emerald-700 shadow-sm dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-300">
-                        {count === 0 ? 'Belum ada data' : `${count} data`}
+                    <span className="absolute right-4 rounded-full border border-emerald-200/70 bg-white/80 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 shadow-sm dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-300">
+                        {count === 0 ? '0' : count}
                     </span>
                 )}
             </div>
@@ -64,7 +53,7 @@ export function TableHead({
     className,
     children,
 }: {
-    align?: 'left' | 'right';
+    align?: 'left' | 'center' | 'right';
     className?: string;
     children: ReactNode;
 }) {
@@ -72,7 +61,8 @@ export function TableHead({
         <th
             scope="col"
             className={cn(
-                'px-4 py-3 text-[11px] font-semibold tracking-wider whitespace-nowrap text-muted-foreground uppercase',
+                'px-4 py-3 align-middle text-[11px] font-semibold tracking-wider whitespace-nowrap text-muted-foreground uppercase',
+                align === 'center' && 'text-center',
                 align === 'right' && 'text-right',
                 className,
             )}

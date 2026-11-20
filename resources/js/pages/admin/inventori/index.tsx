@@ -170,7 +170,6 @@ export default function InventoriIndex({ bahanBakus, stats }: Props) {
                 {/* Tabel Bahan Baku (layar besar) */}
                 <AdminTableCard
                     title="Daftar Bahan Baku"
-                    description="Pantau stok, batas minimum, dan pemakaian resep."
                     count={bahanBakus.length}
                     icon={Boxes}
                     className="hidden xl:block"
@@ -178,17 +177,17 @@ export default function InventoriIndex({ bahanBakus, stats }: Props) {
                     <table className="w-full text-left text-sm">
                         <thead className="border-b border-border/70 bg-muted/30">
                             <tr>
-                                <TableHead className="min-w-48">
+                                <TableHead className="min-w-48 pl-[3.875rem]!">
                                     Bahan
                                 </TableHead>
                                 <TableHead align="right">Stok</TableHead>
                                 <TableHead align="right">
                                     Stok Minimum
                                 </TableHead>
-                                <TableHead align="right">
+                                <TableHead align="center">
                                     Dipakai di Resep
                                 </TableHead>
-                                <TableHead>Status</TableHead>
+                                <TableHead align="center">Status</TableHead>
                                 <TableHead align="right">Aksi</TableHead>
                             </tr>
                         </thead>
@@ -239,12 +238,12 @@ export default function InventoriIndex({ bahanBakus, stats }: Props) {
                                                 {item.satuan}
                                             </span>
                                         </td>
-                                        <td className="px-4 py-3.5 text-right">
+                                        <td className="px-4 py-3.5 text-center">
                                             <StatusPill tone="slate">
                                                 {item.resep_items_count} menu
                                             </StatusPill>
                                         </td>
-                                        <td className="px-4 py-3.5">
+                                        <td className="px-4 py-3.5 text-center">
                                             {item.stok <= 0 ? (
                                                 <StatusPill tone="rose">
                                                     Habis

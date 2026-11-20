@@ -277,7 +277,6 @@ export default function MasakanIndex({
                 {/* Tabel Daftar Masakan (layar besar) */}
                 <AdminTableCard
                     title="Daftar Menu Masakan"
-                    description="Harga, resep, dan ketersediaan setiap menu."
                     count={masakans.length}
                     icon={Utensils}
                     className="hidden xl:block"
@@ -285,17 +284,19 @@ export default function MasakanIndex({
                     <table className="w-full text-left text-sm">
                         <thead className="border-b border-border/70 bg-muted/30">
                             <tr>
-                                <TableHead className="min-w-56">Menu</TableHead>
-                                <TableHead>Kategori</TableHead>
+                                <TableHead className="min-w-56 pl-[4.5rem]!">
+                                    Menu
+                                </TableHead>
+                                <TableHead align="center">Kategori</TableHead>
                                 <TableHead align="right">Harga</TableHead>
                                 <TableHead align="right">Porsi Siap</TableHead>
                                 <TableHead
-                                    align="right"
+                                    align="center"
                                     className="hidden 2xl:table-cell"
                                 >
                                     Resep
                                 </TableHead>
-                                <TableHead>Status</TableHead>
+                                <TableHead align="center">Status</TableHead>
                                 <TableHead align="right">Aksi</TableHead>
                             </tr>
                         </thead>
@@ -343,14 +344,14 @@ export default function MasakanIndex({
                                                     <div className="font-semibold text-foreground">
                                                         {item.nama}
                                                     </div>
-                                                    <div className="max-w-xs truncate text-xs text-muted-foreground">
+                                                    <div className="max-w-48 truncate text-xs text-muted-foreground">
                                                         {item.deskripsi ||
                                                             'Tidak ada deskripsi'}
                                                     </div>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-4 py-3.5">
+                                        <td className="px-4 py-3.5 text-center">
                                             <StatusPill tone="slate">
                                                 {item.kategori?.icon}{' '}
                                                 {item.kategori?.nama || '-'}
@@ -372,13 +373,13 @@ export default function MasakanIndex({
                                                 )}
                                             </div>
                                         </td>
-                                        <td className="hidden px-4 py-3.5 text-right 2xl:table-cell">
+                                        <td className="hidden px-4 py-3.5 text-center 2xl:table-cell">
                                             <StatusPill tone="slate">
                                                 {item.resep_items?.length || 0}{' '}
                                                 bahan
                                             </StatusPill>
                                         </td>
-                                        <td className="px-4 py-3.5">
+                                        <td className="px-4 py-3.5 text-center">
                                             <StatusPill
                                                 tone={
                                                     item.tersedia
