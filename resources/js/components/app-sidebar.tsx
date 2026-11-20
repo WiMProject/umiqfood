@@ -50,7 +50,7 @@ export function AppSidebar() {
     const { isMobile, setOpenMobile } = useSidebar();
 
     return (
-        <Sidebar collapsible="icon" variant="inset">
+        <Sidebar collapsible="icon" variant="inset" className="pt-0!">
             <SidebarHeader className="sticky top-0 z-30 shrink-0 gap-0 border-b border-sidebar-border/70 bg-sidebar/95 p-0 backdrop-blur">
                 <div className="flex items-center gap-1 p-3 group-data-[collapsible=icon]:p-2 md:p-4 group-data-[collapsible=icon]:md:p-2">
                     <SidebarMenu className="min-w-0 flex-1">
