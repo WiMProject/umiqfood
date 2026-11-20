@@ -10,6 +10,12 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 
+import {
+    AdminTableCard,
+    StatusPill,
+    TableAction,
+    TableHead,
+} from '@/components/admin-table';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -162,172 +168,192 @@ export default function InventoriIndex({ bahanBakus, stats }: Props) {
                 </div>
 
                 {/* Tabel Bahan Baku (layar besar) */}
-                <div className="hidden overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm xl:block dark:border-gray-800 dark:bg-neutral-900">
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left text-sm">
-                            <thead className="border-b border-gray-200 bg-gray-50 text-gray-700 dark:border-gray-800 dark:bg-neutral-800/50 dark:text-gray-300">
+                <AdminTableCard
+                    title="Daftar Bahan Baku"
+                    description="Pantau stok, batas minimum, dan pemakaian resep."
+                    count={bahanBakus.length}
+                    icon={Boxes}
+                    className="hidden xl:block"
+                >
+                    <table className="w-full text-left text-sm">
+                        <thead className="border-b border-border/70 bg-muted/30">
+                            <tr>
+                                <TableHead className="min-w-48">
+                                    Bahan
+                                </TableHead>
+                                <TableHead align="right">Stok</TableHead>
+                                <TableHead align="right">
+                                    Stok Minimum
+                                </TableHead>
+                                <TableHead align="right">
+                                    Dipakai di Resep
+                                </TableHead>
+                                <TableHead>Status</TableHead>
+                                <TableHead align="right">Aksi</TableHead>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border/60">
+                            {bahanBakus.length === 0 ? (
                                 <tr>
-                                    <th className="px-6 py-4">Bahan</th>
-                                    <th className="px-6 py-4">Stok</th>
-                                    <th className="px-6 py-4">Stok Minimum</th>
-                                    <th className="px-6 py-4">
-                                        Dipakai di Resep
-                                    </th>
-                                    <th className="px-6 py-4">Status</th>
-                                    <th className="px-6 py-4 text-right">
-                                        Aksi
-                                    </th>
+                                    <td
+                                        colSpan={6}
+                                        className="px-4 py-14 text-center"
+                                    >
+                                        <div className="mx-auto flex max-w-xs flex-col items-center gap-2">
+                                            <div className="flex size-11 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-300">
+                                                <Boxes className="size-5" />
+                                            </div>
+                                            <p className="text-sm font-medium text-foreground">
+                                                Belum ada bahan baku
+                                            </p>
+                                            <p className="text-xs text-muted-foreground">
+                                                Klik “Tambah Bahan” untuk mulai
+                                                mencatat inventori.
+                                            </p>
+                                        </div>
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                                {bahanBakus.length === 0 ? (
-                                    <tr>
-                                        <td
-                                            colSpan={6}
-                                            className="py-12 text-center text-gray-400"
-                                        >
-                                            Belum ada bahan baku. Klik "Tambah
-                                            Bahan" untuk mulai mencatat
-                                            inventori.
+                            ) : (
+                                bahanBakus.map((item) => (
+                                    <tr
+                                        key={item.id}
+                                        className="transition-colors hover:bg-emerald-50/40 dark:hover:bg-emerald-950/10"
+                                    >
+                                        <td className="px-4 py-3.5 font-semibold text-foreground">
+                                            <div className="flex items-center gap-2.5">
+                                                <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
+                                                    <Boxes className="size-4" />
+                                                </div>
+                                                {item.nama}
+                                            </div>
+                                        </td>
+                                        <td className="px-4 py-3.5 text-right font-semibold text-foreground tabular-nums">
+                                            {formatAngka(item.stok)}{' '}
+                                            <span className="text-xs font-normal text-muted-foreground">
+                                                {item.satuan}
+                                            </span>
+                                        </td>
+                                        <td className="px-4 py-3.5 text-right text-muted-foreground tabular-nums">
+                                            {formatAngka(item.stok_minimum)}{' '}
+                                            <span className="text-xs">
+                                                {item.satuan}
+                                            </span>
+                                        </td>
+                                        <td className="px-4 py-3.5 text-right">
+                                            <StatusPill tone="slate">
+                                                {item.resep_items_count} menu
+                                            </StatusPill>
+                                        </td>
+                                        <td className="px-4 py-3.5">
+                                            {item.stok <= 0 ? (
+                                                <StatusPill tone="rose">
+                                                    Habis
+                                                </StatusPill>
+                                            ) : item.stok_menipis ? (
+                                                <StatusPill
+                                                    tone="amber"
+                                                    icon={AlertTriangle}
+                                                >
+                                                    Menipis
+                                                </StatusPill>
+                                            ) : (
+                                                <StatusPill
+                                                    tone="emerald"
+                                                    icon={PackageCheck}
+                                                >
+                                                    Aman
+                                                </StatusPill>
+                                            )}
+                                        </td>
+                                        <td className="px-4 py-3.5 text-right">
+                                            <div className="flex items-center justify-end gap-1.5">
+                                                <TableAction
+                                                    label={`Edit ${item.nama}`}
+                                                    icon={Pencil}
+                                                    onClick={() =>
+                                                        openEditModal(item)
+                                                    }
+                                                />
+                                                <TableAction
+                                                    label={`Hapus ${item.nama}`}
+                                                    icon={Trash2}
+                                                    tone="rose"
+                                                    onClick={() =>
+                                                        handleDelete(item.id)
+                                                    }
+                                                />
+                                            </div>
                                         </td>
                                     </tr>
-                                ) : (
-                                    bahanBakus.map((item) => (
-                                        <tr
-                                            key={item.id}
-                                            className="transition hover:bg-gray-50/60 dark:hover:bg-neutral-800/30"
-                                        >
-                                            <td className="px-6 py-4 font-semibold text-gray-900 dark:text-white">
-                                                {item.nama}
-                                            </td>
-                                            <td className="px-6 py-4 font-medium">
-                                                {formatAngka(item.stok)}{' '}
-                                                <span className="text-xs text-gray-400">
-                                                    {item.satuan}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 text-gray-500">
-                                                {formatAngka(item.stok_minimum)}{' '}
-                                                <span className="text-xs text-gray-400">
-                                                    {item.satuan}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300">
-                                                    {item.resep_items_count}{' '}
-                                                    menu
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                {item.stok <= 0 ? (
-                                                    <span className="rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-700 dark:bg-red-950 dark:text-red-300">
-                                                        Habis
-                                                    </span>
-                                                ) : item.stok_menipis ? (
-                                                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-950 dark:text-amber-300">
-                                                        <AlertTriangle className="h-3 w-3" />{' '}
-                                                        Menipis
-                                                    </span>
-                                                ) : (
-                                                    <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700 dark:bg-green-950 dark:text-green-300">
-                                                        <PackageCheck className="h-3 w-3" />{' '}
-                                                        Aman
-                                                    </span>
-                                                )}
-                                            </td>
-                                            <td className="px-6 py-4 text-right">
-                                                <div className="flex items-center justify-end gap-2">
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={() =>
-                                                            openEditModal(item)
-                                                        }
-                                                        className="h-8 px-2 text-gray-600"
-                                                    >
-                                                        <Pencil className="h-3.5 w-3.5" />
-                                                    </Button>
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={() =>
-                                                            handleDelete(
-                                                                item.id,
-                                                            )
-                                                        }
-                                                        className="h-8 border-red-200 px-2 text-red-600 hover:bg-red-50 hover:text-red-700"
-                                                    >
-                                                        <Trash2 className="h-3.5 w-3.5" />
-                                                    </Button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </AdminTableCard>
 
                 {/* Kartu Bahan Baku (mobile & tablet) */}
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:hidden">
                     {bahanBakus.length === 0 ? (
-                        <div className="rounded-xl border border-dashed border-gray-200 bg-white p-8 text-center text-sm text-gray-400 dark:border-gray-700 dark:bg-neutral-900">
-                            Belum ada bahan baku. Klik "Tambah Bahan" untuk
+                        <div className="rounded-2xl border border-dashed border-border/70 bg-card p-8 text-center text-sm text-muted-foreground">
+                            Belum ada bahan baku. Klik “Tambah Bahan” untuk
                             mulai mencatat inventori.
                         </div>
                     ) : (
                         bahanBakus.map((item) => (
                             <div
                                 key={item.id}
-                                className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-neutral-900"
+                                className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm"
                             >
                                 <div className="flex items-start justify-between gap-3">
                                     <div className="min-w-0">
-                                        <p className="truncate font-semibold text-gray-900 dark:text-white">
+                                        <p className="truncate font-semibold text-foreground">
                                             {item.nama}
                                         </p>
-                                        <p className="mt-0.5 text-xs text-gray-400">
+                                        <p className="mt-0.5 text-xs text-muted-foreground">
                                             Dipakai di {item.resep_items_count}{' '}
                                             menu
                                         </p>
                                     </div>
                                     {item.stok <= 0 ? (
-                                        <span className="shrink-0 rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-medium text-red-700 dark:bg-red-950 dark:text-red-300">
+                                        <StatusPill tone="rose">
                                             Habis
-                                        </span>
+                                        </StatusPill>
                                     ) : item.stok_menipis ? (
-                                        <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-700 dark:bg-amber-950 dark:text-amber-300">
-                                            <AlertTriangle className="h-3 w-3" />{' '}
+                                        <StatusPill
+                                            tone="amber"
+                                            icon={AlertTriangle}
+                                        >
                                             Menipis
-                                        </span>
+                                        </StatusPill>
                                     ) : (
-                                        <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-medium text-green-700 dark:bg-green-950 dark:text-green-300">
-                                            <PackageCheck className="h-3 w-3" />{' '}
+                                        <StatusPill
+                                            tone="emerald"
+                                            icon={PackageCheck}
+                                        >
                                             Aman
-                                        </span>
+                                        </StatusPill>
                                     )}
                                 </div>
 
-                                <div className="mt-3 grid grid-cols-2 gap-3 rounded-lg bg-gray-50 p-2.5 dark:bg-neutral-800/50">
+                                <div className="mt-3 grid grid-cols-2 gap-3 rounded-xl bg-emerald-50/40 p-2.5 dark:bg-emerald-950/10">
                                     <div>
-                                        <p className="text-[10px] font-medium tracking-wide text-gray-400 uppercase">
+                                        <p className="text-[10px] font-medium tracking-wide text-muted-foreground uppercase">
                                             Stok
                                         </p>
-                                        <p className="mt-0.5 font-semibold text-gray-900 dark:text-white">
+                                        <p className="mt-0.5 font-semibold text-foreground tabular-nums">
                                             {formatAngka(item.stok)}{' '}
-                                            <span className="text-xs font-normal text-gray-400">
+                                            <span className="text-xs font-normal text-muted-foreground">
                                                 {item.satuan}
                                             </span>
                                         </p>
                                     </div>
                                     <div>
-                                        <p className="text-[10px] font-medium tracking-wide text-gray-400 uppercase">
+                                        <p className="text-[10px] font-medium tracking-wide text-muted-foreground uppercase">
                                             Stok minimum
                                         </p>
-                                        <p className="mt-0.5 font-semibold text-gray-900 dark:text-white">
+                                        <p className="mt-0.5 font-semibold text-foreground tabular-nums">
                                             {formatAngka(item.stok_minimum)}{' '}
-                                            <span className="text-xs font-normal text-gray-400">
+                                            <span className="text-xs font-normal text-muted-foreground">
                                                 {item.satuan}
                                             </span>
                                         </p>
@@ -336,20 +362,26 @@ export default function InventoriIndex({ bahanBakus, stats }: Props) {
 
                                 <div className="mt-3 grid grid-cols-2 gap-2">
                                     <Button
+                                        type="button"
                                         variant="outline"
                                         size="sm"
                                         onClick={() => openEditModal(item)}
-                                        className="h-9 justify-center gap-1 px-2 text-xs text-gray-600 dark:text-gray-300"
+                                        title={`Edit ${item.nama}`}
+                                        aria-label={`Edit ${item.nama}`}
+                                        className="h-9 justify-center gap-1.5 rounded-lg px-2 text-xs text-muted-foreground hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-emerald-950/40 dark:hover:text-emerald-300"
                                     >
-                                        <Pencil className="h-3.5 w-3.5" /> Edit
+                                        <Pencil className="size-3.5" /> Edit
                                     </Button>
                                     <Button
+                                        type="button"
                                         variant="outline"
                                         size="sm"
                                         onClick={() => handleDelete(item.id)}
-                                        className="h-9 justify-center gap-1 border-red-200 px-2 text-xs text-red-600 hover:bg-red-50 hover:text-red-700"
+                                        title={`Hapus ${item.nama}`}
+                                        aria-label={`Hapus ${item.nama}`}
+                                        className="h-9 justify-center gap-1.5 rounded-lg border-rose-200/80 px-2 text-xs text-rose-600 hover:bg-rose-50 hover:text-rose-700 dark:border-rose-900/60 dark:text-rose-400 dark:hover:bg-rose-950/40"
                                     >
-                                        <Trash2 className="h-3.5 w-3.5" /> Hapus
+                                        <Trash2 className="size-3.5" /> Hapus
                                     </Button>
                                 </div>
                             </div>

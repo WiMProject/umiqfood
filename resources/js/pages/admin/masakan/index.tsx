@@ -10,6 +10,12 @@ import {
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
+import {
+    AdminTableCard,
+    StatusPill,
+    TableAction,
+    TableHead,
+} from '@/components/admin-table';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -269,233 +275,249 @@ export default function MasakanIndex({
                 </div>
 
                 {/* Tabel Daftar Masakan (layar besar) */}
-                <div className="hidden overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm xl:block dark:border-gray-800 dark:bg-neutral-900">
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left text-sm">
-                            <thead className="border-b border-gray-200 bg-gray-50 text-gray-700 dark:border-gray-800 dark:bg-neutral-800/50 dark:text-gray-300">
+                <AdminTableCard
+                    title="Daftar Menu Masakan"
+                    description="Harga, resep, dan ketersediaan setiap menu."
+                    count={masakans.length}
+                    icon={Utensils}
+                    className="hidden xl:block"
+                >
+                    <table className="w-full text-left text-sm">
+                        <thead className="border-b border-border/70 bg-muted/30">
+                            <tr>
+                                <TableHead className="min-w-56">Menu</TableHead>
+                                <TableHead>Kategori</TableHead>
+                                <TableHead align="right">Harga</TableHead>
+                                <TableHead align="right">Porsi Siap</TableHead>
+                                <TableHead
+                                    align="right"
+                                    className="hidden 2xl:table-cell"
+                                >
+                                    Resep
+                                </TableHead>
+                                <TableHead>Status</TableHead>
+                                <TableHead align="right">Aksi</TableHead>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border/60">
+                            {masakans.length === 0 ? (
                                 <tr>
-                                    <th className="px-3 py-3">Menu</th>
-                                    <th className="px-3 py-3">Kategori</th>
-                                    <th className="px-3 py-3">Harga</th>
-                                    <th className="px-3 py-3">Porsi Siap</th>
-                                    <th className="hidden px-3 py-3 2xl:table-cell">
-                                        Resep
-                                    </th>
-                                    <th className="px-3 py-3">Status</th>
-                                    <th className="px-3 py-3 text-right">
-                                        Aksi
-                                    </th>
+                                    <td
+                                        colSpan={7}
+                                        className="px-4 py-14 text-center"
+                                    >
+                                        <div className="mx-auto flex max-w-xs flex-col items-center gap-2">
+                                            <div className="flex size-11 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-300">
+                                                <Utensils className="size-5" />
+                                            </div>
+                                            <p className="text-sm font-medium text-foreground">
+                                                Belum ada menu masakan
+                                            </p>
+                                            <p className="text-xs text-muted-foreground">
+                                                Klik “Tambah Masakan” untuk
+                                                membuat menu pertama.
+                                            </p>
+                                        </div>
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                                {masakans.length === 0 ? (
-                                    <tr>
-                                        <td
-                                            colSpan={7}
-                                            className="py-12 text-center text-gray-400"
-                                        >
-                                            Belum ada menu masakan. Silakan klik
-                                            tombol "Tambah Masakan".
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    masakans.map((item) => (
-                                        <tr
-                                            key={item.id}
-                                            className="transition hover:bg-gray-50/50 dark:hover:bg-neutral-800/30"
-                                        >
-                                            <td className="px-3 py-3">
-                                                <div className="flex items-center gap-3">
-                                                    {item.foto_url ? (
-                                                        <img
-                                                            src={item.foto_url}
-                                                            alt={item.nama}
-                                                            className="h-12 w-12 rounded-lg border object-cover"
-                                                        />
-                                                    ) : (
-                                                        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-emerald-100 font-bold text-emerald-600 dark:bg-emerald-950/40">
-                                                            <Utensils className="h-5 w-5" />
-                                                        </div>
-                                                    )}
-                                                    <div>
-                                                        <div className="font-semibold text-gray-900 dark:text-white">
-                                                            {item.nama}
-                                                        </div>
-                                                        <div className="max-w-xs truncate text-xs text-gray-400">
-                                                            {item.deskripsi ||
-                                                                'Tidak ada deskripsi'}
-                                                        </div>
+                            ) : (
+                                masakans.map((item) => (
+                                    <tr
+                                        key={item.id}
+                                        className="transition-colors hover:bg-emerald-50/40 dark:hover:bg-emerald-950/10"
+                                    >
+                                        <td className="px-4 py-3.5">
+                                            <div className="flex items-center gap-3">
+                                                {item.foto_url ? (
+                                                    <img
+                                                        src={item.foto_url}
+                                                        alt={item.nama}
+                                                        className="size-11 shrink-0 rounded-xl border border-border/70 object-cover ring-2 ring-emerald-50 dark:ring-emerald-950/40"
+                                                    />
+                                                ) : (
+                                                    <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
+                                                        <Utensils className="size-5" />
+                                                    </div>
+                                                )}
+                                                <div>
+                                                    <div className="font-semibold text-foreground">
+                                                        {item.nama}
+                                                    </div>
+                                                    <div className="max-w-xs truncate text-xs text-muted-foreground">
+                                                        {item.deskripsi ||
+                                                            'Tidak ada deskripsi'}
                                                     </div>
                                                 </div>
-                                            </td>
-                                            <td className="px-3 py-3">
-                                                <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300">
-                                                    {item.kategori?.icon}{' '}
-                                                    {item.kategori?.nama || '-'}
+                                            </div>
+                                        </td>
+                                        <td className="px-4 py-3.5">
+                                            <StatusPill tone="slate">
+                                                {item.kategori?.icon}{' '}
+                                                {item.kategori?.nama || '-'}
+                                            </StatusPill>
+                                        </td>
+                                        <td className="px-4 py-3.5 text-right font-semibold text-emerald-700 tabular-nums dark:text-emerald-300">
+                                            {item.harga_format}
+                                        </td>
+                                        <td className="px-4 py-3.5 text-right">
+                                            <div className="flex flex-col items-end">
+                                                <span className="font-semibold text-foreground tabular-nums">
+                                                    {item.jumlah_porsi} porsi
                                                 </span>
-                                            </td>
-                                            <td className="px-3 py-3 font-semibold text-emerald-600">
-                                                {item.harga_format}
-                                            </td>
-                                            <td className="px-3 py-3">
-                                                <div className="flex flex-col">
-                                                    <span className="font-semibold text-gray-900 dark:text-white">
-                                                        {item.jumlah_porsi}{' '}
-                                                        porsi
+                                                {item.max_porsi !== null && (
+                                                    <span className="text-xs text-muted-foreground">
+                                                        maks. {item.max_porsi}{' '}
+                                                        dari stok
                                                     </span>
-                                                    {item.max_porsi !==
-                                                        null && (
-                                                        <span className="text-xs text-gray-400">
-                                                            maks.{' '}
-                                                            {item.max_porsi}{' '}
-                                                            dari stok
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </td>
-                                            <td className="hidden px-3 py-3 2xl:table-cell">
-                                                <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300">
-                                                    {item.resep_items?.length ||
-                                                        0}{' '}
-                                                    bahan
-                                                </span>
-                                            </td>
-                                            <td className="px-3 py-3">
-                                                <span
-                                                    className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                                                        item.tersedia
-                                                            ? 'bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300'
-                                                            : 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300'
-                                                    }`}
+                                                )}
+                                            </div>
+                                        </td>
+                                        <td className="hidden px-4 py-3.5 text-right 2xl:table-cell">
+                                            <StatusPill tone="slate">
+                                                {item.resep_items?.length || 0}{' '}
+                                                bahan
+                                            </StatusPill>
+                                        </td>
+                                        <td className="px-4 py-3.5">
+                                            <StatusPill
+                                                tone={
+                                                    item.tersedia
+                                                        ? 'emerald'
+                                                        : 'rose'
+                                                }
+                                                icon={
+                                                    item.tersedia
+                                                        ? CheckCircle2
+                                                        : XCircle
+                                                }
+                                            >
+                                                {item.tersedia
+                                                    ? 'Tersedia'
+                                                    : 'Habis'}
+                                            </StatusPill>
+                                        </td>
+                                        <td className="px-4 py-3.5 text-right">
+                                            <div className="flex items-center justify-end gap-1.5">
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() =>
+                                                        openMasak(item)
+                                                    }
+                                                    title={`Masak ${item.nama}`}
+                                                    aria-label={`Masak ${item.nama}`}
+                                                    className="h-8 gap-1.5 rounded-lg border-emerald-200 px-2.5 text-xs font-medium text-emerald-700 hover:bg-emerald-50 dark:border-emerald-900/60 dark:text-emerald-300 dark:hover:bg-emerald-950/40"
                                                 >
-                                                    {item.tersedia
-                                                        ? 'Tersedia'
-                                                        : 'Habis'}
-                                                </span>
-                                            </td>
-                                            <td className="px-3 py-3 text-right">
-                                                <div className="flex items-center justify-end gap-2">
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={() =>
-                                                            openMasak(item)
-                                                        }
-                                                        className="h-8 gap-1 border-emerald-200 px-2 text-emerald-700 hover:bg-emerald-50"
-                                                        title="Masak menu ini"
-                                                    >
-                                                        <ChefHat className="h-3.5 w-3.5" />{' '}
-                                                        Masak
-                                                    </Button>
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={() =>
-                                                            openEditModal(item)
-                                                        }
-                                                        className="h-8 px-2 text-gray-600"
-                                                    >
-                                                        <Pencil className="h-3.5 w-3.5" />
-                                                    </Button>
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={() =>
-                                                            handleDelete(
-                                                                item.id,
-                                                            )
-                                                        }
-                                                        className="h-8 border-red-200 px-2 text-red-600 hover:bg-red-50 hover:text-red-700"
-                                                    >
-                                                        <Trash2 className="h-3.5 w-3.5" />
-                                                    </Button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                                                    <ChefHat className="size-3.5" />
+                                                    Masak
+                                                </Button>
+                                                <TableAction
+                                                    label={`Edit ${item.nama}`}
+                                                    icon={Pencil}
+                                                    onClick={() =>
+                                                        openEditModal(item)
+                                                    }
+                                                />
+                                                <TableAction
+                                                    label={`Hapus ${item.nama}`}
+                                                    icon={Trash2}
+                                                    tone="rose"
+                                                    onClick={() =>
+                                                        handleDelete(item.id)
+                                                    }
+                                                />
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </AdminTableCard>
 
                 {/* Kartu Daftar Masakan (mobile & tablet) */}
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:hidden">
                     {masakans.length === 0 ? (
-                        <div className="rounded-xl border border-dashed border-gray-200 bg-white p-8 text-center text-sm text-gray-400 dark:border-gray-700 dark:bg-neutral-900">
-                            Belum ada menu masakan. Silakan klik tombol "Tambah
-                            Masakan".
+                        <div className="rounded-2xl border border-dashed border-border/70 bg-card p-8 text-center text-sm text-muted-foreground">
+                            Belum ada menu masakan. Klik “Tambah Masakan” untuk
+                            membuat menu pertama.
                         </div>
                     ) : (
                         masakans.map((item) => (
                             <div
                                 key={item.id}
-                                className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-neutral-900"
+                                className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm"
                             >
                                 <div className="flex items-start gap-3">
                                     {item.foto_url ? (
                                         <img
                                             src={item.foto_url}
                                             alt={item.nama}
-                                            className="h-12 w-12 shrink-0 rounded-lg border object-cover"
+                                            className="size-11 shrink-0 rounded-xl border border-border/70 object-cover ring-2 ring-emerald-50 dark:ring-emerald-950/40"
                                         />
                                     ) : (
-                                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-emerald-100 font-bold text-emerald-600 dark:bg-emerald-950/40">
-                                            <Utensils className="h-5 w-5" />
+                                        <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
+                                            <Utensils className="size-5" />
                                         </div>
                                     )}
                                     <div className="min-w-0 flex-1">
                                         <div className="flex items-start justify-between gap-2">
-                                            <p className="truncate font-semibold text-gray-900 dark:text-white">
+                                            <p className="truncate font-semibold text-foreground">
                                                 {item.nama}
                                             </p>
-                                            <span
-                                                className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium ${
+                                            <StatusPill
+                                                tone={
                                                     item.tersedia
-                                                        ? 'bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300'
-                                                        : 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300'
-                                                }`}
+                                                        ? 'emerald'
+                                                        : 'rose'
+                                                }
+                                                icon={
+                                                    item.tersedia
+                                                        ? CheckCircle2
+                                                        : XCircle
+                                                }
                                             >
                                                 {item.tersedia
                                                     ? 'Tersedia'
                                                     : 'Habis'}
-                                            </span>
+                                            </StatusPill>
                                         </div>
-                                        <p className="mt-0.5 line-clamp-2 text-xs text-gray-400">
+                                        <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
                                             {item.deskripsi ||
                                                 'Tidak ada deskripsi'}
                                         </p>
                                         <div className="mt-2 flex flex-wrap gap-1.5">
-                                            <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                                            <StatusPill tone="slate">
                                                 {item.kategori?.icon}{' '}
                                                 {item.kategori?.nama || '-'}
-                                            </span>
-                                            <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                                            </StatusPill>
+                                            <StatusPill tone="slate">
                                                 {item.resep_items?.length || 0}{' '}
                                                 bahan
-                                            </span>
+                                            </StatusPill>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="mt-3 grid grid-cols-2 gap-3 rounded-lg bg-gray-50 p-2.5 dark:bg-neutral-800/50">
+                                <div className="mt-3 grid grid-cols-2 gap-3 rounded-xl bg-emerald-50/40 p-2.5 dark:bg-emerald-950/10">
                                     <div>
-                                        <p className="text-[10px] font-medium tracking-wide text-gray-400 uppercase">
+                                        <p className="text-[10px] font-medium tracking-wide text-muted-foreground uppercase">
                                             Harga
                                         </p>
-                                        <p className="mt-0.5 font-semibold text-emerald-600 dark:text-emerald-400">
+                                        <p className="mt-0.5 font-semibold text-emerald-700 tabular-nums dark:text-emerald-300">
                                             {item.harga_format}
                                         </p>
                                     </div>
                                     <div>
-                                        <p className="text-[10px] font-medium tracking-wide text-gray-400 uppercase">
+                                        <p className="text-[10px] font-medium tracking-wide text-muted-foreground uppercase">
                                             Porsi siap
                                         </p>
-                                        <p className="mt-0.5 font-semibold text-gray-900 dark:text-white">
+                                        <p className="mt-0.5 font-semibold text-foreground tabular-nums">
                                             {item.jumlah_porsi} porsi
                                         </p>
                                         {item.max_porsi !== null && (
-                                            <p className="text-[10px] text-gray-400">
+                                            <p className="text-[10px] text-muted-foreground">
                                                 maks. {item.max_porsi} dari stok
                                             </p>
                                         )}
@@ -504,29 +526,37 @@ export default function MasakanIndex({
 
                                 <div className="mt-3 grid grid-cols-3 gap-2">
                                     <Button
+                                        type="button"
                                         variant="outline"
                                         size="sm"
                                         onClick={() => openMasak(item)}
-                                        className="h-9 justify-center gap-1 border-emerald-200 px-2 text-xs text-emerald-700 hover:bg-emerald-50 dark:text-emerald-300"
+                                        title={`Masak ${item.nama}`}
+                                        aria-label={`Masak ${item.nama}`}
+                                        className="h-9 justify-center gap-1.5 rounded-lg border-emerald-200 px-2 text-xs text-emerald-700 hover:bg-emerald-50 dark:border-emerald-900/60 dark:text-emerald-300 dark:hover:bg-emerald-950/40"
                                     >
-                                        <ChefHat className="h-3.5 w-3.5" />{' '}
-                                        Masak
+                                        <ChefHat className="size-3.5" /> Masak
                                     </Button>
                                     <Button
+                                        type="button"
                                         variant="outline"
                                         size="sm"
                                         onClick={() => openEditModal(item)}
-                                        className="h-9 justify-center gap-1 px-2 text-xs text-gray-600 dark:text-gray-300"
+                                        title={`Edit ${item.nama}`}
+                                        aria-label={`Edit ${item.nama}`}
+                                        className="h-9 justify-center gap-1.5 rounded-lg px-2 text-xs text-muted-foreground hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-emerald-950/40 dark:hover:text-emerald-300"
                                     >
-                                        <Pencil className="h-3.5 w-3.5" /> Edit
+                                        <Pencil className="size-3.5" /> Edit
                                     </Button>
                                     <Button
+                                        type="button"
                                         variant="outline"
                                         size="sm"
                                         onClick={() => handleDelete(item.id)}
-                                        className="h-9 justify-center gap-1 border-red-200 px-2 text-xs text-red-600 hover:bg-red-50 hover:text-red-700"
+                                        title={`Hapus ${item.nama}`}
+                                        aria-label={`Hapus ${item.nama}`}
+                                        className="h-9 justify-center gap-1.5 rounded-lg border-rose-200/80 px-2 text-xs text-rose-600 hover:bg-rose-50 hover:text-rose-700 dark:border-rose-900/60 dark:text-rose-400 dark:hover:bg-rose-950/40"
                                     >
-                                        <Trash2 className="h-3.5 w-3.5" /> Hapus
+                                        <Trash2 className="size-3.5" /> Hapus
                                     </Button>
                                 </div>
                             </div>
