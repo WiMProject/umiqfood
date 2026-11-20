@@ -94,12 +94,12 @@ export function QueueBadge({
     return (
         <span
             className={cn(
-                'flex shrink-0 flex-col items-center justify-center rounded-xl bg-gradient-to-br from-emerald-600 to-teal-700 text-white shadow-sm shadow-emerald-600/20',
-                small ? 'size-12' : 'size-16',
+                'flex shrink-0 flex-col items-center justify-center rounded-lg bg-gradient-to-br from-emerald-600 to-teal-700 px-1 py-1 text-white shadow-sm shadow-emerald-600/20',
+                small ? 'min-h-10 min-w-12' : 'min-h-12 min-w-14',
                 className,
             )}
         >
-            <span className="text-[9px] font-semibold tracking-[0.08em] whitespace-nowrap text-emerald-100 uppercase">
+            <span className="text-[9px] leading-none font-semibold tracking-[0.08em] whitespace-nowrap text-emerald-100 uppercase">
                 Antrian
             </span>
             <span
