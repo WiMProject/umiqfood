@@ -9,7 +9,6 @@ import {
     Flame,
     Leaf,
     LogOut,
-    Megaphone,
     Menu as MenuIcon,
     Moon,
     Search,
@@ -27,7 +26,6 @@ import { cn } from 'cn';
 
 import { PublicMenuDialog } from '@/components/public-menu-dialog';
 import { RatingStars } from '@/components/rating-stars';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -459,7 +457,6 @@ export default function Welcome() {
     }>().props;
 
     const { resolvedAppearance, updateAppearance } = useAppearance();
-    const [promoTerbuka, setPromoTerbuka] = useState(true);
     const [halaman, setHalaman] = useState(1);
     const [query, setQuery] = useState('');
     const [kategoriAktif, setKategoriAktif] = useState<number | null>(null);
@@ -624,31 +621,6 @@ export default function Welcome() {
             <Head title="UmiqFood — Masakan Rumahan, Pesan Tanpa Repot" />
 
             <div className="min-h-screen bg-background text-foreground">
-                {/* Promo bar */}
-                {promoTerbuka && (
-                    <div className="bg-emerald-800 text-emerald-50">
-                        <Alert className="mx-auto flex max-w-7xl items-center gap-2 border-none bg-transparent px-4 py-1.5 text-emerald-50 sm:px-6 lg:px-8">
-                            <Megaphone className="size-4 shrink-0" />
-                            <AlertTitle className="mb-0 flex-1 text-xs font-medium text-emerald-50 sm:text-sm">
-                                Pickup only: pesan sekarang, ambil saat siap —
-                                tanpa biaya antar.
-                            </AlertTitle>
-                            <AlertDescription className="sr-only">
-                                Semua pesanan diambil sendiri di outlet
-                                UmiqFood.
-                            </AlertDescription>
-                            <button
-                                type="button"
-                                onClick={() => setPromoTerbuka(false)}
-                                className="rounded-md p-1 transition hover:bg-emerald-700"
-                                aria-label="Tutup promo"
-                            >
-                                <X className="size-3.5" />
-                            </button>
-                        </Alert>
-                    </div>
-                )}
-
                 {/* Navbar */}
                 <header className="sticky top-0 z-50 border-b border-border/80 bg-background/85 backdrop-blur-xl">
                     <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
@@ -1200,20 +1172,23 @@ export default function Welcome() {
                     </div>
                 </section>
 
-                {/* Kategori + Chart */}
+                {/* Menu & Kategori */}
                 <section
-                    id="kategori"
-                    className="scroll-mt-24 px-4 py-16 sm:px-6 lg:px-8"
+                    id="menu"
+                    className="scroll-mt-24 border-y border-border/70 bg-muted/30 px-4 py-16 sm:px-6 lg:px-8"
                 >
                     <div className="mx-auto max-w-7xl">
                         <SectionHeading
-                            eyebrow="Kategori"
+                            eyebrow="Menu & Kategori"
                             title="Mau masakan apa hari ini?"
-                            description="Pilih kategori untuk menyaring menu yang tampil di bawah."
+                            description={`Pilih kategori untuk menyaring menu — ${hasilFilter.length} dari ${masakans.length} masakan siap dipesan.`}
                         />
 
-                        <div className="mt-8">
-                            <Card className="p-5 sm:p-6">
+                        <div
+                            id="kategori"
+                            className="mt-8 scroll-mt-28 rounded-2xl border border-border/70 bg-card p-4 shadow-sm sm:p-5"
+                        >
+                            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                                 <div className="flex flex-wrap gap-2">
                                     <button
                                         type="button"
@@ -1275,82 +1250,11 @@ export default function Welcome() {
                                     })}
                                 </div>
 
-                                <div className="mt-6 rounded-xl border border-dashed border-border bg-muted/40 p-4">
-                                    <p className="flex items-center gap-2 text-sm font-medium">
-                                        <Flame className="size-4 text-emerald-600 dark:text-emerald-400" />
-                                        Tips memesan
-                                    </p>
-                                    <p className="mt-1 text-sm text-muted-foreground">
-                                        Cek badge porsi pada kartu menu. Menu
-                                        dengan stok habis tetap bisa dilihat
-                                        detailnya, tetapi belum bisa dipesan.
-                                    </p>
-                                </div>
-                            </Card>
-                        </div>
-                    </div>
-                </section>
-
-                {/* Menu */}
-                <section
-                    id="menu"
-                    className="scroll-mt-24 border-y border-border/70 bg-muted/30 px-4 py-16 sm:px-6 lg:px-8"
-                >
-                    <div className="mx-auto max-w-7xl">
-                        <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
-                            <div>
-                                <SectionHeading
-                                    eyebrow="Menu"
-                                    title="Menu Hari Ini"
-                                    description={`${hasilFilter.length} dari ${masakans.length} masakan siap dipesan.`}
-                                />
-                            </div>
-
-                            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                                {(query !== '' ||
-                                    kategoriTerpilih !== undefined) && (
-                                    <div className="flex flex-wrap items-center gap-2">
-                                        {query !== '' && (
-                                            <Badge
-                                                variant="outline"
-                                                className="gap-1 py-1"
-                                            >
-                                                “{query}”
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setQuery('')}
-                                                    aria-label="Hapus pencarian"
-                                                >
-                                                    <X className="size-3" />
-                                                </button>
-                                            </Badge>
-                                        )}
-                                        {kategoriTerpilih && (
-                                            <Badge
-                                                variant="outline"
-                                                className="gap-1 py-1"
-                                            >
-                                                {kategoriTerpilih.icon}{' '}
-                                                {kategoriTerpilih.nama}
-                                                <button
-                                                    type="button"
-                                                    onClick={() =>
-                                                        setKategoriAktif(null)
-                                                    }
-                                                    aria-label="Hapus filter kategori"
-                                                >
-                                                    <X className="size-3" />
-                                                </button>
-                                            </Badge>
-                                        )}
-                                    </div>
-                                )}
-
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                         <Button
                                             variant="outline"
-                                            className="justify-between gap-2 bg-background"
+                                            className="w-full justify-between gap-2 bg-background sm:w-auto"
                                         >
                                             <span className="flex items-center gap-2">
                                                 <ArrowUpDown className="size-4" />
@@ -1383,6 +1287,53 @@ export default function Welcome() {
                                         </DropdownMenuRadioGroup>
                                     </DropdownMenuContent>
                                 </DropdownMenu>
+                            </div>
+
+                            {(query !== '' ||
+                                kategoriTerpilih !== undefined) && (
+                                <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-border/70 pt-4">
+                                    {query !== '' && (
+                                        <Badge
+                                            variant="outline"
+                                            className="gap-1 py-1"
+                                        >
+                                            “{query}”
+                                            <button
+                                                type="button"
+                                                onClick={() => setQuery('')}
+                                                aria-label="Hapus pencarian"
+                                            >
+                                                <X className="size-3" />
+                                            </button>
+                                        </Badge>
+                                    )}
+                                    {kategoriTerpilih && (
+                                        <Badge
+                                            variant="outline"
+                                            className="gap-1 py-1"
+                                        >
+                                            {kategoriTerpilih.icon}{' '}
+                                            {kategoriTerpilih.nama}
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    setKategoriAktif(null)
+                                                }
+                                                aria-label="Hapus filter kategori"
+                                            >
+                                                <X className="size-3" />
+                                            </button>
+                                        </Badge>
+                                    )}
+                                </div>
+                            )}
+
+                            <div className="mt-4 flex items-start gap-2 rounded-xl bg-emerald-50/60 px-3 py-2 text-xs text-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-200">
+                                <Flame className="mt-0.5 size-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                                <p>
+                                    Cek badge porsi pada kartu menu. Menu habis
+                                    tetap bisa dilihat, tapi belum bisa dipesan.
+                                </p>
                             </div>
                         </div>
 
