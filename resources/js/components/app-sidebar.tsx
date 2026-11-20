@@ -1,16 +1,15 @@
 import { Link } from '@inertiajs/react';
 import {
-    BookOpen,
     Boxes,
     ClipboardList,
-    FolderGit2,
     LayoutGrid,
     UtensilsCrossed,
+    X,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
-import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
+import { Button } from '@/components/ui/button';
 import {
     Sidebar,
     SidebarContent,
@@ -47,50 +46,55 @@ const mainNavItems: NavItem[] = [
     },
 ];
 
-const footerNavItems: NavItem[] = [
-    {
-        title: 'Repository',
-        href: 'https://github.com/laravel/react-starter-kit',
-        icon: FolderGit2,
-    },
-    {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#react',
-        icon: BookOpen,
-    },
-];
-
 export function AppSidebar() {
     const { isMobile, setOpenMobile } = useSidebar();
 
     return (
         <Sidebar collapsible="icon" variant="inset">
-            <SidebarHeader>
-                <SidebarMenu>
-                    <SidebarMenuItem>
-                        <SidebarMenuButton size="lg" asChild>
-                            <Link
-                                href={dashboard()}
-                                prefetch
-                                onClick={() => {
-                                    if (isMobile) {
-                                        setOpenMobile(false);
-                                    }
-                                }}
+            <SidebarHeader className="sticky top-0 z-30 shrink-0 gap-0 border-b border-sidebar-border/70 bg-sidebar/95 p-0 backdrop-blur">
+                <div className="flex items-center gap-1 p-3 group-data-[collapsible=icon]:p-2">
+                    <SidebarMenu className="min-w-0 flex-1">
+                        <SidebarMenuItem>
+                            <SidebarMenuButton
+                                size="lg"
+                                asChild
+                                className="rounded-xl hover:bg-sidebar-accent/70 data-[state=open]:bg-sidebar-accent/70"
                             >
-                                <AppLogo />
-                            </Link>
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                </SidebarMenu>
+                                <Link
+                                    href={dashboard()}
+                                    prefetch
+                                    onClick={() => {
+                                        if (isMobile) {
+                                            setOpenMobile(false);
+                                        }
+                                    }}
+                                >
+                                    <AppLogo />
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                    </SidebarMenu>
+
+                    {isMobile && (
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setOpenMobile(false)}
+                            aria-label="Tutup menu"
+                            className="size-9 shrink-0 rounded-xl text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                        >
+                            <X className="size-4.5" />
+                        </Button>
+                    )}
+                </div>
             </SidebarHeader>
 
-            <SidebarContent>
+            <SidebarContent className="py-2">
                 <NavMain items={mainNavItems} />
             </SidebarContent>
 
-            <SidebarFooter>
-                <NavFooter items={footerNavItems} className="mt-auto" />
+            <SidebarFooter className="border-t border-sidebar-border/70 p-3 group-data-[collapsible=icon]:p-2">
                 <NavUser />
             </SidebarFooter>
         </Sidebar>

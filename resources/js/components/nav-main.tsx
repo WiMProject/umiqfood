@@ -16,14 +16,17 @@ export function NavMain({ items }: { items: NavItem[] }) {
 
     return (
         <SidebarGroup className="px-2 py-0">
-            <SidebarGroupLabel>Platform</SidebarGroupLabel>
-            <SidebarMenu>
+            <SidebarGroupLabel className="mb-1 h-7 px-3 text-[10px] tracking-[0.18em] text-sidebar-foreground/60 uppercase">
+                Menu utama
+            </SidebarGroupLabel>
+            <SidebarMenu className="gap-1">
                 {items.map((item) => (
                     <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton
                             asChild
                             isActive={isCurrentUrl(item.href)}
                             tooltip={{ children: item.title }}
+                            className="relative h-10 gap-2.5 rounded-xl px-3 text-[13px] group-data-[collapsible=icon]:rounded-lg before:absolute before:top-1/2 before:left-0 before:h-4 before:w-[3px] before:-translate-y-1/2 before:rounded-r-full before:bg-emerald-600 before:opacity-0 before:content-[''] group-data-[collapsible=icon]:before:hidden data-[active=true]:bg-sidebar-accent data-[active=true]:font-semibold data-[active=true]:text-sidebar-accent-foreground data-[active=true]:shadow-sm data-[active=true]:shadow-emerald-950/5 data-[active=true]:before:opacity-100 dark:before:bg-emerald-400"
                         >
                             <Link
                                 href={item.href}
