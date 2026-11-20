@@ -1,4 +1,5 @@
 import { Form, Head } from '@inertiajs/react';
+import { LockKeyhole } from 'lucide-react';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
 import { Button } from '@/components/ui/button';
@@ -14,28 +15,29 @@ import PasskeyVerify from '@/components/passkey-verify';
 export default function ConfirmPassword() {
     return (
         <>
-            <Head title="Confirm password" />
+            <Head title="Konfirmasi kata sandi" />
 
             <PasskeyVerify
                 routes={{
                     options: confirmOptions(),
                     submit: confirmStore(),
                 }}
-                label="Confirm with passkey"
-                loadingLabel="Confirming..."
-                separator="Or confirm with password"
+                label="Masuk dengan passkey"
+                loadingLabel="Memverifikasi..."
+                separator="Atau konfirmasi dengan kata sandi"
             />
 
             <Form {...store.form()} resetOnSuccess={['password']}>
                 {({ processing, errors }) => (
                     <div className="space-y-6">
                         <div className="grid gap-2">
-                            <Label htmlFor="password">Password</Label>
+                            <Label htmlFor="password">Kata sandi</Label>
                             <PasswordInput
                                 id="password"
                                 name="password"
-                                placeholder="Password"
+                                placeholder="Kata sandi akun"
                                 autoComplete="current-password"
+                                icon={<LockKeyhole />}
                                 autoFocus
                             />
 
@@ -44,12 +46,12 @@ export default function ConfirmPassword() {
 
                         <div className="flex items-center">
                             <Button
-                                className="w-full"
+                                className="h-11 w-full gap-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700"
                                 disabled={processing}
                                 data-test="confirm-password-button"
                             >
                                 {processing && <Spinner />}
-                                Confirm password
+                                Konfirmasi kata sandi
                             </Button>
                         </div>
                     </div>
@@ -60,7 +62,7 @@ export default function ConfirmPassword() {
 }
 
 ConfirmPassword.layout = {
-    title: 'Confirm password',
+    title: 'Konfirmasi kata sandi',
     description:
-        'This is a secure area of the application. Please confirm your password before continuing.',
+        'Area ini perlu verifikasi. Masukkan kata sandi akunmu untuk melanjutkan.',
 };

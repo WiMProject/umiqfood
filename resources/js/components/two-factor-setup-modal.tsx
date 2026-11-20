@@ -1,6 +1,6 @@
 import { Form } from '@inertiajs/react';
 import { REGEXP_ONLY_DIGITS } from 'input-otp';
-import { Check, Copy, ScanLine } from 'lucide-react';
+import { Check, Copy, ScanLine, ShieldCheck } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import AlertError from '@/components/alert-error';
 import InputError from '@/components/input-error';
@@ -43,7 +43,7 @@ function GridScanIcon() {
                         />
                     ))}
                 </div>
-                <ScanLine className="relative z-20 size-6 text-foreground" />
+                <ScanLine className="relative z-20 size-6 text-emerald-600 dark:text-emerald-400" />
             </div>
         </div>
     );
@@ -96,15 +96,19 @@ function TwoFactorSetupStep({
                     </div>
 
                     <div className="flex w-full space-x-5">
-                        <Button className="w-full" onClick={onNextStep}>
+                        <Button
+                            className="h-10 w-full gap-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700"
+                            onClick={onNextStep}
+                        >
+                            <ShieldCheck className="size-4" />
                             {buttonText}
                         </Button>
                     </div>
 
                     <div className="relative flex w-full items-center justify-center">
                         <div className="absolute inset-0 top-1/2 h-px w-full bg-border" />
-                        <span className="relative bg-card px-2 py-1">
-                            or, enter the code manually
+                        <span className="relative bg-card px-2 py-1 text-xs text-muted-foreground">
+                            atau masukkan kode secara manual
                         </span>
                     </div>
 
@@ -206,20 +210,21 @@ function TwoFactorVerificationStep({
                             <Button
                                 type="button"
                                 variant="outline"
-                                className="flex-1"
+                                className="h-10 flex-1 rounded-xl"
                                 onClick={onBack}
                                 disabled={processing}
                             >
-                                Back
+                                Kembali
                             </Button>
                             <Button
                                 type="submit"
-                                className="flex-1"
+                                className="h-10 flex-1 gap-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700"
                                 disabled={
                                     processing || code.length < OTP_MAX_LENGTH
                                 }
                             >
-                                Confirm
+                                <ShieldCheck className="size-4" />
+                                Konfirmasi
                             </Button>
                         </div>
                     </div>
@@ -262,27 +267,27 @@ export default function TwoFactorSetupModal({
     }>(() => {
         if (twoFactorEnabled) {
             return {
-                title: 'Two-factor authentication enabled',
+                title: 'Autentikasi dua faktor aktif',
                 description:
-                    'Two-factor authentication is now enabled. Scan the QR code or enter the setup key in your authenticator app.',
-                buttonText: 'Close',
+                    '2FA sekarang sudah aktif. Pindai kode QR atau masukkan kode pengaturan di aplikasi autentikatormu.',
+                buttonText: 'Tutup',
             };
         }
 
         if (showVerificationStep) {
             return {
-                title: 'Verify authentication code',
+                title: 'Verifikasi kode autentikasi',
                 description:
-                    'Enter the 6-digit code from your authenticator app',
-                buttonText: 'Continue',
+                    'Masukkan kode 6 digit dari aplikasi autentikatormu.',
+                buttonText: 'Lanjutkan',
             };
         }
 
         return {
-            title: 'Enable two-factor authentication',
+            title: 'Aktifkan autentikasi dua faktor',
             description:
-                'To finish enabling two-factor authentication, scan the QR code or enter the setup key in your authenticator app',
-            buttonText: 'Continue',
+                'Untuk menyelesaikan pengaturan 2FA, pindai kode QR atau masukkan kode pengaturan di aplikasi autentikatormu.',
+            buttonText: 'Lanjutkan',
         };
     }, [twoFactorEnabled, showVerificationStep]);
 

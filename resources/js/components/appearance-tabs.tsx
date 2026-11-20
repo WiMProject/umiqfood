@@ -12,34 +12,49 @@ export default function AppearanceToggleTab({
     const { appearance, updateAppearance } = useAppearance();
 
     const tabs: { value: Appearance; icon: LucideIcon; label: string }[] = [
-        { value: 'light', icon: Sun, label: 'Light' },
-        { value: 'dark', icon: Moon, label: 'Dark' },
-        { value: 'system', icon: Monitor, label: 'System' },
+        { value: 'light', icon: Sun, label: 'Terang' },
+        { value: 'dark', icon: Moon, label: 'Gelap' },
+        { value: 'system', icon: Monitor, label: 'Sistem' },
     ];
 
     return (
         <div
             className={cn(
-                'inline-flex gap-1 rounded-lg bg-neutral-100 p-1 dark:bg-neutral-800',
+                'grid grid-cols-3 gap-2 rounded-2xl border border-border/70 bg-muted/40 p-1.5',
                 className,
             )}
             {...props}
         >
-            {tabs.map(({ value, icon: Icon, label }) => (
-                <button
-                    key={value}
-                    onClick={() => updateAppearance(value)}
-                    className={cn(
-                        'flex items-center rounded-md px-3.5 py-1.5 transition-colors',
-                        appearance === value
-                            ? 'bg-white shadow-xs dark:bg-neutral-700 dark:text-neutral-100'
-                            : 'text-neutral-500 hover:bg-neutral-200/60 hover:text-black dark:text-neutral-400 dark:hover:bg-neutral-700/60',
-                    )}
-                >
-                    <Icon className="-ml-1 h-4 w-4" />
-                    <span className="ml-1.5 text-sm">{label}</span>
-                </button>
-            ))}
+            {tabs.map(({ value, icon: Icon, label }) => {
+                const aktif = appearance === value;
+
+                return (
+                    <button
+                        key={value}
+                        type="button"
+                        onClick={() => updateAppearance(value)}
+                        aria-pressed={aktif}
+                        className={cn(
+                            'flex flex-col items-center gap-2 rounded-xl px-3 py-3.5 text-sm font-medium transition sm:flex-row sm:justify-center sm:py-3',
+                            aktif
+                                ? 'bg-card text-foreground shadow-sm ring-1 ring-emerald-500/20'
+                                : 'text-muted-foreground hover:bg-card/60 hover:text-foreground',
+                        )}
+                    >
+                        <span
+                            className={cn(
+                                'flex size-9 items-center justify-center rounded-xl transition',
+                                aktif
+                                    ? 'bg-emerald-600 text-white'
+                                    : 'bg-muted text-muted-foreground',
+                            )}
+                        >
+                            <Icon className="size-4.5" />
+                        </span>
+                        {label}
+                    </button>
+                );
+            })}
         </div>
     );
 }
