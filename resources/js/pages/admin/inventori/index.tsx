@@ -41,7 +41,7 @@ export default function InventoriIndex({ bahanBakus, stats }: Props) {
     const [isOpen, setIsOpen] = useState(false);
     const [editingItem, setEditingItem] = useState<BahanBaku | null>(null);
 
-    const { data, setData, post, reset, errors, processing } = useForm({
+    const { data, setData, post, put, reset, errors, processing } = useForm({
         nama: '',
         satuan: 'gram',
         stok: '' as string | number,
@@ -70,7 +70,7 @@ export default function InventoriIndex({ bahanBakus, stats }: Props) {
         e.preventDefault();
 
         if (editingItem) {
-            post(`/inventori/${editingItem.id}`, {
+            put(`/inventori/${editingItem.id}`, {
                 onSuccess: () => setIsOpen(false),
             });
         } else {

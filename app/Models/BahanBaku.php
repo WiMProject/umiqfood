@@ -14,6 +14,8 @@ class BahanBaku extends Model
         'stok_minimum' => 'float',
     ];
 
+    protected $appends = ['stok_menipis'];
+
     // Relasi: 1 bahan baku dipakai di BANYAK resep
     /**
      * @return HasMany<ResepItem, $this>
