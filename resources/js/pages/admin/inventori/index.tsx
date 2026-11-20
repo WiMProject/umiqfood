@@ -170,6 +170,7 @@ export default function InventoriIndex({ bahanBakus, stats }: Props) {
                 {/* Tabel Bahan Baku (layar besar) */}
                 <AdminTableCard
                     title="Daftar Bahan Baku"
+                    description="Pantau stok, batas minimum, dan pemakaian resep."
                     count={bahanBakus.length}
                     icon={Boxes}
                     className="hidden xl:block"

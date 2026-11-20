@@ -10,12 +10,14 @@ import { cn } from '@/lib/utils';
  */
 export function AdminTableCard({
     title,
+    description,
     count,
     icon: Icon,
     className,
     children,
 }: {
     title: string;
+    description?: string;
     count?: number;
     icon?: LucideIcon;
     className?: string;
@@ -28,18 +30,26 @@ export function AdminTableCard({
                 className,
             )}
         >
-            <div className="relative flex items-center justify-center border-b border-border/70 bg-emerald-50/40 px-14 py-3 dark:bg-emerald-950/20">
+            <div className="relative overflow-hidden border-b border-border/70 bg-gradient-to-r from-emerald-50/80 via-emerald-50/30 to-transparent px-14 py-4 dark:from-emerald-950/30 dark:via-emerald-950/10 dark:to-transparent">
+                <div className="absolute inset-y-0 left-0 w-1 bg-emerald-500/70" />
                 {Icon && (
-                    <div className="absolute left-4 flex size-7 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
-                        <Icon className="size-4" />
+                    <div className="absolute top-1/2 left-4 flex size-9 -translate-y-1/2 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-700 ring-1 ring-emerald-500/15 dark:text-emerald-300">
+                        <Icon className="size-[18px]" />
                     </div>
                 )}
-                <h2 className="text-center text-sm font-semibold tracking-wide text-foreground">
-                    {title}
-                </h2>
+                <div className="flex flex-col items-center gap-0.5 text-center">
+                    <h2 className="text-sm font-semibold tracking-wide text-foreground sm:text-base">
+                        {title}
+                    </h2>
+                    {description && (
+                        <p className="max-w-md text-[11px] text-muted-foreground">
+                            {description}
+                        </p>
+                    )}
+                </div>
                 {count !== undefined && (
-                    <span className="absolute right-4 rounded-full border border-emerald-200/70 bg-white/80 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 shadow-sm dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-300">
-                        {count === 0 ? '0' : count}
+                    <span className="absolute top-1/2 right-4 -translate-y-1/2 rounded-full border border-emerald-200/80 bg-white/90 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 shadow-sm dark:border-emerald-900/60 dark:bg-emerald-950/50 dark:text-emerald-300">
+                        {count === 0 ? '0 data' : `${count} data`}
                     </span>
                 )}
             </div>

@@ -277,6 +277,7 @@ export default function MasakanIndex({
                 {/* Tabel Daftar Masakan (layar besar) */}
                 <AdminTableCard
                     title="Daftar Menu Masakan"
+                    description="Harga, resep, dan ketersediaan setiap menu."
                     count={masakans.length}
                     icon={Utensils}
                     className="hidden xl:block"
