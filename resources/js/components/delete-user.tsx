@@ -1,7 +1,7 @@
 import { Form } from '@inertiajs/react';
+import { LoaderCircle, Trash2, TriangleAlert } from 'lucide-react';
 import { useRef } from 'react';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
-import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
 import { Button } from '@/components/ui/button';
@@ -20,18 +20,34 @@ export default function DeleteUser() {
     const passwordInput = useRef<HTMLInputElement>(null);
 
     return (
-        <div className="space-y-6">
-            <Heading
-                variant="small"
-                title="Delete account"
-                description="Delete your account and all of its resources"
-            />
-            <div className="space-y-4 rounded-lg border border-red-100 bg-red-50 p-4 dark:border-red-200/10 dark:bg-red-700/10">
-                <div className="relative space-y-0.5 text-red-600 dark:text-red-100">
-                    <p className="font-medium">Warning</p>
-                    <p className="text-sm">
-                        Please proceed with caution, this cannot be undone.
+        <div className="space-y-4">
+            <div className="flex items-center gap-3">
+                <span className="flex size-9 items-center justify-center rounded-xl bg-red-50 text-red-600 ring-1 ring-red-500/15 dark:bg-red-950/40 dark:text-red-300">
+                    <TriangleAlert className="size-[18px]" />
+                </span>
+                <div>
+                    <h2 className="font-semibold">Hapus akun</h2>
+                    <p className="text-xs text-muted-foreground">
+                        Hapus akun dan seluruh data yang terkait.
                     </p>
+                </div>
+            </div>
+
+            <div className="rounded-2xl border border-red-200/70 bg-red-50/60 p-5 dark:border-red-900/60 dark:bg-red-950/25">
+                <div className="flex items-start gap-3">
+                    <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-red-100 text-red-600 dark:bg-red-950/60 dark:text-red-300">
+                        <TriangleAlert className="size-5" />
+                    </span>
+                    <div>
+                        <p className="font-semibold text-red-800 dark:text-red-200">
+                            Perhatian
+                        </p>
+                        <p className="mt-1 text-sm text-red-700/80 dark:text-red-300/80">
+                            Tindakan ini tidak bisa dibatalkan. Pesanan,
+                            keranjang, dan riwayat pembayaran kamu akan ikut
+                            terhapus.
+                        </p>
+                    </div>
                 </div>
 
                 <Dialog>
@@ -39,19 +55,18 @@ export default function DeleteUser() {
                         <Button
                             variant="destructive"
                             data-test="delete-user-button"
+                            className="mt-4 gap-2 rounded-xl"
                         >
-                            Delete account
+                            <Trash2 className="size-4" />
+                            Hapus akun
                         </Button>
                     </DialogTrigger>
                     <DialogContent>
-                        <DialogTitle>
-                            Are you sure you want to delete your account?
-                        </DialogTitle>
+                        <DialogTitle>Yakin ingin menghapus akun?</DialogTitle>
                         <DialogDescription>
-                            Once your account is deleted, all of its resources
-                            and data will also be permanently deleted. Please
-                            enter your password to confirm you would like to
-                            permanently delete your account.
+                            Seluruh data pesanan, keranjang, dan pembayaran akan
+                            dihapus permanen. Masukkan kata sandi kamu untuk
+                            melanjutkan.
                         </DialogDescription>
 
                         <Form
@@ -70,14 +85,14 @@ export default function DeleteUser() {
                                             htmlFor="password"
                                             className="sr-only"
                                         >
-                                            Password
+                                            Kata sandi
                                         </Label>
 
                                         <PasswordInput
                                             id="password"
                                             name="password"
                                             ref={passwordInput}
-                                            placeholder="Password"
+                                            placeholder="Kata sandi saat ini"
                                             autoComplete="current-password"
                                         />
 
@@ -91,8 +106,9 @@ export default function DeleteUser() {
                                                 onClick={() =>
                                                     resetAndClearErrors()
                                                 }
+                                                className="rounded-xl"
                                             >
-                                                Cancel
+                                                Batal
                                             </Button>
                                         </DialogClose>
 
@@ -100,12 +116,17 @@ export default function DeleteUser() {
                                             variant="destructive"
                                             disabled={processing}
                                             asChild
+                                            className="rounded-xl"
                                         >
                                             <button
                                                 type="submit"
                                                 data-test="confirm-delete-user-button"
+                                                className="flex items-center gap-2"
                                             >
-                                                Delete account
+                                                {processing && (
+                                                    <LoaderCircle className="size-4 animate-spin" />
+                                                )}
+                                                Ya, hapus akun
                                             </button>
                                         </Button>
                                     </DialogFooter>

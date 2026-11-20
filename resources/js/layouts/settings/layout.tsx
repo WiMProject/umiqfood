@@ -1,4 +1,5 @@
 import { Link } from '@inertiajs/react';
+import { Palette, ShieldCheck, UserRound } from 'lucide-react';
 import type { PropsWithChildren } from 'react';
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
@@ -14,17 +15,17 @@ const sidebarNavItems: NavItem[] = [
     {
         title: 'Profil',
         href: edit(),
-        icon: null,
+        icon: UserRound,
     },
     {
         title: 'Keamanan',
         href: editSecurity(),
-        icon: null,
+        icon: ShieldCheck,
     },
     {
         title: 'Tampilan',
         href: editAppearance(),
-        icon: null,
+        icon: Palette,
     },
 ];
 
@@ -41,27 +42,39 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
             <div className="flex flex-col lg:flex-row lg:space-x-12">
                 <aside className="w-full max-w-xl lg:w-48">
                     <nav
-                        className="flex flex-col space-y-1 space-x-0"
-                        aria-label="Settings"
+                        className="flex flex-col gap-1 rounded-2xl border border-border/70 bg-card/60 p-1.5"
+                        aria-label="Pengaturan"
                     >
-                        {sidebarNavItems.map((item, index) => (
-                            <Button
-                                key={`${toUrl(item.href)}-${index}`}
-                                size="sm"
-                                variant="ghost"
-                                asChild
-                                className={cn('w-full justify-start', {
-                                    'bg-muted': isCurrentOrParentUrl(item.href),
-                                })}
-                            >
-                                <Link href={item.href}>
-                                    {item.icon && (
-                                        <item.icon className="h-4 w-4" />
+                        {sidebarNavItems.map((item, index) => {
+                            const aktif = isCurrentOrParentUrl(item.href);
+
+                            return (
+                                <Button
+                                    key={`${toUrl(item.href)}-${index}`}
+                                    size="sm"
+                                    variant="ghost"
+                                    asChild
+                                    className={cn(
+                                        'w-full justify-start rounded-xl transition',
+                                        aktif
+                                            ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-500/15 dark:bg-emerald-950/50 dark:text-emerald-300'
+                                            : 'text-muted-foreground hover:bg-muted hover:text-foreground',
                                     )}
-                                    {item.title}
-                                </Link>
-                            </Button>
-                        ))}
+                                >
+                                    <Link
+                                        href={item.href}
+                                        aria-current={
+                                            aktif ? 'page' : undefined
+                                        }
+                                    >
+                                        {item.icon && (
+                                            <item.icon className="size-4" />
+                                        )}
+                                        {item.title}
+                                    </Link>
+                                </Button>
+                            );
+                        })}
                     </nav>
                 </aside>
 
