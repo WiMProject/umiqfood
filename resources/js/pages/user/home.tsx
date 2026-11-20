@@ -1,6 +1,7 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import {
     ArrowRight,
+    ArrowUpDown,
     BadgeCheck,
     CheckCircle2,
     ChefHat,
@@ -11,16 +12,20 @@ import {
     MapPin,
     MessageSquareQuote,
     Minus,
+    PackageCheck,
     Plus,
+    RotateCcw,
     Search,
     Send,
     ShoppingBag,
     Sparkles,
     Star,
     UtensilsCrossed,
+    X,
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { cn } from 'cn';
+import { EmptyState, FilterChip, SectionHeading } from '@/components/user-ui';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -31,6 +36,15 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuLabel,
+    DropdownMenuRadioGroup,
+    DropdownMenuRadioItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import type { Kategori, KeranjangRingkas, Masakan, Review } from '@/types';
@@ -74,6 +88,16 @@ function jumlahUlasan(item: Masakan): number {
     return item.reviews_count ?? item.reviews?.length ?? 0;
 }
 
+type Urutan = 'rekomendasi' | 'termurah' | 'termahal' | 'rating' | 'porsi';
+
+const OPSI_URUT: { value: Urutan; label: string }[] = [
+    { value: 'rekomendasi', label: 'Rekomendasi' },
+    { value: 'termurah', label: 'Harga termurah' },
+    { value: 'termahal', label: 'Harga tertinggi' },
+    { value: 'rating', label: 'Rating tertinggi' },
+    { value: 'porsi', label: 'Porsi terbanyak' },
+];
+
 function Bintang({ nilai, className }: { nilai: number; className?: string }) {
     return (
         <span
@@ -110,6 +134,7 @@ export default function UserHome() {
     const [kategoriAktif, setKategoriAktif] = useState<number | 'semua'>(
         'semua',
     );
+    const [urutan, setUrutan] = useState<Urutan>('rekomendasi');
     const [menambah, setMenambah] = useState<number | null>(null);
     const [detail, setDetail] = useState<Masakan | null>(null);
     const [jumlah, setJumlah] = useState(1);
@@ -132,8 +157,7 @@ export default function UserHome() {
 
     const hasil = useMemo(() => {
         const kataKunci = search.trim().toLowerCase();
-
-        return masakans.filter((item) => {
+        const tersaring = masakans.filter((item) => {
             const cocokKategori =
                 kategoriAktif === 'semua' || item.kategori_id === kategoriAktif;
             const cocokCari =
@@ -143,12 +167,45 @@ export default function UserHome() {
 
             return cocokKategori && cocokCari;
         });
-    }, [masakans, search, kategoriAktif]);
+
+        switch (urutan) {
+            case 'termurah':
+                return tersaring.sort((a, b) => a.harga - b.harga);
+            case 'termahal':
+                return tersaring.sort((a, b) => b.harga - a.harga);
+            case 'rating':
+                return tersaring.sort((a, b) => rataRating(b) - rataRating(a));
+            case 'porsi':
+                return tersaring.sort(
+                    (a, b) => b.jumlah_porsi - a.jumlah_porsi,
+                );
+            default:
+                return tersaring;
+        }
+    }, [masakans, search, kategoriAktif, urutan]);
+
+    const jumlahPerKategori = useMemo(() => {
+        const peta = new Map<number, number>();
+        masakans.forEach((item) => {
+            peta.set(item.kategori_id, (peta.get(item.kategori_id) ?? 0) + 1);
+        });
+        return peta;
+    }, [masakans]);
 
     const totalPorsi = useMemo(
         () => masakans.reduce((total, item) => total + item.jumlah_porsi, 0),
         [masakans],
     );
+
+    const labelUrutan =
+        OPSI_URUT.find((opsi) => opsi.value === urutan)?.label ?? 'Rekomendasi';
+    const adaFilter = search.trim() !== '' || kategoriAktif !== 'semua';
+
+    const kosongkanFilter = () => {
+        setSearch('');
+        setKategoriAktif('semua');
+        setUrutan('rekomendasi');
+    };
 
     const bukaDetail = (item: Masakan) => {
         setDetail(item);
@@ -340,79 +397,204 @@ export default function UserHome() {
                 )}
 
                 {/* Pencarian + kategori */}
-                <section className="mt-10">
-                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                        <div>
-                            <p className="text-[11px] font-semibold tracking-[0.18em] text-emerald-600 uppercase dark:text-emerald-400">
-                                Menu hari ini
-                            </p>
-                            <h2 className="mt-1 text-2xl font-extrabold tracking-tight">
-                                Mau makan apa?
-                            </h2>
-                        </div>
-
-                        <div className="relative w-full sm:max-w-xs">
-                            <Search className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
-                            <Input
-                                value={search}
-                                onChange={(event) =>
-                                    setSearch(event.target.value)
-                                }
-                                placeholder="Cari nasi goreng, ayam..."
-                                aria-label="Cari masakan"
-                                className="h-11 rounded-xl border-border/80 bg-card pl-10 shadow-sm"
-                            />
-                        </div>
-                    </div>
-
-                    <div className="mt-4 flex flex-wrap gap-2">
-                        <button
-                            type="button"
-                            onClick={() => setKategoriAktif('semua')}
-                            className={cn(
-                                'inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition',
-                                kategoriAktif === 'semua'
-                                    ? 'border-emerald-600 bg-emerald-600 text-white shadow-sm'
-                                    : 'border-border/80 bg-card text-muted-foreground hover:border-emerald-300 hover:bg-emerald-50 dark:hover:border-emerald-800 dark:hover:bg-emerald-950/40',
-                            )}
-                        >
-                            <UtensilsCrossed className="size-4" />
-                            Semua
-                        </button>
-                        {kategoris.map((kategori) => (
-                            <button
-                                key={kategori.id}
-                                type="button"
-                                onClick={() => setKategoriAktif(kategori.id)}
-                                className={cn(
-                                    'inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition',
-                                    kategoriAktif === kategori.id
-                                        ? 'border-emerald-600 bg-emerald-600 text-white shadow-sm'
-                                        : 'border-border/80 bg-card text-muted-foreground hover:border-emerald-300 hover:bg-emerald-50 dark:hover:border-emerald-800 dark:hover:bg-emerald-950/40',
-                                )}
+                <section id="menu" className="mt-10 scroll-mt-24">
+                    <SectionHeading
+                        eyebrow="Menu hari ini"
+                        title="Mau masakan apa?"
+                        description={`${hasil.length} dari ${masakans.length} menu siap dipesan. Pilih kategori atau cari favoritmu.`}
+                        icon={UtensilsCrossed}
+                        action={
+                            <Badge
+                                variant="outline"
+                                className="gap-1.5 self-start border-emerald-200 bg-emerald-50 px-3 py-1.5 text-emerald-700 sm:self-auto dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-300"
                             >
-                                <span>{kategori.icon ?? '🍽️'}</span>
-                                {kategori.nama}
-                            </button>
-                        ))}
+                                <Flame className="size-3.5" />
+                                {totalPorsi} porsi tersedia
+                            </Badge>
+                        }
+                    />
+
+                    <div className="mt-5 rounded-2xl border border-border/70 bg-card p-4 shadow-sm sm:p-5">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                            <div className="relative w-full sm:max-w-sm">
+                                <Search className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
+                                <Input
+                                    value={search}
+                                    onChange={(event) =>
+                                        setSearch(event.target.value)
+                                    }
+                                    placeholder="Cari nasi goreng, ayam..."
+                                    aria-label="Cari masakan"
+                                    className="h-11 rounded-xl border-border/80 bg-background pr-10 pl-10 shadow-sm"
+                                />
+                                {search !== '' && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setSearch('')}
+                                        aria-label="Hapus pencarian"
+                                        className="absolute top-1/2 right-3 flex size-6 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground transition hover:bg-muted hover:text-foreground"
+                                    >
+                                        <X className="size-3.5" />
+                                    </button>
+                                )}
+                            </div>
+
+                            <div className="flex flex-wrap items-center gap-2">
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button
+                                            variant="outline"
+                                            className="h-11 gap-2 rounded-xl bg-background"
+                                        >
+                                            <ArrowUpDown className="size-4" />
+                                            {labelUrutan}
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent
+                                        align="end"
+                                        className="w-48"
+                                    >
+                                        <DropdownMenuLabel>
+                                            Urutkan menu
+                                        </DropdownMenuLabel>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuRadioGroup
+                                            value={urutan}
+                                            onValueChange={(value) =>
+                                                setUrutan(value as Urutan)
+                                            }
+                                        >
+                                            {OPSI_URUT.map((opsi) => (
+                                                <DropdownMenuRadioItem
+                                                    key={opsi.value}
+                                                    value={opsi.value}
+                                                >
+                                                    {opsi.label}
+                                                </DropdownMenuRadioItem>
+                                            ))}
+                                        </DropdownMenuRadioGroup>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                                {adaFilter && (
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={kosongkanFilter}
+                                        className="h-11 gap-1.5 rounded-xl text-muted-foreground hover:text-foreground"
+                                    >
+                                        <RotateCcw className="size-3.5" />
+                                        Reset
+                                    </Button>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="mt-4 flex flex-wrap gap-2 border-t border-border/70 pt-4">
+                            <FilterChip
+                                active={kategoriAktif === 'semua'}
+                                onClick={() => setKategoriAktif('semua')}
+                                icon={<UtensilsCrossed className="size-4" />}
+                                count={masakans.length}
+                            >
+                                Semua
+                            </FilterChip>
+                            {kategoris.map((kategori) => (
+                                <FilterChip
+                                    key={kategori.id}
+                                    active={kategoriAktif === kategori.id}
+                                    onClick={() =>
+                                        setKategoriAktif(kategori.id)
+                                    }
+                                    icon={<span>{kategori.icon ?? '🍽️'}</span>}
+                                    count={
+                                        kategori.masakans_count ??
+                                        jumlahPerKategori.get(kategori.id) ??
+                                        0
+                                    }
+                                >
+                                    {kategori.nama}
+                                </FilterChip>
+                            ))}
+                        </div>
+
+                        {adaFilter && (
+                            <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                                <span>Menyaring:</span>
+                                {search.trim() !== '' && (
+                                    <Badge
+                                        variant="outline"
+                                        className="gap-1 py-1"
+                                    >
+                                        “{search.trim()}”
+                                        <button
+                                            type="button"
+                                            onClick={() => setSearch('')}
+                                            aria-label="Hapus pencarian"
+                                            className="rounded-full p-0.5 hover:bg-muted"
+                                        >
+                                            <X className="size-3" />
+                                        </button>
+                                    </Badge>
+                                )}
+                                {kategoriAktif !== 'semua' && (
+                                    <Badge
+                                        variant="outline"
+                                        className="gap-1 py-1"
+                                    >
+                                        {
+                                            kategoris.find(
+                                                (kategori) =>
+                                                    kategori.id ===
+                                                    kategoriAktif,
+                                            )?.nama
+                                        }
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                setKategoriAktif('semua')
+                                            }
+                                            aria-label="Hapus filter kategori"
+                                            className="rounded-full p-0.5 hover:bg-muted"
+                                        >
+                                            <X className="size-3" />
+                                        </button>
+                                    </Badge>
+                                )}
+                                <span className="font-medium text-emerald-700 dark:text-emerald-300">
+                                    {hasil.length} hasil
+                                </span>
+                            </div>
+                        )}
+
+                        <div className="mt-4 flex items-start gap-2 rounded-xl bg-emerald-50/60 px-3 py-2 text-xs text-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-200">
+                            <Flame className="mt-0.5 size-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                            <p>
+                                Cek badge porsi pada kartu menu. Menu habis
+                                tetap bisa dilihat, tapi belum bisa dipesan.
+                            </p>
+                        </div>
                     </div>
                 </section>
 
                 {/* Daftar menu */}
                 <section className="mt-6">
                     {hasil.length === 0 ? (
-                        <div className="rounded-2xl border border-dashed border-border bg-card/60 px-6 py-16 text-center">
-                            <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
-                                <Search className="size-5" />
-                            </div>
-                            <p className="mt-4 font-semibold">
-                                Menu tidak ditemukan
-                            </p>
-                            <p className="mt-1 text-sm text-muted-foreground">
-                                Coba kata kunci lain atau pilih kategori
-                                &quot;Semua&quot;.
-                            </p>
-                        </div>
+                        <EmptyState
+                            icon={Search}
+                            title="Menu tidak ditemukan"
+                            description="Coba kata kunci lain atau pilih kategori “Semua” untuk melihat semua masakan."
+                            action={
+                                <Button
+                                    type="button"
+                                    onClick={kosongkanFilter}
+                                    className="h-10 gap-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700"
+                                >
+                                    <RotateCcw className="size-4" />
+                                    Reset filter
+                                </Button>
+                            }
+                        />
                     ) : (
                         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                             {hasil.map((item) => {
@@ -444,7 +626,7 @@ export default function UserHome() {
                                                 bukaDetail(item);
                                             }
                                         }}
-                                        className="group cursor-pointer overflow-hidden border-border/70 p-0 shadow-sm transition duration-300 outline-none hover:-translate-y-1 hover:border-emerald-300/70 hover:shadow-xl focus-visible:ring-2 focus-visible:ring-emerald-500/60 dark:hover:border-emerald-800"
+                                        className="group cursor-pointer overflow-hidden rounded-2xl border-border/70 p-0 shadow-sm transition duration-300 outline-none hover:-translate-y-1 hover:border-emerald-300/70 hover:shadow-xl focus-visible:ring-2 focus-visible:ring-emerald-500/60 dark:hover:border-emerald-800"
                                     >
                                         <div className="relative aspect-[4/3] overflow-hidden bg-muted">
                                             {item.foto_url ? (
@@ -463,6 +645,8 @@ export default function UserHome() {
                                                 </div>
                                             )}
 
+                                            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-black/5" />
+
                                             <div className="absolute inset-x-0 top-0 flex items-start justify-between gap-2 p-3">
                                                 <Badge className="gap-1 border-0 bg-background/85 text-foreground shadow-sm backdrop-blur">
                                                     <span>
@@ -480,6 +664,7 @@ export default function UserHome() {
                                                             : 'bg-emerald-600/90 text-white',
                                                     )}
                                                 >
+                                                    <Flame className="size-3" />
                                                     {habis
                                                         ? 'Habis'
                                                         : `Sisa ${item.jumlah_porsi} porsi`}
@@ -492,7 +677,7 @@ export default function UserHome() {
                                                 <h3 className="text-base font-bold tracking-tight">
                                                     {item.nama}
                                                 </h3>
-                                                <span className="shrink-0 rounded-lg bg-emerald-50 px-2.5 py-1 text-sm font-extrabold text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">
+                                                <span className="shrink-0 rounded-lg bg-emerald-50 px-2.5 py-1 text-sm font-extrabold text-emerald-700 ring-1 ring-emerald-500/10 dark:bg-emerald-950/60 dark:text-emerald-300">
                                                     {item.harga_format}
                                                 </span>
                                             </div>
@@ -563,33 +748,64 @@ export default function UserHome() {
                 </section>
 
                 {/* Cara ambil */}
-                <section className="mt-12 rounded-2xl border border-border/70 bg-muted/30 p-5 sm:p-6">
-                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                        <div>
-                            <p className="text-[11px] font-semibold tracking-[0.18em] text-emerald-600 uppercase dark:text-emerald-400">
-                                Cara ambil
-                            </p>
-                            <h3 className="mt-1 text-lg font-bold">
-                                Pesan, masak, lalu ambil di outlet
-                            </h3>
-                        </div>
-                        <div className="grid gap-2 text-xs text-muted-foreground sm:grid-cols-3">
-                            {[
-                                ['1', 'Pilih menu & checkout'],
-                                ['2', 'Pantau nomor antrian'],
-                                ['3', 'Ambil saat status siap'],
-                            ].map(([nomor, teks]) => (
-                                <div
-                                    key={nomor}
-                                    className="flex items-center gap-2 rounded-lg border border-border/70 bg-background px-3 py-2"
-                                >
-                                    <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-[10px] font-bold text-white">
-                                        {nomor}
+                <section className="mt-12 overflow-hidden rounded-3xl border border-emerald-200/60 bg-gradient-to-br from-emerald-50 via-card to-teal-50/60 p-5 shadow-sm sm:p-6 dark:border-emerald-900/60 dark:from-emerald-950/30 dark:via-card dark:to-teal-950/20">
+                    <SectionHeading
+                        eyebrow="Cara ambil"
+                        title="Pesan, masak, lalu ambil di outlet"
+                        description="Tanpa antre, tanpa biaya antar — ambil begitu pesanan siap."
+                        icon={MapPin}
+                        action={
+                            <Badge className="gap-1.5 self-start border-0 bg-emerald-600 text-white shadow-sm sm:self-auto">
+                                <MapPin className="size-3.5" />
+                                Pickup only
+                            </Badge>
+                        }
+                    />
+
+                    <div className="mt-6 grid gap-3 sm:grid-cols-3">
+                        {[
+                            {
+                                nomor: '1',
+                                icon: ClipboardList,
+                                judul: 'Pilih & checkout',
+                                detail: 'Tentukan pengambil dan metode bayar.',
+                            },
+                            {
+                                nomor: '2',
+                                icon: ChefHat,
+                                judul: 'Pantau antrian',
+                                detail: 'Lihat status masakan dari dapur.',
+                            },
+                            {
+                                nomor: '3',
+                                icon: PackageCheck,
+                                judul: 'Ambil di outlet',
+                                detail: 'Tunjukkan kode pesanan ke kasir.',
+                            },
+                        ].map((langkah, index) => (
+                            <div
+                                key={langkah.nomor}
+                                className="relative rounded-2xl border border-border/70 bg-card/80 p-4"
+                            >
+                                {index < 2 && (
+                                    <ChevronRight className="absolute top-1/2 -right-3.5 hidden size-5 -translate-y-1/2 text-emerald-500/60 sm:block" />
+                                )}
+                                <div className="flex items-center gap-3">
+                                    <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-sm">
+                                        <langkah.icon className="size-4" />
                                     </span>
-                                    {teks}
+                                    <span className="text-[10px] font-bold tracking-widest text-emerald-600 uppercase dark:text-emerald-400">
+                                        Langkah {langkah.nomor}
+                                    </span>
                                 </div>
-                            ))}
-                        </div>
+                                <p className="mt-3 text-sm font-semibold">
+                                    {langkah.judul}
+                                </p>
+                                <p className="mt-1 text-xs text-muted-foreground">
+                                    {langkah.detail}
+                                </p>
+                            </div>
+                        ))}
                     </div>
                 </section>
             </div>

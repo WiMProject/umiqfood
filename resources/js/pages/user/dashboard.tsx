@@ -2,7 +2,6 @@ import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import {
     ArrowRight,
     Banknote,
-    CheckCircle2,
     ChefHat,
     ChevronRight,
     ClipboardList,
@@ -24,6 +23,15 @@ import {
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { cn } from 'cn';
+import {
+    EmptyState,
+    FilterChip,
+    OrderProgress,
+    OrderStatusBadge,
+    PaymentStatusBadge,
+    QueueBadge,
+    SectionHeading,
+} from '@/components/user-ui';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -53,7 +61,6 @@ import type {
     KeranjangRingkas,
     MetodePembayaran,
     Order,
-    OrderStatus,
     Payment,
 } from '@/types';
 
@@ -80,25 +87,6 @@ interface Props {
 type TabKey = 'ringkasan' | 'keranjang' | 'pesanan' | 'pembayaran';
 
 const TAB_VALID: TabKey[] = ['ringkasan', 'keranjang', 'pesanan', 'pembayaran'];
-
-const STATUS_BADGE: Record<OrderStatus, string> = {
-    menunggu:
-        'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950/50 dark:text-amber-300',
-    dimasak:
-        'border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-900 dark:bg-sky-950/50 dark:text-sky-300',
-    siap: 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-300',
-    selesai: 'border-border bg-muted text-muted-foreground dark:bg-muted/60',
-    dibatalkan:
-        'border-red-200 bg-red-50 text-red-700 dark:border-red-900 dark:bg-red-950/50 dark:text-red-300',
-};
-
-const LANGKAH: { status: OrderStatus; label: string; icon: typeof ChefHat }[] =
-    [
-        { status: 'menunggu', label: 'Diterima', icon: ClipboardList },
-        { status: 'dimasak', label: 'Dimasak', icon: ChefHat },
-        { status: 'siap', label: 'Siap diambil', icon: PackageCheck },
-        { status: 'selesai', label: 'Selesai', icon: CheckCircle2 },
-    ];
 
 const METODE: {
     value: MetodePembayaran;
@@ -199,6 +187,20 @@ export default function UserDashboard() {
         return orders.filter((order) => order.status === filterPesanan);
     }, [orders, filterPesanan]);
 
+    const jumlahFilterPesanan = useMemo(
+        () => ({
+            semua: orders.length,
+            aktif: orders.filter((order) =>
+                ['menunggu', 'dimasak', 'siap'].includes(order.status),
+            ).length,
+            selesai: orders.filter((order) => order.status === 'selesai')
+                .length,
+            dibatalkan: orders.filter((order) => order.status === 'dibatalkan')
+                .length,
+        }),
+        [orders],
+    );
+
     const totalLunas = useMemo(
         () =>
             payments
@@ -277,52 +279,60 @@ export default function UserDashboard() {
 
             <div className="mx-auto max-w-6xl px-4 pt-8 pb-16 sm:px-6">
                 {/* Header */}
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-                    <div>
-                        <p className="text-[11px] font-semibold tracking-[0.18em] text-emerald-600 uppercase dark:text-emerald-400">
-                            Akun saya
-                        </p>
-                        <h1 className="mt-1 text-2xl font-extrabold tracking-tight sm:text-3xl">
-                            Pesanan & pembayaran
-                        </h1>
-                        <p className="mt-1 text-sm text-muted-foreground">
-                            Semua pesanan pickup, nomor antrian, dan riwayat
-                            pembayaranmu ada di sini.
-                        </p>
-                    </div>
-
-                    <Badge
-                        variant="outline"
-                        className="gap-1.5 self-start border-emerald-200 bg-emerald-50 px-3 py-1.5 text-emerald-700 sm:self-auto dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-300"
-                    >
-                        <MapPin className="size-3.5" />
-                        Pickup di outlet · tanpa antar
-                    </Badge>
-                </div>
+                <SectionHeading
+                    eyebrow="Akun saya"
+                    title="Pesanan & pembayaran"
+                    description="Semua pesanan pickup, nomor antrian, dan riwayat pembayaranmu ada di sini."
+                    icon={ClipboardList}
+                    headingLevel="h1"
+                    action={
+                        <Badge
+                            variant="outline"
+                            className="gap-1.5 self-start border-emerald-200 bg-emerald-50 px-3 py-1.5 text-emerald-700 sm:self-auto dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-300"
+                        >
+                            <MapPin className="size-3.5" />
+                            Pickup di outlet · tanpa antar
+                        </Badge>
+                    }
+                />
 
                 {/* Tabs */}
-                <div className="mt-6 grid grid-cols-2 gap-1 rounded-xl border border-border/70 bg-muted/40 p-1 sm:flex">
-                    {tabs.map((item) => (
-                        <button
-                            key={item.key}
-                            type="button"
-                            onClick={() => gantiTab(item.key)}
-                            className={cn(
-                                'flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium whitespace-nowrap transition sm:flex-1',
-                                activeTab === item.key
-                                    ? 'bg-background text-foreground shadow-sm'
-                                    : 'text-muted-foreground hover:text-foreground',
-                            )}
-                        >
-                            <item.icon className="size-4" />
-                            {item.label}
-                            {(item.badge ?? 0) > 0 && (
-                                <span className="rounded-full bg-emerald-600 px-1.5 text-[10px] font-bold text-white">
-                                    {item.badge}
+                <div className="mt-6 grid grid-cols-2 gap-1 rounded-2xl border border-border/70 bg-muted/40 p-1.5 sm:flex">
+                    {tabs.map((item) => {
+                        const aktif = activeTab === item.key;
+
+                        return (
+                            <button
+                                key={item.key}
+                                type="button"
+                                onClick={() => gantiTab(item.key)}
+                                aria-current={aktif ? 'page' : undefined}
+                                className={cn(
+                                    'group flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium whitespace-nowrap transition',
+                                    aktif
+                                        ? 'bg-card text-foreground shadow-sm ring-1 ring-emerald-500/15'
+                                        : 'text-muted-foreground hover:bg-card/60 hover:text-foreground',
+                                )}
+                            >
+                                <span
+                                    className={cn(
+                                        'flex size-7 items-center justify-center rounded-lg transition',
+                                        aktif
+                                            ? 'bg-emerald-600 text-white'
+                                            : 'bg-muted text-muted-foreground group-hover:text-foreground',
+                                    )}
+                                >
+                                    <item.icon className="size-4" />
                                 </span>
-                            )}
-                        </button>
-                    ))}
+                                {item.label}
+                                {(item.badge ?? 0) > 0 && (
+                                    <span className="flex min-w-5 items-center justify-center rounded-full bg-emerald-600 px-1.5 text-[10px] font-bold text-white">
+                                        {item.badge}
+                                    </span>
+                                )}
+                            </button>
+                        );
+                    })}
                 </div>
 
                 {/* Ringkasan */}
@@ -356,47 +366,11 @@ export default function UserDashboard() {
                                             </div>
                                         </div>
 
-                                        <div className="relative mt-5 grid grid-cols-4 gap-1">
-                                            {LANGKAH.map((langkah, index) => {
-                                                const posisi =
-                                                    LANGKAH.findIndex(
-                                                        (item) =>
-                                                            item.status ===
-                                                            activeOrder.status,
-                                                    );
-                                                const selesai = index <= posisi;
-                                                const aktif = index === posisi;
-
-                                                return (
-                                                    <div
-                                                        key={langkah.status}
-                                                        className="flex flex-col items-center gap-1.5 text-center"
-                                                    >
-                                                        <span
-                                                            className={cn(
-                                                                'flex size-8 items-center justify-center rounded-full border transition',
-                                                                selesai
-                                                                    ? 'border-white/30 bg-white text-emerald-700'
-                                                                    : 'border-white/25 bg-white/10 text-white/60',
-                                                                aktif &&
-                                                                    'ring-2 ring-white/40',
-                                                            )}
-                                                        >
-                                                            <langkah.icon className="size-4" />
-                                                        </span>
-                                                        <span
-                                                            className={cn(
-                                                                'text-[10px] leading-tight',
-                                                                selesai
-                                                                    ? 'font-semibold text-white'
-                                                                    : 'text-white/60',
-                                                            )}
-                                                        >
-                                                            {langkah.label}
-                                                        </span>
-                                                    </div>
-                                                );
-                                            })}
+                                        <div className="relative mt-5">
+                                            <OrderProgress
+                                                status={activeOrder.status}
+                                                tone="dark"
+                                            />
                                         </div>
                                     </div>
 
@@ -569,16 +543,10 @@ export default function UserDashboard() {
                                             onClick={() => setDetail(order)}
                                             className="flex w-full items-center gap-3 py-2.5 text-left transition hover:opacity-80"
                                         >
-                                            <span className="flex size-10 shrink-0 flex-col items-center justify-center rounded-xl bg-muted text-[10px] font-semibold text-muted-foreground">
-                                                <span className="text-[8px] uppercase">
-                                                    A
-                                                </span>
-                                                <span className="text-xs font-bold text-foreground">
-                                                    {String(
-                                                        order.nomor_antrian,
-                                                    ).padStart(3, '0')}
-                                                </span>
-                                            </span>
+                                            <QueueBadge
+                                                nomor={order.nomor_antrian}
+                                                small
+                                            />
                                             <div className="min-w-0 flex-1">
                                                 <p className="truncate text-sm font-medium">
                                                     {order.kode}
@@ -589,15 +557,10 @@ export default function UserDashboard() {
                                                     {order.total_format}
                                                 </p>
                                             </div>
-                                            <Badge
-                                                variant="outline"
-                                                className={cn(
-                                                    'shrink-0 text-[10px]',
-                                                    STATUS_BADGE[order.status],
-                                                )}
-                                            >
-                                                {order.status_label}
-                                            </Badge>
+                                            <OrderStatusBadge
+                                                status={order.status}
+                                                label={order.status_label}
+                                            />
                                         </button>
                                     ))}
                                     {orders.length === 0 && (
@@ -636,8 +599,9 @@ export default function UserDashboard() {
                                 ].map((item) => (
                                     <Card
                                         key={item.label}
-                                        className="gap-1 p-4"
+                                        className="relative gap-1 overflow-hidden p-4"
                                     >
+                                        <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-emerald-500 to-teal-500" />
                                         <span className="flex size-8 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300">
                                             <item.icon className="size-4" />
                                         </span>
@@ -687,20 +651,11 @@ export default function UserDashboard() {
                                                 <p className="text-sm font-bold">
                                                     {payment.jumlah_format}
                                                 </p>
-                                                <p
-                                                    className={cn(
-                                                        'text-[10px] font-medium',
-                                                        payment.status ===
-                                                            'berhasil'
-                                                            ? 'text-emerald-600 dark:text-emerald-400'
-                                                            : payment.status ===
-                                                                'gagal'
-                                                              ? 'text-red-600 dark:text-red-400'
-                                                              : 'text-amber-600 dark:text-amber-400',
-                                                    )}
-                                                >
-                                                    {payment.status_label}
-                                                </p>
+                                                <PaymentStatusBadge
+                                                    status={payment.status}
+                                                    label={payment.status_label}
+                                                    className="mt-1"
+                                                />
                                             </div>
                                         </div>
                                     ))}
@@ -743,84 +698,89 @@ export default function UserDashboard() {
                     <div className="mt-6 grid gap-5 lg:grid-cols-[1.35fr_1fr]">
                         <div className="space-y-4">
                             {cartItems.length === 0 ? (
-                                <Card className="flex flex-col items-center justify-center gap-3 border-dashed p-12 text-center">
-                                    <span className="flex size-14 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
-                                        <ShoppingBag className="size-7" />
-                                    </span>
-                                    <div>
-                                        <p className="font-semibold">
-                                            Keranjang masih kosong
-                                        </p>
-                                        <p className="mt-1 text-sm text-muted-foreground">
-                                            Pilih menu favoritmu, nanti ambil
-                                            sendiri di outlet.
-                                        </p>
-                                    </div>
-                                    <Button
-                                        asChild
-                                        className="mt-1 h-10 gap-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700"
-                                    >
-                                        <Link href="/home">
-                                            <UtensilsCrossed className="size-4" />
-                                            Lihat menu
-                                        </Link>
-                                    </Button>
-                                </Card>
+                                <EmptyState
+                                    icon={ShoppingBag}
+                                    title="Keranjang masih kosong"
+                                    description="Pilih menu favoritmu, pesan sekarang, lalu ambil sendiri di outlet UmiqFood."
+                                    action={
+                                        <Button
+                                            asChild
+                                            className="h-10 gap-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700"
+                                        >
+                                            <Link href="/home">
+                                                <UtensilsCrossed className="size-4" />
+                                                Lihat menu
+                                            </Link>
+                                        </Button>
+                                    }
+                                />
                             ) : (
                                 <>
-                                    <Card className="p-0">
-                                        <div className="flex items-center justify-between gap-3 border-b border-border/70 px-5 py-4">
-                                            <div>
-                                                <h2 className="font-semibold">
-                                                    Keranjang
-                                                </h2>
-                                                <p className="text-xs text-muted-foreground">
-                                                    {stats.totalItemKeranjang}{' '}
-                                                    item dipilih
-                                                </p>
-                                            </div>
-                                            <AlertDialog>
-                                                <AlertDialogTrigger asChild>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        className="gap-1.5 text-red-600 hover:text-red-700 dark:text-red-400"
-                                                    >
-                                                        <Trash2 className="size-3.5" />
-                                                        Kosongkan
-                                                    </Button>
-                                                </AlertDialogTrigger>
-                                                <AlertDialogContent>
-                                                    <AlertDialogHeader>
-                                                        <AlertDialogTitle>
-                                                            Kosongkan keranjang?
-                                                        </AlertDialogTitle>
-                                                        <AlertDialogDescription>
-                                                            Semua menu di
-                                                            keranjang akan
-                                                            dihapus.
-                                                        </AlertDialogDescription>
-                                                    </AlertDialogHeader>
-                                                    <AlertDialogFooter>
-                                                        <AlertDialogCancel>
-                                                            Batal
-                                                        </AlertDialogCancel>
-                                                        <AlertDialogAction
-                                                            onClick={() =>
-                                                                router.delete(
-                                                                    '/keranjang',
-                                                                    {
-                                                                        preserveScroll: true,
-                                                                    },
-                                                                )
-                                                            }
-                                                            className="bg-red-600 text-white hover:bg-red-700"
+                                    <Card className="overflow-hidden rounded-2xl p-0">
+                                        <div className="relative overflow-hidden border-b border-border/70 bg-gradient-to-r from-emerald-50/80 via-emerald-50/30 to-transparent px-5 py-4 dark:from-emerald-950/30 dark:via-emerald-950/10 dark:to-transparent">
+                                            <div className="absolute inset-y-0 left-0 w-1 bg-emerald-500/70" />
+                                            <div className="relative flex items-center justify-between gap-3">
+                                                <div className="flex items-center gap-3">
+                                                    <span className="flex size-9 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-700 ring-1 ring-emerald-500/15 dark:text-emerald-300">
+                                                        <ShoppingBag className="size-[18px]" />
+                                                    </span>
+                                                    <div>
+                                                        <h2 className="font-semibold">
+                                                            Keranjang
+                                                        </h2>
+                                                        <p className="text-xs text-muted-foreground">
+                                                            {
+                                                                stats.totalItemKeranjang
+                                                            }{' '}
+                                                            item dipilih · siap
+                                                            diambil
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <AlertDialog>
+                                                    <AlertDialogTrigger asChild>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="gap-1.5 text-red-600 hover:text-red-700 dark:text-red-400"
                                                         >
-                                                            Ya, kosongkan
-                                                        </AlertDialogAction>
-                                                    </AlertDialogFooter>
-                                                </AlertDialogContent>
-                                            </AlertDialog>
+                                                            <Trash2 className="size-3.5" />
+                                                            Kosongkan
+                                                        </Button>
+                                                    </AlertDialogTrigger>
+                                                    <AlertDialogContent>
+                                                        <AlertDialogHeader>
+                                                            <AlertDialogTitle>
+                                                                Kosongkan
+                                                                keranjang?
+                                                            </AlertDialogTitle>
+                                                            <AlertDialogDescription>
+                                                                Semua menu di
+                                                                keranjang akan
+                                                                dihapus.
+                                                            </AlertDialogDescription>
+                                                        </AlertDialogHeader>
+                                                        <AlertDialogFooter>
+                                                            <AlertDialogCancel>
+                                                                Batal
+                                                            </AlertDialogCancel>
+                                                            <AlertDialogAction
+                                                                onClick={() =>
+                                                                    router.delete(
+                                                                        '/keranjang',
+                                                                        {
+                                                                            preserveScroll: true,
+                                                                        },
+                                                                    )
+                                                                }
+                                                                className="bg-red-600 text-white hover:bg-red-700"
+                                                            >
+                                                                Ya, kosongkan
+                                                            </AlertDialogAction>
+                                                        </AlertDialogFooter>
+                                                    </AlertDialogContent>
+                                                </AlertDialog>
+                                            </div>
                                         </div>
 
                                         <div className="divide-y divide-border/70">
@@ -829,7 +789,7 @@ export default function UserDashboard() {
                                                     key={item.id}
                                                     className="flex gap-3 p-4 sm:gap-4 sm:p-5"
                                                 >
-                                                    <div className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-muted sm:size-20">
+                                                    <div className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-muted ring-1 ring-border/70 sm:size-20">
                                                         {item.masakan
                                                             ?.foto_url ? (
                                                             <img
@@ -897,7 +857,7 @@ export default function UserDashboard() {
                                                         </div>
 
                                                         <div className="mt-2.5 flex items-center justify-between gap-2">
-                                                            <div className="inline-flex items-center rounded-lg border border-border/80">
+                                                            <div className="inline-flex items-center overflow-hidden rounded-lg border border-border/80 bg-card shadow-sm">
                                                                 <button
                                                                     type="button"
                                                                     onClick={() =>
@@ -913,7 +873,7 @@ export default function UserDashboard() {
                                                                         memproses ===
                                                                             item.masakan_id
                                                                     }
-                                                                    className="flex size-8 items-center justify-center rounded-l-lg transition hover:bg-muted disabled:opacity-40"
+                                                                    className="flex size-8 items-center justify-center rounded-l-lg transition hover:bg-emerald-50 hover:text-emerald-700 disabled:opacity-40 dark:hover:bg-emerald-950/40 dark:hover:text-emerald-300"
                                                                     aria-label="Kurangi jumlah"
                                                                 >
                                                                     <Minus className="size-3.5" />
@@ -941,13 +901,13 @@ export default function UserDashboard() {
                                                                                 ?.jumlah_porsi ??
                                                                                 0)
                                                                     }
-                                                                    className="flex size-8 items-center justify-center rounded-r-lg transition hover:bg-muted disabled:opacity-40"
+                                                                    className="flex size-8 items-center justify-center rounded-r-lg transition hover:bg-emerald-50 hover:text-emerald-700 disabled:opacity-40 dark:hover:bg-emerald-950/40 dark:hover:text-emerald-300"
                                                                     aria-label="Tambah jumlah"
                                                                 >
                                                                     <Plus className="size-3.5" />
                                                                 </button>
                                                             </div>
-                                                            <span className="text-sm font-bold">
+                                                            <span className="text-sm font-bold text-emerald-700 dark:text-emerald-300">
                                                                 {
                                                                     item.subtotal_format
                                                                 }
@@ -959,18 +919,19 @@ export default function UserDashboard() {
                                         </div>
                                     </Card>
 
-                                    <p className="flex items-center gap-1.5 px-1 text-xs text-muted-foreground">
-                                        <MapPin className="size-3.5" />
+                                    <div className="flex items-center gap-2 rounded-xl border border-emerald-200/60 bg-emerald-50/60 px-3.5 py-2.5 text-xs text-emerald-900 dark:border-emerald-900/60 dark:bg-emerald-950/25 dark:text-emerald-200">
+                                        <MapPin className="size-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
                                         Ambil sendiri di outlet UmiqFood. Tidak
                                         ada biaya antar.
-                                    </p>
+                                    </div>
                                 </>
                             )}
                         </div>
 
                         {/* Checkout */}
-                        <div>
-                            <Card className="p-5 sm:p-6">
+                        <div className="lg:sticky lg:top-24">
+                            <Card className="overflow-hidden rounded-2xl p-5 shadow-md shadow-emerald-950/5 sm:p-6">
+                                <div className="relative -mx-5 -mt-5 mb-5 h-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-transparent sm:-mx-6 sm:-mt-6" />
                                 <div className="flex items-center gap-2">
                                     <span className="flex size-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300">
                                         <PackageCheck className="size-4.5" />
@@ -983,6 +944,9 @@ export default function UserDashboard() {
                                             Pickup · bayar saat ambil
                                         </p>
                                     </div>
+                                    <Badge className="ml-auto border-0 bg-emerald-600 text-white">
+                                        {cartItems.length} item
+                                    </Badge>
                                 </div>
 
                                 <div className="mt-4 space-y-2 text-sm">
@@ -1001,7 +965,7 @@ export default function UserDashboard() {
                                     <Separator className="my-2" />
                                     <div className="flex justify-between text-base font-bold">
                                         <span>Total</span>
-                                        <span>
+                                        <span className="text-emerald-700 dark:text-emerald-300">
                                             {formatRupiah(totalKeranjang)}
                                         </span>
                                     </div>
@@ -1099,7 +1063,7 @@ export default function UserDashboard() {
                                                                     : 'text-muted-foreground',
                                                             )}
                                                         />
-                                                        <span>
+                                                        <span className="min-w-0 flex-1">
                                                             <span className="block text-xs font-semibold">
                                                                 {metode.label}
                                                             </span>
@@ -1108,6 +1072,22 @@ export default function UserDashboard() {
                                                                     metode.description
                                                                 }
                                                             </span>
+                                                        </span>
+                                                        <span
+                                                            className={cn(
+                                                                'ml-auto flex size-4 shrink-0 items-center justify-center rounded-full border',
+                                                                checkout.data
+                                                                    .metode_pembayaran ===
+                                                                    metode.value
+                                                                    ? 'border-emerald-600'
+                                                                    : 'border-border',
+                                                            )}
+                                                        >
+                                                            {checkout.data
+                                                                .metode_pembayaran ===
+                                                                metode.value && (
+                                                                <span className="size-2 rounded-full bg-emerald-600" />
+                                                            )}
                                                         </span>
                                                     </button>
                                                 ))}
@@ -1186,6 +1166,13 @@ export default function UserDashboard() {
                                             Nomor antrian muncul setelah pesanan
                                             dibuat.
                                         </p>
+                                        <Link
+                                            href="/home"
+                                            className="flex items-center justify-center gap-1 text-xs font-semibold text-emerald-700 transition hover:text-emerald-800 dark:text-emerald-300"
+                                        >
+                                            Lanjut pilih menu
+                                            <ArrowRight className="size-3.5" />
+                                        </Link>
                                     </div>
                                 )}
                             </Card>
@@ -1198,90 +1185,72 @@ export default function UserDashboard() {
                     <div className="mt-6">
                         <div className="flex flex-wrap gap-2">
                             {[
-                                ['semua', 'Semua'],
-                                ['aktif', 'Aktif'],
-                                ['selesai', 'Selesai'],
-                                ['dibatalkan', 'Dibatalkan'],
-                            ].map(([value, label]) => (
-                                <button
+                                { value: 'semua', label: 'Semua' },
+                                { value: 'aktif', label: 'Aktif' },
+                                { value: 'selesai', label: 'Selesai' },
+                                { value: 'dibatalkan', label: 'Dibatalkan' },
+                            ].map(({ value, label }) => (
+                                <FilterChip
                                     key={value}
-                                    type="button"
+                                    active={filterPesanan === value}
                                     onClick={() =>
                                         setFilterPesanan(
                                             value as typeof filterPesanan,
                                         )
                                     }
-                                    className={cn(
-                                        'rounded-full border px-4 py-1.5 text-sm font-medium transition',
-                                        filterPesanan === value
-                                            ? 'border-emerald-600 bg-emerald-600 text-white'
-                                            : 'border-border/80 bg-card text-muted-foreground hover:border-emerald-300',
-                                    )}
+                                    count={
+                                        jumlahFilterPesanan[
+                                            value as keyof typeof jumlahFilterPesanan
+                                        ]
+                                    }
                                 >
                                     {label}
-                                </button>
+                                </FilterChip>
                             ))}
                         </div>
 
                         <div className="mt-4 space-y-3">
                             {pesananTersaring.length === 0 ? (
-                                <Card className="flex flex-col items-center justify-center gap-3 border-dashed p-12 text-center">
-                                    <span className="flex size-14 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
-                                        <History className="size-7" />
-                                    </span>
-                                    <div>
-                                        <p className="font-semibold">
-                                            Belum ada pesanan di kategori ini
-                                        </p>
-                                        <p className="mt-1 text-sm text-muted-foreground">
-                                            Pesanan yang kamu buat akan muncul
-                                            di sini.
-                                        </p>
-                                    </div>
-                                    <Button
-                                        asChild
-                                        className="mt-1 h-10 gap-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700"
-                                    >
-                                        <Link href="/home">
-                                            <UtensilsCrossed className="size-4" />
-                                            Pesan menu
-                                        </Link>
-                                    </Button>
-                                </Card>
+                                <EmptyState
+                                    icon={History}
+                                    title="Belum ada pesanan di kategori ini"
+                                    description="Pesanan yang kamu buat akan muncul di sini lengkap dengan nomor antrian dan statusnya."
+                                    action={
+                                        <Button
+                                            asChild
+                                            className="h-10 gap-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700"
+                                        >
+                                            <Link href="/home">
+                                                <UtensilsCrossed className="size-4" />
+                                                Pesan menu
+                                            </Link>
+                                        </Button>
+                                    }
+                                />
                             ) : (
                                 pesananTersaring.map((order) => (
                                     <Card
                                         key={order.id}
-                                        className="p-0 transition hover:border-emerald-300/70 dark:hover:border-emerald-800"
+                                        className="overflow-hidden rounded-2xl p-0 transition hover:border-emerald-300/70 dark:hover:border-emerald-800"
                                     >
                                         <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:p-5">
                                             <div className="flex items-center gap-3">
-                                                <div className="flex size-14 shrink-0 flex-col items-center justify-center rounded-xl bg-gradient-to-br from-emerald-600 to-teal-700 text-white">
-                                                    <span className="text-[8px] font-semibold tracking-widest uppercase opacity-80">
-                                                        Antrian
-                                                    </span>
-                                                    <span className="text-lg leading-none font-extrabold">
-                                                        {String(
-                                                            order.nomor_antrian,
-                                                        ).padStart(3, '0')}
-                                                    </span>
-                                                </div>
+                                                <QueueBadge
+                                                    nomor={order.nomor_antrian}
+                                                />
                                                 <div className="min-w-0">
                                                     <div className="flex flex-wrap items-center gap-2">
                                                         <p className="text-sm font-semibold">
                                                             {order.kode}
                                                         </p>
-                                                        <Badge
-                                                            variant="outline"
-                                                            className={cn(
-                                                                'text-[10px]',
-                                                                STATUS_BADGE[
-                                                                    order.status
-                                                                ],
-                                                            )}
-                                                        >
-                                                            {order.status_label}
-                                                        </Badge>
+                                                        <OrderStatusBadge
+                                                            status={
+                                                                order.status
+                                                            }
+                                                            label={
+                                                                order.status_label
+                                                            }
+                                                        />
                                                     </div>
                                                     <p className="mt-0.5 text-xs text-muted-foreground">
                                                         {order.tanggal_format} ·{' '}
@@ -1378,6 +1347,21 @@ export default function UserDashboard() {
                                                 </div>
                                             </div>
                                         </div>
+
+                                        <div className="border-t border-border/70 bg-muted/20 px-4 py-3 sm:px-5">
+                                            <div className="mb-2 flex items-center justify-between gap-2">
+                                                <p className="text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
+                                                    Progres pesanan
+                                                </p>
+                                                <span className="text-[11px] font-medium text-emerald-700 dark:text-emerald-300">
+                                                    {order.status_label}
+                                                </span>
+                                            </div>
+                                            <OrderProgress
+                                                status={order.status}
+                                                ringkas
+                                            />
+                                        </div>
                                     </Card>
                                 ))
                             )}
@@ -1388,8 +1372,10 @@ export default function UserDashboard() {
                 {/* Pembayaran */}
                 {activeTab === 'pembayaran' && (
                     <div className="mt-6 grid gap-5 lg:grid-cols-[1fr_1.6fr]">
-                        <Card className="h-fit overflow-hidden border-0 bg-gradient-to-br from-emerald-600 to-teal-700 p-5 text-white sm:p-6">
-                            <p className="text-[11px] font-semibold tracking-[0.18em] text-emerald-100 uppercase">
+                        <Card className="relative isolate h-fit overflow-hidden border-0 bg-gradient-to-br from-emerald-600 to-teal-700 p-5 text-white sm:p-6">
+                            <div className="pointer-events-none absolute -top-12 -right-10 -z-10 size-40 rounded-full bg-white/10 blur-2xl" />
+                            <div className="pointer-events-none absolute -bottom-16 left-6 -z-10 size-40 rounded-full bg-amber-300/10 blur-3xl" />
+                            <p className="relative text-[11px] font-semibold tracking-[0.18em] text-emerald-100 uppercase">
                                 Total sudah dibayar
                             </p>
                             <p className="mt-2 text-3xl font-extrabold tracking-tight">
@@ -1416,29 +1402,36 @@ export default function UserDashboard() {
                             </div>
                         </Card>
 
-                        <Card className="p-0">
-                            <div className="border-b border-border/70 px-5 py-4">
-                                <h2 className="font-semibold">
-                                    Riwayat pembayaran
-                                </h2>
-                                <p className="text-xs text-muted-foreground">
-                                    Semua transaksi pesanan pickup.
-                                </p>
+                        <Card className="overflow-hidden rounded-2xl p-0">
+                            <div className="flex items-center justify-between gap-3 border-b border-border/70 px-5 py-4">
+                                <div className="flex items-center gap-3">
+                                    <span className="flex size-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300">
+                                        <ReceiptText className="size-[18px]" />
+                                    </span>
+                                    <div>
+                                        <h2 className="font-semibold">
+                                            Riwayat pembayaran
+                                        </h2>
+                                        <p className="text-xs text-muted-foreground">
+                                            Semua transaksi pesanan pickup.
+                                        </p>
+                                    </div>
+                                </div>
+                                <Badge
+                                    variant="outline"
+                                    className="border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-300"
+                                >
+                                    {payments.length} transaksi
+                                </Badge>
                             </div>
 
                             {payments.length === 0 ? (
-                                <div className="flex flex-col items-center gap-2 px-6 py-12 text-center">
-                                    <span className="flex size-12 items-center justify-center rounded-xl bg-muted text-muted-foreground">
-                                        <ReceiptText className="size-5" />
-                                    </span>
-                                    <p className="font-medium">
-                                        Belum ada pembayaran
-                                    </p>
-                                    <p className="text-sm text-muted-foreground">
-                                        Pembayaran muncul setelah pesanan
-                                        pertama dibuat.
-                                    </p>
-                                </div>
+                                <EmptyState
+                                    icon={ReceiptText}
+                                    title="Belum ada pembayaran"
+                                    description="Pembayaran muncul setelah pesanan pertama dibuat dan dicatat oleh kasir."
+                                    className="m-5 border-0 bg-transparent py-10"
+                                />
                             ) : (
                                 <div className="divide-y divide-border/70">
                                     {payments.map((payment) => (
@@ -1479,21 +1472,11 @@ export default function UserDashboard() {
                                                 <p className="text-sm font-bold">
                                                     {payment.jumlah_format}
                                                 </p>
-                                                <Badge
-                                                    variant="outline"
-                                                    className={cn(
-                                                        'mt-0.5 text-[10px]',
-                                                        payment.status ===
-                                                            'berhasil'
-                                                            ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-300'
-                                                            : payment.status ===
-                                                                'gagal'
-                                                              ? STATUS_BADGE.dibatalkan
-                                                              : STATUS_BADGE.menunggu,
-                                                    )}
-                                                >
-                                                    {payment.status_label}
-                                                </Badge>
+                                                <PaymentStatusBadge
+                                                    status={payment.status}
+                                                    label={payment.status_label}
+                                                    className="mt-1"
+                                                />
                                             </div>
                                         </div>
                                     ))}
@@ -1515,15 +1498,10 @@ export default function UserDashboard() {
                             <DialogHeader>
                                 <DialogTitle className="flex items-center gap-2">
                                     {detail.kode}
-                                    <Badge
-                                        variant="outline"
-                                        className={cn(
-                                            'text-[10px]',
-                                            STATUS_BADGE[detail.status],
-                                        )}
-                                    >
-                                        {detail.status_label}
-                                    </Badge>
+                                    <OrderStatusBadge
+                                        status={detail.status}
+                                        label={detail.status_label}
+                                    />
                                 </DialogTitle>
                                 <DialogDescription>
                                     {detail.tanggal_format} · Antrian{' '}
@@ -1533,6 +1511,13 @@ export default function UserDashboard() {
                             </DialogHeader>
 
                             <div className="space-y-4">
+                                <div className="rounded-2xl border border-emerald-200/60 bg-emerald-50/50 p-4 dark:border-emerald-900/60 dark:bg-emerald-950/25">
+                                    <p className="mb-3 text-[11px] font-semibold tracking-[0.16em] text-emerald-700 uppercase dark:text-emerald-300">
+                                        Progres pesanan
+                                    </p>
+                                    <OrderProgress status={detail.status} />
+                                </div>
+
                                 <div className="rounded-xl border border-border/70 p-3.5">
                                     <div className="flex items-center gap-2 text-sm font-medium">
                                         <MapPin className="size-4 text-emerald-600 dark:text-emerald-400" />
