@@ -32,6 +32,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { DateInput } from '@/components/ui/date-input';
 import {
     Dialog,
     DialogContent,
@@ -277,7 +278,7 @@ export default function AdminPengeluaranIndex({
                 <div className="relative overflow-hidden rounded-2xl border border-emerald-100/80 bg-gradient-to-br from-emerald-50 via-teal-50/70 to-card p-5 shadow-sm sm:p-6 dark:border-emerald-900/40 dark:from-emerald-950/40 dark:via-teal-950/20 dark:to-card">
                     <div className="pointer-events-none absolute -top-12 -right-10 size-44 rounded-full bg-emerald-400/10 blur-2xl" />
                     <div className="pointer-events-none absolute -right-4 -bottom-16 size-40 rounded-full bg-teal-400/10 blur-3xl" />
-                    <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="relative flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                         <div className="flex items-start gap-4">
                             <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-600/25">
                                 <Wallet className="size-6" />
@@ -297,7 +298,7 @@ export default function AdminPengeluaranIndex({
                         </div>
                         <Button
                             onClick={bukaTambah}
-                            className="h-11 shrink-0 gap-2 self-start rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-5 font-semibold text-white shadow-md shadow-emerald-600/20 transition hover:-translate-y-0.5 hover:from-emerald-700 hover:to-teal-700 hover:shadow-lg sm:self-auto"
+                            className="h-11 shrink-0 gap-2 self-start rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-5 font-semibold text-white shadow-md shadow-emerald-600/20 transition hover:-translate-y-0.5 hover:from-emerald-700 hover:to-teal-700 hover:shadow-lg lg:self-auto"
                         >
                             <Plus className="size-4" />
                             Tambah pengeluaran
@@ -305,7 +306,7 @@ export default function AdminPengeluaranIndex({
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                     {kartuStats.map((item) => (
                         <Card
                             key={item.label}
@@ -344,7 +345,7 @@ export default function AdminPengeluaranIndex({
                     onSubmit={terapkanFilter}
                     className="flex flex-col gap-4 rounded-2xl border border-emerald-100/70 bg-gradient-to-r from-card via-emerald-50/30 to-card p-4 shadow-sm lg:flex-row lg:items-end dark:border-emerald-900/40 dark:via-emerald-950/10"
                 >
-                    <div className="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-3">
+                    <div className="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                         <div className="grid gap-1.5">
                             <Label
                                 htmlFor="filter-kategori"
@@ -385,9 +386,8 @@ export default function AdminPengeluaranIndex({
                             >
                                 Dari tanggal
                             </Label>
-                            <Input
+                            <DateInput
                                 id="filter-dari"
-                                type="date"
                                 value={dari}
                                 onChange={(event) =>
                                     setDari(event.target.value)
@@ -401,9 +401,8 @@ export default function AdminPengeluaranIndex({
                             >
                                 Sampai tanggal
                             </Label>
-                            <Input
+                            <DateInput
                                 id="filter-sampai"
-                                type="date"
                                 value={sampai}
                                 onChange={(event) =>
                                     setSampai(event.target.value)
@@ -550,7 +549,7 @@ export default function AdminPengeluaranIndex({
                     </table>
                 </AdminTableCard>
 
-                <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:hidden">
+                <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:hidden">
                     {pengeluarans.length === 0 ? (
                         <div className="col-span-full flex flex-col items-center gap-2 rounded-2xl border border-dashed border-emerald-200/80 bg-gradient-to-b from-emerald-50/40 to-card px-6 py-10 text-center dark:border-emerald-900/50 dark:from-emerald-950/20">
                             <div className="flex size-12 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-300">
@@ -662,9 +661,8 @@ export default function AdminPengeluaranIndex({
                                 <Label htmlFor="pengeluaran-tanggal">
                                     Tanggal
                                 </Label>
-                                <Input
+                                <DateInput
                                     id="pengeluaran-tanggal"
-                                    type="date"
                                     value={data.tanggal}
                                     onChange={(event) =>
                                         setData('tanggal', event.target.value)
