@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\LaporanController as AdminLaporanController;
 use App\Http\Controllers\Admin\PengeluaranController as AdminPengeluaranController;
 use App\Http\Controllers\Admin\PesananController as AdminPesananController;
+use App\Http\Controllers\Admin\StokMutasiController as AdminStokMutasiController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\BahanBakuController;
 use App\Http\Controllers\CheckoutController;
@@ -51,6 +52,10 @@ Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
 
     // Rute CRUD Inventori (bahan baku)
     Route::resource('inventori', BahanBakuController::class)->except(['create', 'show', 'edit']);
+
+    // Riwayat mutasi stok bahan baku dan porsi menu
+    Route::get('/stok-mutasi', [AdminStokMutasiController::class, 'index'])
+        ->name('admin.stok-mutasi.index');
 
     // Rute CRUD Kategori menu
     Route::resource('kategori', KategoriController::class)->except(['create', 'show', 'edit']);

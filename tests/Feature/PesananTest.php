@@ -51,7 +51,7 @@ class PesananTest extends TestCase
         ]);
     }
 
-    public function test_checkout_membuat_pesanan_antrian_pembayaran_dan_mengurangi_porsi(): void
+    public function test_checkout_membuat_pesanan_antrian_dan_pembayaran_tanpa_memotong_porsi(): void
     {
         $user = User::factory()->create(['role' => 'user']);
         $masakan = $this->buatMasakan(jumlahPorsi: 5, harga: 18000);
@@ -77,7 +77,8 @@ class PesananTest extends TestCase
         $this->assertSame('A-001', $order->antrian_format);
         $this->assertSame(Order::STATUS_MENUNGGU, $order->status);
         $this->assertSame(36000, $order->total);
-        $this->assertSame(3, $masakan->fresh()->jumlah_porsi);
+        $this->assertFalse($order->porsi_dipotong);
+        $this->assertSame(5, $masakan->fresh()->jumlah_porsi);
         $this->assertFalse(CartItem::where('user_id', $user->id)->exists());
 
         $this->assertDatabaseHas('order_items', [
@@ -145,20 +146,71 @@ class PesananTest extends TestCase
         $this->assertDatabaseCount('orders', 0);
     }
 
-    public function test_user_bisa_membatalkan_pesanan_dan_porsi_dikembalikan(): void
+    public function test_user_bisa_membatalkan_pesanan_dan_porsi_dikembalikan_setelah_dibayar(): void
     {
+        $admin = User::factory()->create(['role' => 'admin']);
         $user = User::factory()->create(['role' => 'user']);
         $masakan = $this->buatMasakan(jumlahPorsi: 3);
 
         $order = $this->buatPesananUntuk($user, $masakan, 2);
+
+        $this->actingAs($admin)
+            ->patch(route('admin.pesanan.bayar', $order))
+            ->assertRedirect();
+
+        $this->assertSame(1, $masakan->fresh()->jumlah_porsi);
 
         $this->actingAs($user)
             ->post(route('pesanan.batal', $order))
             ->assertRedirect();
 
         $this->assertSame(Order::STATUS_DIBATALKAN, $order->fresh()->status);
+        $this->assertFalse($order->fresh()->porsi_dipotong);
         $this->assertSame(Payment::STATUS_GAGAL, $order->payment->fresh()->status);
         $this->assertSame(3, $masakan->fresh()->jumlah_porsi);
+    }
+
+    public function test_pesanan_belum_dibayar_bisa_dibatalkan_tanpa_mengubah_porsi(): void
+    {
+        $user = User::factory()->create(['role' => 'user']);
+        $masakan = $this->buatMasakan(jumlahPorsi: 3);
+        $order = $this->buatPesananUntuk($user, $masakan, 2);
+
+        $this->actingAs($user)
+            ->post(route('pesanan.batal', $order))
+            ->assertRedirect();
+
+        $this->assertSame(3, $masakan->fresh()->jumlah_porsi);
+        $this->assertFalse($order->fresh()->porsi_dipotong);
+    }
+
+    public function test_checkout_menolak_porsi_yang_sedang_direservasi_pesanan_lain(): void
+    {
+        $user = User::factory()->create(['role' => 'user']);
+        $masakan = $this->buatMasakan(jumlahPorsi: 2);
+
+        $pertama = $this->buatPesananUntuk($user, $masakan, 2);
+
+        $this->assertTrue($pertama->fresh()->isActive());
+
+        CartItem::create([
+            'user_id' => $user->id,
+            'masakan_id' => $masakan->id,
+            'jumlah' => 1,
+        ]);
+
+        $this->actingAs($user)
+            ->from(route('user.dashboard', ['tab' => 'keranjang']))
+            ->post(route('checkout.store'), [
+                'nama_pengambil' => 'Rina',
+                'no_hp' => '081234567890',
+                'metode_pembayaran' => 'cash',
+            ])
+            ->assertRedirect(route('user.dashboard', ['tab' => 'keranjang']))
+            ->assertSessionHasErrors('keranjang');
+
+        $this->assertSame(1, Order::count());
+        $this->assertSame(2, $masakan->fresh()->jumlah_porsi);
     }
 
     public function test_admin_bisa_memajukan_status_sampai_selesai_dan_lunas(): void
@@ -191,6 +243,8 @@ class PesananTest extends TestCase
         $this->assertNotNull($order->diambil_at);
         $this->assertSame(Payment::STATUS_BERHASIL, $order->payment->status);
         $this->assertNotNull($order->payment->dibayar_at);
+        $this->assertTrue($order->fresh()->porsi_dipotong);
+        $this->assertSame(3, $masakan->fresh()->jumlah_porsi);
     }
 
     public function test_user_tidak_bisa_mengakses_halaman_pesanan_admin(): void
@@ -218,6 +272,48 @@ class PesananTest extends TestCase
         $this->assertSame(Payment::STATUS_BERHASIL, $order->payment->status);
         $this->assertNotNull($order->payment->dibayar_at);
         $this->assertSame(Order::STATUS_MENUNGGU, $order->status);
+        $this->assertTrue($order->fresh()->porsi_dipotong);
+        $this->assertSame(4, $masakan->fresh()->jumlah_porsi);
+    }
+
+    public function test_konfirmasi_pembayaran_dua_kali_tidak_memotong_porsi_dua_kali(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $user = User::factory()->create(['role' => 'user']);
+        $masakan = $this->buatMasakan(jumlahPorsi: 5);
+        $order = $this->buatPesananUntuk($user, $masakan, 2);
+
+        foreach ([1, 2] as $urutan) {
+            $this->actingAs($admin)
+                ->patch(route('admin.pesanan.bayar', $order))
+                ->assertRedirect();
+        }
+
+        $this->assertSame(3, $masakan->fresh()->jumlah_porsi);
+        $this->assertSame(1, $order->payment()->count());
+    }
+
+    public function test_admin_membatalkan_pesanan_yang_sudah_dibayar_mengembalikan_porsi(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $user = User::factory()->create(['role' => 'user']);
+        $masakan = $this->buatMasakan(jumlahPorsi: 5);
+        $order = $this->buatPesananUntuk($user, $masakan, 2);
+
+        $this->actingAs($admin)
+            ->patch(route('admin.pesanan.bayar', $order))
+            ->assertRedirect();
+
+        $this->assertSame(3, $masakan->fresh()->jumlah_porsi);
+
+        $this->actingAs($admin)
+            ->patch(route('admin.pesanan.status', $order), ['status' => 'dibatalkan'])
+            ->assertRedirect();
+
+        $this->assertSame(Order::STATUS_DIBATALKAN, $order->fresh()->status);
+        $this->assertFalse($order->fresh()->porsi_dipotong);
+        $this->assertSame(Payment::STATUS_GAGAL, $order->payment->fresh()->status);
+        $this->assertSame(5, $masakan->fresh()->jumlah_porsi);
     }
 
     public function test_user_biasa_tidak_bisa_menandai_pembayaran_lunas(): void

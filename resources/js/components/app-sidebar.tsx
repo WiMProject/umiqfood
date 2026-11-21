@@ -1,5 +1,6 @@
 import { Link } from '@inertiajs/react';
 import {
+    ArrowLeftRight,
     Boxes,
     ClipboardList,
     LayoutGrid,
@@ -47,6 +48,11 @@ const mainNavItems: NavItem[] = [
         title: 'Inventori',
         href: '/inventori',
         icon: Boxes,
+    },
+    {
+        title: 'Mutasi Stok',
+        href: '/stok-mutasi',
+        icon: ArrowLeftRight,
     },
     {
         title: 'Pesanan',

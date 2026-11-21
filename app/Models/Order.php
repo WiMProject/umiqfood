@@ -61,6 +61,7 @@ class Order extends Model
         'tanggal',
         'nomor_antrian',
         'status',
+        'porsi_dipotong',
         'metode_pembayaran',
         'subtotal',
         'total',
@@ -76,6 +77,7 @@ class Order extends Model
     protected $casts = [
         'tanggal' => 'date',
         'nomor_antrian' => 'integer',
+        'porsi_dipotong' => 'boolean',
         'subtotal' => 'integer',
         'total' => 'integer',
         'estimasi_siap_at' => 'datetime',

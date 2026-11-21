@@ -5,7 +5,9 @@ namespace App\Services;
 use App\Models\CartItem;
 use App\Models\Masakan;
 use App\Models\Order;
+use App\Models\OrderItem;
 use App\Models\Payment;
+use App\Models\StokMovement;
 use App\Models\User;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -15,7 +17,8 @@ use Illuminate\Validation\ValidationException;
 class OrderService
 {
     /**
-     * Buat pesanan pickup dari keranjang user dan kurangi porsi yang siap jual.
+     * Buat pesanan pickup dari keranjang user. Porsi belum dipotong di sini,
+     * hanya "direservasi" sampai pembayaran dikonfirmasi.
      *
      * @param  array{nama_pengambil: string, no_hp: string, metode_pembayaran: string, catatan?: string|null}  $data
      */
@@ -31,6 +34,8 @@ class OrderService
                     'keranjang' => 'Keranjang masih kosong. Pilih menu dulu ya.',
                 ]);
             }
+
+            $reserved = $this->porsiDireservasi();
 
             /** @var Collection<int, Masakan> $masakans */
             $masakans = Masakan::query()
@@ -50,11 +55,13 @@ class OrderService
                     continue;
                 }
 
-                if (! $masakan->tersedia || $masakan->jumlah_porsi < $item->jumlah) {
+                $sisa = (int) $masakan->jumlah_porsi - (int) ($reserved->get($item->masakan_id) ?? 0);
+
+                if (! $masakan->tersedia || $sisa < $item->jumlah) {
                     $errors[] = sprintf(
                         'Porsi %s tinggal %d, tidak cukup untuk %d porsi.',
                         $masakan->nama,
-                        $masakan->jumlah_porsi,
+                        max(0, $sisa),
                         $item->jumlah,
                     );
                 }
@@ -82,6 +89,7 @@ class OrderService
                 'tanggal' => $tanggal,
                 'nomor_antrian' => $nomorAntrian,
                 'status' => Order::STATUS_MENUNGGU,
+                'porsi_dipotong' => false,
                 'metode_pembayaran' => $data['metode_pembayaran'],
                 'subtotal' => $subtotal,
                 'total' => $subtotal,
@@ -105,10 +113,6 @@ class OrderService
                     'jumlah' => $item->jumlah,
                     'subtotal' => $masakan->harga * $item->jumlah,
                 ]);
-
-                $masakan->jumlah_porsi = max(0, $masakan->jumlah_porsi - $item->jumlah);
-                $masakan->tersedia = $masakan->jumlah_porsi > 0;
-                $masakan->save();
             }
 
             $order->payment()->create([
@@ -125,7 +129,7 @@ class OrderService
     }
 
     /**
-     * Batalkan pesanan dan kembalikan porsi ke menu.
+     * Batalkan pesanan dan kembalikan porsi bila sudah dipotong saat bayar.
      */
     public function cancel(Order $order): Order
     {
@@ -138,7 +142,7 @@ class OrderService
                 ]);
             }
 
-            $this->restorePortions($order);
+            $this->kembalikanPortions($order);
 
             $order->update([
                 'status' => Order::STATUS_DIBATALKAN,
@@ -175,14 +179,15 @@ class OrderService
                 ]);
             }
 
-            if ($status === Order::STATUS_DIBATALKAN) {
-                $this->restorePortions($order);
-
-                $order->payment()->update(['status' => Payment::STATUS_GAGAL]);
-            }
-
             $waktu = Carbon::now();
             $perubahan = ['status' => $status];
+
+            if ($status === Order::STATUS_DIBATALKAN) {
+                $this->kembalikanPortions($order);
+
+                $order->payment()->update(['status' => Payment::STATUS_GAGAL]);
+                $perubahan['dibatalkan_at'] = $waktu;
+            }
 
             if ($status === Order::STATUS_SIAP) {
                 $perubahan['siap_at'] = $waktu;
@@ -191,14 +196,7 @@ class OrderService
             if ($status === Order::STATUS_SELESAI) {
                 $perubahan['diambil_at'] = $waktu;
 
-                $order->payment()->update([
-                    'status' => Payment::STATUS_BERHASIL,
-                    'dibayar_at' => $waktu,
-                ]);
-            }
-
-            if ($status === Order::STATUS_DIBATALKAN) {
-                $perubahan['dibatalkan_at'] = $waktu;
+                $this->lunas($order, $waktu);
             }
 
             $order->update($perubahan);
@@ -208,7 +206,8 @@ class OrderService
     }
 
     /**
-     * Tandai pembayaran pesanan sebagai lunas setelah dicek admin.
+     * Tandai pembayaran pesanan sebagai lunas setelah dicek admin dan potong
+     * porsi menu tepat pada saat itu.
      */
     public function confirmPayment(Order $order): Order
     {
@@ -221,6 +220,47 @@ class OrderService
                 ]);
             }
 
+            $this->lunas($order);
+
+            return $order->load(['items', 'payment', 'user']);
+        });
+    }
+
+    /**
+     * Porsi yang sedang "dipesan" oleh pesanan aktif yang belum dibayar.
+     * Dipakai supaya checkout tidak menjual porsi yang sama dua kali.
+     *
+     * @return Collection<int, int>
+     */
+    private function porsiDireservasi(): Collection
+    {
+        $ordersAktif = Order::query()
+            ->whereIn('status', [
+                Order::STATUS_MENUNGGU,
+                Order::STATUS_DIMASAK,
+                Order::STATUS_SIAP,
+            ])
+            ->where('porsi_dipotong', false)
+            ->lockForUpdate()
+            ->get(['id']);
+
+        return OrderItem::query()
+            ->whereIn('order_id', $ordersAktif->pluck('id'))
+            ->whereNotNull('masakan_id')
+            ->get(['masakan_id', 'jumlah'])
+            ->groupBy('masakan_id')
+            ->map(fn (Collection $items): int => (int) $items->sum('jumlah'));
+    }
+
+    /**
+     * Lunas pembayaran sekaligus memotong porsi. Aman dipanggil berulang.
+     */
+    private function lunas(Order $order, ?Carbon $waktu = null): void
+    {
+        $waktu ??= Carbon::now();
+        $payment = $order->payment()->first();
+
+        if (! $payment || $payment->status !== Payment::STATUS_BERHASIL) {
             $order->payment()->updateOrCreate(
                 ['order_id' => $order->id],
                 [
@@ -228,31 +268,85 @@ class OrderService
                     'metode' => $order->metode_pembayaran,
                     'jumlah' => $order->total,
                     'status' => Payment::STATUS_BERHASIL,
-                    'dibayar_at' => Carbon::now(),
+                    'dibayar_at' => $waktu,
                 ],
             );
+        }
 
-            return $order->load(['items', 'payment', 'user']);
-        });
+        $this->potongPortions($order);
     }
 
     /**
-     * Kembalikan jumlah porsi menu dari item pesanan yang dibatalkan.
+     * Potong porsi menu saat pembayaran lunas dan catat mutasinya.
      */
-    private function restorePortions(Order $order): void
+    private function potongPortions(Order $order): void
     {
-        $items = $order->items()->whereNotNull('masakan_id')->get();
+        if ($order->porsi_dipotong) {
+            return;
+        }
 
-        foreach ($items as $item) {
+        foreach ($order->items()->whereNotNull('masakan_id')->get() as $item) {
             $masakan = Masakan::query()->lockForUpdate()->find($item->masakan_id);
 
             if (! $masakan) {
                 continue;
             }
 
-            $masakan->jumlah_porsi = max(0, $masakan->jumlah_porsi + $item->jumlah);
+            $sebelum = (int) $masakan->jumlah_porsi;
+            $sesudah = max(0, $sebelum - (int) $item->jumlah);
+            $terpotong = $sebelum - $sesudah;
+
+            $masakan->jumlah_porsi = $sesudah;
+            $masakan->tersedia = $sesudah > 0;
+            $masakan->save();
+
+            if ($terpotong > 0) {
+                StokMovement::catat([
+                    'jenis' => StokMovement::JENIS_KELUAR,
+                    'sumber' => StokMovement::SUMBER_PEMBAYARAN,
+                    'jumlah' => $terpotong,
+                    'satuan' => 'porsi',
+                    'masakan_id' => $masakan->id,
+                    'order_id' => $order->id,
+                    'keterangan' => 'Pembayaran '.$order->kode.' - '.$masakan->nama,
+                ]);
+            }
+        }
+
+        $order->update(['porsi_dipotong' => true]);
+    }
+
+    /**
+     * Kembalikan porsi menu dari item pesanan yang dibatalkan.
+     */
+    private function kembalikanPortions(Order $order): void
+    {
+        if (! $order->porsi_dipotong) {
+            return;
+        }
+
+        foreach ($order->items()->whereNotNull('masakan_id')->get() as $item) {
+            $masakan = Masakan::query()->lockForUpdate()->find($item->masakan_id);
+
+            if (! $masakan) {
+                continue;
+            }
+
+            $masakan->jumlah_porsi = max(0, (int) $masakan->jumlah_porsi + (int) $item->jumlah);
             $masakan->tersedia = true;
             $masakan->save();
+
+            StokMovement::catat([
+                'jenis' => StokMovement::JENIS_MASUK,
+                'sumber' => StokMovement::SUMBER_PEMBATAAN,
+                'jumlah' => $item->jumlah,
+                'satuan' => 'porsi',
+                'masakan_id' => $masakan->id,
+                'order_id' => $order->id,
+                'keterangan' => 'Pembatalan '.$order->kode.' - '.$masakan->nama,
+            ]);
         }
+
+        $order->update(['porsi_dipotong' => false]);
     }
 }

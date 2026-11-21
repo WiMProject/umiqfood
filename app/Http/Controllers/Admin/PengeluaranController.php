@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\BahanBaku;
 use App\Models\Pengeluaran;
+use App\Models\StokMovement;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -74,9 +75,12 @@ class PengeluaranController extends Controller
         $validated['user_id'] = $request->user()->id;
 
         DB::transaction(function () use ($validated): void {
+            $bahan = null;
+
             if ($validated['kategori'] === Pengeluaran::KATEGORI_BAHAN_BAKU) {
                 $bahan = BahanBaku::query()
                     ->whereKey($validated['bahan_baku_id'])
+                    ->lockForUpdate()
                     ->firstOrFail();
                 $validated['jumlah'] = (int) round(
                     (float) $validated['qty'] * (float) $validated['harga_satuan'],
@@ -86,7 +90,19 @@ class PengeluaranController extends Controller
                 $bahan->update(['harga_beli' => $validated['harga_satuan']]);
             }
 
-            Pengeluaran::create($validated);
+            $pengeluaran = Pengeluaran::create($validated);
+
+            if ($bahan) {
+                StokMovement::catat([
+                    'jenis' => StokMovement::JENIS_MASUK,
+                    'sumber' => StokMovement::SUMBER_PEMBELIAN,
+                    'jumlah' => $validated['qty'],
+                    'satuan' => $bahan->satuan,
+                    'bahan_baku_id' => $bahan->id,
+                    'harga_satuan' => $validated['harga_satuan'],
+                    'keterangan' => ($pengeluaran->deskripsi ?: 'Pembelian '.$bahan->nama),
+                ]);
+            }
         });
 
         return $this->toast('success', 'Pengeluaran berhasil dicatat!');
@@ -115,16 +131,29 @@ class PengeluaranController extends Controller
             $validated['harga_satuan'] = null;
         }
 
-        DB::transaction(function () use ($validated, $pengeluaran): void {
+        $bahanBaru = null;
+
+        DB::transaction(function () use ($validated, $pengeluaran, &$bahanBaru): void {
             $bahanLama = $pengeluaran->bahanBaku()->first();
 
             if ($bahanLama && $pengeluaran->qty) {
                 $bahanLama->decrement('stok', $pengeluaran->qty);
+
+                StokMovement::catat([
+                    'jenis' => StokMovement::JENIS_KELUAR,
+                    'sumber' => StokMovement::SUMBER_PENYESUAIAN,
+                    'jumlah' => $pengeluaran->qty,
+                    'satuan' => $bahanLama->satuan,
+                    'bahan_baku_id' => $bahanLama->id,
+                    'harga_satuan' => $pengeluaran->harga_satuan,
+                    'keterangan' => 'Koreksi pengeluaran #'.$pengeluaran->id.' - '.$bahanLama->nama,
+                ]);
             }
 
             if ($validated['kategori'] === Pengeluaran::KATEGORI_BAHAN_BAKU) {
                 $bahanBaru = BahanBaku::query()
                     ->whereKey($validated['bahan_baku_id'])
+                    ->lockForUpdate()
                     ->firstOrFail();
                 $validated['jumlah'] = (int) round(
                     (float) $validated['qty'] * (float) $validated['harga_satuan'],
@@ -135,6 +164,18 @@ class PengeluaranController extends Controller
             }
 
             $pengeluaran->update($validated);
+
+            if ($validated['kategori'] === Pengeluaran::KATEGORI_BAHAN_BAKU) {
+                StokMovement::catat([
+                    'jenis' => StokMovement::JENIS_MASUK,
+                    'sumber' => StokMovement::SUMBER_PEMBELIAN,
+                    'jumlah' => $validated['qty'],
+                    'satuan' => $bahanBaru->satuan,
+                    'bahan_baku_id' => $bahanBaru->id,
+                    'harga_satuan' => $validated['harga_satuan'],
+                    'keterangan' => ($validated['deskripsi'] ?? '') ?: 'Pembelian '.$bahanBaru->nama,
+                ]);
+            }
         });
 
         return $this->toast('success', 'Pengeluaran berhasil diperbarui!');
@@ -160,6 +201,16 @@ class PengeluaranController extends Controller
 
             if ($bahan && $pengeluaran->qty) {
                 $bahan->decrement('stok', $pengeluaran->qty);
+
+                StokMovement::catat([
+                    'jenis' => StokMovement::JENIS_KELUAR,
+                    'sumber' => StokMovement::SUMBER_PENYESUAIAN,
+                    'jumlah' => $pengeluaran->qty,
+                    'satuan' => $bahan->satuan,
+                    'bahan_baku_id' => $bahan->id,
+                    'harga_satuan' => $pengeluaran->harga_satuan,
+                    'keterangan' => 'Hapus pengeluaran #'.$pengeluaran->id.' - '.$bahan->nama,
+                ]);
             }
 
             $pengeluaran->delete();

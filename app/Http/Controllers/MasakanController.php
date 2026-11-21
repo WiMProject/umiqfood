@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\BahanBaku;
 use App\Models\Kategori;
 use App\Models\Masakan;
+use App\Models\StokMovement;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -208,45 +209,87 @@ class MasakanController extends Controller
         ]);
 
         $porsi = (int) $validated['jumlah'];
-        $masakan->load('resepItems.bahanBaku');
+        $masakan->load('resepItems');
 
-        if ($masakan->resepItems->isEmpty()) {
-            return $this->toast(
-                'error',
-                'Menu ini belum punya resep. Tambahkan bahan baku di form edit menu dulu.'
-            );
+        try {
+            DB::transaction(function () use ($masakan, $porsi): void {
+                $resepItems = $masakan->resepItems;
+
+                if ($resepItems->isEmpty()) {
+                    throw ValidationException::withMessages([
+                        'resep' => 'Menu ini belum punya resep. Tambahkan bahan baku di form edit menu dulu.',
+                    ]);
+                }
+
+                $bahans = BahanBaku::query()
+                    ->whereIn('id', $resepItems->pluck('bahan_baku_id')->unique()->all())
+                    ->lockForUpdate()
+                    ->get()
+                    ->keyBy('id');
+
+                $kurang = [];
+                foreach ($resepItems as $item) {
+                    $bahan = $bahans->get($item->bahan_baku_id);
+                    $butuh = (float) $item->jumlah * $porsi;
+
+                    if (! $bahan) {
+                        $kurang[] = 'Bahan resep sudah dihapus';
+
+                        continue;
+                    }
+
+                    if ((float) $bahan->stok < $butuh) {
+                        $kurang[] = sprintf(
+                            '%s (butuh %s %s, sisa %s %s)',
+                            $bahan->nama,
+                            rtrim(rtrim(number_format($butuh, 2, ',', '.'), '0'), ','),
+                            $bahan->satuan,
+                            rtrim(rtrim(number_format((float) $bahan->stok, 2, ',', '.'), '0'), ','),
+                            $bahan->satuan
+                        );
+                    }
+                }
+
+                if ($kurang !== []) {
+                    throw ValidationException::withMessages([
+                        'stok' => 'Stok bahan tidak cukup: '.implode('; ', $kurang),
+                    ]);
+                }
+
+                foreach ($resepItems as $item) {
+                    $bahan = $bahans->get($item->bahan_baku_id);
+                    $jumlah = (float) $item->jumlah * $porsi;
+
+                    $bahan->decrement('stok', $jumlah);
+
+                    StokMovement::catat([
+                        'jenis' => StokMovement::JENIS_KELUAR,
+                        'sumber' => StokMovement::SUMBER_MASAK,
+                        'jumlah' => $jumlah,
+                        'satuan' => $bahan->satuan,
+                        'bahan_baku_id' => $bahan->id,
+                        'harga_satuan' => $bahan->harga_beli,
+                        'keterangan' => "Masak {$porsi} porsi {$masakan->nama} - {$bahan->nama}",
+                    ]);
+                }
+
+                $masakan->increment('jumlah_porsi', $porsi);
+                $masakan->update(['tersedia' => true]);
+
+                StokMovement::catat([
+                    'jenis' => StokMovement::JENIS_MASUK,
+                    'sumber' => StokMovement::SUMBER_MASAK,
+                    'jumlah' => $porsi,
+                    'satuan' => 'porsi',
+                    'masakan_id' => $masakan->id,
+                    'keterangan' => "Masak {$porsi} porsi {$masakan->nama}",
+                ]);
+            });
+        } catch (ValidationException $exception) {
+            $errors = $exception->errors();
+
+            return $this->toast('error', $errors['stok'][0] ?? $errors['resep'][0] ?? 'Stok bahan tidak cukup.');
         }
-
-        // Cek kecukupan stok seluruh bahan
-        $kurang = [];
-        foreach ($masakan->resepItems as $item) {
-            $bahan = $item->bahanBaku;
-            $butuh = $item->jumlah * $porsi;
-
-            if ($bahan->stok < $butuh) {
-                $kurang[] = sprintf(
-                    '%s (butuh %s %s, sisa %s %s)',
-                    $bahan->nama,
-                    rtrim(rtrim(number_format($butuh, 2, ',', '.'), '0'), ','),
-                    $bahan->satuan,
-                    rtrim(rtrim(number_format($bahan->stok, 2, ',', '.'), '0'), ','),
-                    $bahan->satuan
-                );
-            }
-        }
-
-        if (! empty($kurang)) {
-            return $this->toast('error', 'Stok bahan tidak cukup: '.implode('; ', $kurang));
-        }
-
-        DB::transaction(function () use ($masakan, $porsi) {
-            foreach ($masakan->resepItems as $item) {
-                $item->bahanBaku->decrement('stok', $item->jumlah * $porsi);
-            }
-
-            $masakan->increment('jumlah_porsi', $porsi);
-            $masakan->update(['tersedia' => true]);
-        });
 
         return $this->toast(
             'success',

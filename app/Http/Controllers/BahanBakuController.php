@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\BahanBaku;
+use App\Models\StokMovement;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -45,7 +47,21 @@ class BahanBakuController extends Controller
             'harga_beli' => 'required|numeric|min:0',
         ]);
 
-        BahanBaku::create($validated);
+        DB::transaction(function () use ($validated): void {
+            $bahan = BahanBaku::create($validated);
+
+            if ((float) $bahan->stok > 0) {
+                StokMovement::catat([
+                    'jenis' => StokMovement::JENIS_MASUK,
+                    'sumber' => StokMovement::SUMBER_PENYESUAIAN,
+                    'jumlah' => $bahan->stok,
+                    'satuan' => $bahan->satuan,
+                    'bahan_baku_id' => $bahan->id,
+                    'harga_satuan' => $bahan->harga_beli,
+                    'keterangan' => 'Stok awal '.$bahan->nama,
+                ]);
+            }
+        });
 
         return $this->toast('success', 'Bahan baku berhasil ditambahkan!');
     }
@@ -63,7 +79,26 @@ class BahanBakuController extends Controller
             'harga_beli' => 'required|numeric|min:0',
         ]);
 
-        $inventori->update($validated);
+        $stokLama = (float) $inventori->stok;
+        $stokBaru = (float) $validated['stok'];
+
+        DB::transaction(function () use ($inventori, $validated, $stokLama, $stokBaru): void {
+            $inventori->update($validated);
+
+            if (abs($stokBaru - $stokLama) > 0.001) {
+                StokMovement::catat([
+                    'jenis' => $stokBaru > $stokLama
+                        ? StokMovement::JENIS_MASUK
+                        : StokMovement::JENIS_KELUAR,
+                    'sumber' => StokMovement::SUMBER_PENYESUAIAN,
+                    'jumlah' => abs($stokBaru - $stokLama),
+                    'satuan' => $inventori->satuan,
+                    'bahan_baku_id' => $inventori->id,
+                    'harga_satuan' => $inventori->harga_beli,
+                    'keterangan' => 'Penyesuaian manual stok '.$inventori->nama,
+                ]);
+            }
+        });
 
         return $this->toast('success', 'Bahan baku berhasil diperbarui!');
     }
