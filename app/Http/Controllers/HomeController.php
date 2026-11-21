@@ -46,8 +46,15 @@ class HomeController extends Controller
      */
     public function welcome(): Response
     {
+        // Kartu hero memakai semua menu yang ada sekarang, termasuk yang habis.
+        $heroMasakans = Masakan::query()
+            ->with(['kategori', 'fotos'])
+            ->latest()
+            ->get();
+
         return Inertia::render('welcome', [
             'masakans' => $this->katalog(12)->take(24)->get(),
+            'heroMasakans' => $heroMasakans,
             'kategoris' => Kategori::withCount('masakans')->get(),
         ]);
     }

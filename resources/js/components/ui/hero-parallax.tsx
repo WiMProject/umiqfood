@@ -16,9 +16,9 @@ export interface HeroParallaxProduct {
     subtitle?: string;
     description?: string;
     thumbnail?: string | null;
-    emoji?: string;
     meta?: string;
     accent?: string;
+    soldOut?: boolean;
 }
 
 const ROW_SIZE = 6;
@@ -152,6 +152,7 @@ export function ProductCard({
                     className={cn(
                         'relative flex h-full w-full flex-col justify-between overflow-hidden bg-gradient-to-br p-5 text-white sm:p-6',
                         product.accent ?? DEFAULT_ACCENT,
+                        product.soldOut && 'grayscale',
                     )}
                 >
                     {product.thumbnail && (
@@ -169,9 +170,11 @@ export function ProductCard({
                     )}
 
                     <div className="relative flex items-start justify-between gap-3">
-                        <span className="text-4xl drop-shadow-sm sm:text-5xl">
-                            {product.emoji ?? '🍱'}
-                        </span>
+                        {product.subtitle && (
+                            <span className="rounded-full bg-white/20 px-2.5 py-1 text-[11px] font-semibold tracking-wide whitespace-nowrap uppercase backdrop-blur">
+                                {product.subtitle}
+                            </span>
+                        )}
                         {product.meta && (
                             <span className="rounded-full bg-white/20 px-2.5 py-1 text-[11px] font-semibold whitespace-nowrap backdrop-blur">
                                 {product.meta}
@@ -180,12 +183,7 @@ export function ProductCard({
                     </div>
 
                     <div className="relative">
-                        {product.subtitle && (
-                            <p className="text-[11px] font-semibold tracking-[0.18em] text-white/75 uppercase">
-                                {product.subtitle}
-                            </p>
-                        )}
-                        <h3 className="mt-1 text-xl font-extrabold tracking-tight drop-shadow-sm sm:text-2xl">
+                        <h3 className="text-xl font-extrabold tracking-tight drop-shadow-sm sm:text-2xl">
                             {product.title}
                         </h3>
                         {product.description && (

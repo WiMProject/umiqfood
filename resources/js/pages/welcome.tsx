@@ -95,21 +95,6 @@ const PALET_HERO = [
     'from-cyan-500 via-sky-500 to-blue-600',
 ];
 
-const FITUR_HERO = [
-    ['Pesan cepat', '3 langkah', 'Pilih, pesan, lalu nikmati.', '⚡'],
-    ['Stok terpantau', 'Real-time', 'Sisa porsi selalu jelas.', '📦'],
-    ['Resep otomatis', 'Per porsi', 'Bahan dihitung otomatis.', '🧾'],
-    ['Bahan terjaga', 'Inventori', 'Stok bahan rapi dan akurat.', '🥬'],
-    ['Tanpa ongkir', 'Pickup only', 'Ambil sendiri di outlet.', '🛍️'],
-    ['Fresh dimasak', 'Sesuai pesanan', 'Hangat saat diambil.', '🍳'],
-    ['Rasa rumahan', 'Bumbu khas', 'Dimasak dengan resep keluarga.', '💚'],
-    ['Menu harian', 'Selalu baru', 'Pilihan berganti tiap hari.', '🍱'],
-    ['Higienis', 'Terjaga', 'Proses bersih dan aman.', '🛡️'],
-    ['Mudah dipesan', 'Tanpa ribet', 'Dari HP atau laptop.', '📱'],
-    ['Harga ramah', 'Tanpa biaya tersembunyi', 'Ramah kantong.', '🪙'],
-    ['Favorit pelanggan', 'Rating 4.9', 'Disukai banyak orang.', '⭐'],
-] as const;
-
 const OPSI_URUT = [
     { value: 'terbaru', label: 'Terbaru' },
     { value: 'harga-rendah', label: 'Harga terendah' },
@@ -450,9 +435,10 @@ function TestimoniCard({ ulasan }: { ulasan: Testimoni }) {
 }
 
 export default function Welcome() {
-    const { auth, masakans, kategoris } = usePage<{
+    const { auth, masakans, heroMasakans, kategoris } = usePage<{
         auth: { user: AuthUser | null };
         masakans: Masakan[];
+        heroMasakans: Masakan[];
         kategoris: Kategori[];
     }>().props;
 
@@ -564,42 +550,24 @@ export default function Welcome() {
     }, [query, kategoriAktif, urutan]);
 
     const heroProducts = useMemo<HeroParallaxProduct[]>(() => {
-        const menu = masakans.slice(0, 3).map((item, index) => ({
-            id: `menu-${item.id}`,
-            title: item.nama,
-            subtitle: item.kategori?.nama ?? 'Menu',
-            description: item.deskripsi ?? 'Masakan rumahan spesial.',
-            emoji: item.kategori?.icon ?? '🍱',
-            meta:
-                item.jumlah_porsi > 0 ? `${item.jumlah_porsi} porsi` : 'Habis',
-            link: '#menu',
-            accent: PALET_HERO[index % PALET_HERO.length],
-        }));
+        const menu = heroMasakans.map((item, index) => {
+            const habis = !item.tersedia || item.jumlah_porsi <= 0;
 
-        const kategori = kategoris.map((item, index) => ({
-            id: `kategori-${item.id}`,
-            title: item.nama,
-            subtitle: 'Kategori',
-            description: `${item.masakans_count ?? 0} menu tersedia`,
-            emoji: item.icon ?? '🍽️',
-            link: '#kategori',
-            accent: PALET_HERO[(index + 2) % PALET_HERO.length],
-        }));
+            return {
+                id: `menu-${item.id}`,
+                title: item.nama,
+                subtitle: item.kategori?.nama ?? 'Menu',
+                description: item.deskripsi ?? 'Masakan rumahan spesial.',
+                meta: habis ? 'Habis' : `${item.jumlah_porsi} porsi`,
+                thumbnail: item.foto_url,
+                soldOut: habis,
+                link: '#menu',
+                accent: PALET_HERO[index % PALET_HERO.length],
+            };
+        });
 
-        const fitur = FITUR_HERO.map(
-            ([title, subtitle, description, emoji], index) => ({
-                id: `fitur-${index}`,
-                title,
-                subtitle,
-                description,
-                emoji,
-                link: '#cara-pesan',
-                accent: PALET_HERO[(index + 4) % PALET_HERO.length],
-            }),
-        );
-
-        return [...menu, ...kategori, ...fitur].slice(0, 18);
-    }, [masakans, kategoris]);
+        return menu;
+    }, [heroMasakans]);
 
     const labelUrutan =
         OPSI_URUT.find((opsi) => opsi.value === urutan)?.label ?? 'Terbaru';
