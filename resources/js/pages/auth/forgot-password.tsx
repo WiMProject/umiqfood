@@ -9,9 +9,11 @@ import { login } from '@/routes';
 import { email } from '@/routes/password';
 
 export default function ForgotPassword({ status }: { status?: string }) {
-    const pesanStatus = status?.toLowerCase().includes('sent')
-        ? 'Tautan reset kata sandi sudah dikirim ke emailmu.'
-        : status;
+    // Pesan status dari Fortify berbahasa Inggris. Setiap status pada halaman
+    // ini menandakan tautan berhasil dikirim, jadi tampilkan versi Indonesia.
+    const pesanStatus = status
+        ? 'Tautan reset kata sandi sudah dikirim ke emailmu. Cek inbox atau folder spam, ya.'
+        : null;
 
     return (
         <>

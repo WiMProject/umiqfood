@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\PesananController as AdminPesananController;
+use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\BahanBakuController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\HomeController;
@@ -52,6 +53,11 @@ Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
     Route::get('/pesanan', [AdminPesananController::class, 'index'])->name('admin.pesanan.index');
     Route::patch('/pesanan/{order}/status', [AdminPesananController::class, 'updateStatus'])->name('admin.pesanan.status');
     Route::patch('/pesanan/{order}/bayar', [AdminPesananController::class, 'konfirmasiPembayaran'])->name('admin.pesanan.bayar');
+
+    // Manajemen pengguna (admin & pelanggan)
+    Route::resource('users', AdminUserController::class)->except(['create', 'show', 'edit']);
+    Route::post('/users/{user}/verifikasi', [AdminUserController::class, 'verify'])
+        ->name('users.verify');
 });
 
 require __DIR__.'/settings.php';

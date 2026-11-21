@@ -3,6 +3,7 @@ import {
     Boxes,
     ClipboardList,
     LayoutGrid,
+    Users,
     UtensilsCrossed,
     X,
 } from 'lucide-react';
@@ -43,6 +44,11 @@ const mainNavItems: NavItem[] = [
         title: 'Pesanan',
         href: '/pesanan',
         icon: ClipboardList,
+    },
+    {
+        title: 'Manajemen User',
+        href: '/users',
+        icon: Users,
     },
 ];
 
