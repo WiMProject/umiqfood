@@ -18,6 +18,13 @@ class PengeluaranTest extends TestCase
         $admin = User::factory()->create(['role' => 'admin']);
         $bahan = $this->buatBahan(50);
 
+        $pengeluaran = Pengeluaran::create([
+            'tanggal' => '2026-11-21',
+            'kategori' => 'operasional',
+            'jumlah' => 25000,
+            'user_id' => $admin->id,
+        ]);
+
         $this->actingAs($admin)
             ->get(route('pengeluaran.index'))
             ->assertOk()
@@ -25,6 +32,8 @@ class PengeluaranTest extends TestCase
                 ->component('admin/pengeluaran/index')
                 ->where('bahanBakus.0.id', $bahan->id)
                 ->where('kategoris.0.value', 'bahan_baku')
+                ->where('pengeluarans.0.tanggal', '2026-11-21')
+                ->where('pengeluarans.0.id', $pengeluaran->id)
             );
     }
 

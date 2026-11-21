@@ -82,11 +82,22 @@ function formatRupiah(value: number): string {
 }
 
 function formatTanggal(value: string): string {
+    // Backend mengirim Y-m-d. Data lama/ISO datetime tetap diterima agar
+    // satu catatan bermasalah tidak membuat seluruh halaman error.
+    const sumber = /^\d{4}-\d{2}-\d{2}$/.test(value)
+        ? `${value}T00:00:00`
+        : value;
+    const tanggal = new Date(sumber);
+
+    if (Number.isNaN(tanggal.getTime())) {
+        return value;
+    }
+
     return new Intl.DateTimeFormat('id-ID', {
         day: 'numeric',
         month: 'short',
         year: 'numeric',
-    }).format(new Date(`${value}T00:00:00`));
+    }).format(tanggal);
 }
 
 function tanggalHariIni(): string {

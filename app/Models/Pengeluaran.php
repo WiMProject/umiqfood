@@ -44,7 +44,9 @@ class Pengeluaran extends Model
     ];
 
     protected $casts = [
-        'tanggal' => 'date',
+        // Kirim Y-m-d ke frontend, bukan ISO datetime (Date.parse di JS tidak
+        // bisa menerima format "Y-m-d H:i:s" dari Eloquent).
+        'tanggal' => 'date:Y-m-d',
         'jumlah' => 'integer',
         'qty' => 'float',
         'harga_satuan' => 'float',
