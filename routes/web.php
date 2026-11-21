@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\LaporanController as AdminLaporanController;
+use App\Http\Controllers\Admin\PengeluaranController as AdminPengeluaranController;
 use App\Http\Controllers\Admin\PesananController as AdminPesananController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\BahanBakuController;
@@ -57,6 +59,13 @@ Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
     Route::get('/pesanan', [AdminPesananController::class, 'index'])->name('admin.pesanan.index');
     Route::patch('/pesanan/{order}/status', [AdminPesananController::class, 'updateStatus'])->name('admin.pesanan.status');
     Route::patch('/pesanan/{order}/bayar', [AdminPesananController::class, 'konfirmasiPembayaran'])->name('admin.pesanan.bayar');
+
+    // Catatan uang keluar, termasuk pembelian bahan baku
+    Route::resource('pengeluaran', AdminPengeluaranController::class)->except(['create', 'show', 'edit']);
+
+    // Laporan laba rugi berdasarkan pembayaran lunas dan pengeluaran
+    Route::get('/laporan/laba-rugi', [AdminLaporanController::class, 'labaRugi'])
+        ->name('laporan.laba-rugi');
 
     // Manajemen pengguna (admin & pelanggan)
     Route::resource('users', AdminUserController::class)->except(['create', 'show', 'edit']);

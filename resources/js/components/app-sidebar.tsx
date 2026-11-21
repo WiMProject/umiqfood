@@ -4,8 +4,10 @@ import {
     ClipboardList,
     LayoutGrid,
     Tags,
+    TrendingUp,
     Users,
     UtensilsCrossed,
+    Wallet,
     X,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
@@ -50,6 +52,16 @@ const mainNavItems: NavItem[] = [
         title: 'Pesanan',
         href: '/pesanan',
         icon: ClipboardList,
+    },
+    {
+        title: 'Pengeluaran',
+        href: '/pengeluaran',
+        icon: Wallet,
+    },
+    {
+        title: 'Laba Rugi',
+        href: '/laporan/laba-rugi',
+        icon: TrendingUp,
     },
     {
         title: 'Manajemen User',

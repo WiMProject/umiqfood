@@ -7,6 +7,7 @@ import {
     Pencil,
     Plus,
     Trash2,
+    Wallet,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -25,6 +26,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { cn } from '@/lib/utils';
 
 interface BahanBaku {
     id: number;
@@ -34,14 +36,24 @@ interface BahanBaku {
     stok_minimum: number;
     stok_menipis: boolean;
     resep_items_count: number;
+    harga_beli: number;
 }
 
 interface Props {
     bahanBakus: BahanBaku[];
-    stats: { total: number; menipis: number; habis: number };
+    stats: {
+        total: number;
+        menipis: number;
+        habis: number;
+        nilai_stok: number;
+    };
 }
 
 const satuanUmum = ['gram', 'ml', 'pcs', 'sdm', 'sdt', 'kg', 'liter'];
+
+function formatRupiah(value: number): string {
+    return `Rp ${new Intl.NumberFormat('id-ID').format(value)}`;
+}
 
 export default function InventoriIndex({ bahanBakus, stats }: Props) {
     const [isOpen, setIsOpen] = useState(false);
@@ -52,12 +64,19 @@ export default function InventoriIndex({ bahanBakus, stats }: Props) {
         satuan: 'gram',
         stok: '' as string | number,
         stok_minimum: '' as string | number,
+        harga_beli: '' as string | number,
     });
 
     const openCreateModal = () => {
         setEditingItem(null);
         reset();
-        setData({ nama: '', satuan: 'gram', stok: '', stok_minimum: '' });
+        setData({
+            nama: '',
+            satuan: 'gram',
+            stok: '',
+            stok_minimum: '',
+            harga_beli: '',
+        });
         setIsOpen(true);
     };
 
@@ -68,6 +87,7 @@ export default function InventoriIndex({ bahanBakus, stats }: Props) {
             satuan: item.satuan,
             stok: item.stok,
             stok_minimum: item.stok_minimum,
+            harga_beli: item.harga_beli,
         });
         setIsOpen(true);
     };
@@ -125,25 +145,35 @@ export default function InventoriIndex({ bahanBakus, stats }: Props) {
                 </div>
 
                 {/* Ringkasan */}
-                <div className="grid gap-4 sm:grid-cols-3">
+                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                     {[
                         {
                             title: 'Total Bahan',
                             value: stats.total,
                             icon: Boxes,
                             warna: 'bg-emerald-50 text-emerald-600',
+                            kecil: false,
                         },
                         {
                             title: 'Stok Menipis',
                             value: stats.menipis,
                             icon: AlertTriangle,
                             warna: 'bg-amber-50 text-amber-600',
+                            kecil: false,
                         },
                         {
                             title: 'Stok Habis',
                             value: stats.habis,
                             icon: PackageX,
                             warna: 'bg-red-50 text-red-600',
+                            kecil: false,
+                        },
+                        {
+                            title: 'Nilai Stok',
+                            value: formatRupiah(stats.nilai_stok),
+                            icon: Wallet,
+                            warna: 'bg-emerald-50 text-emerald-600',
+                            kecil: true,
                         },
                     ].map((item) => (
                         <div
@@ -154,7 +184,12 @@ export default function InventoriIndex({ bahanBakus, stats }: Props) {
                                 <p className="text-sm text-gray-500">
                                     {item.title}
                                 </p>
-                                <p className="mt-1 text-2xl font-extrabold text-gray-900 dark:text-white">
+                                <p
+                                    className={cn(
+                                        'mt-1 font-extrabold text-gray-900 dark:text-white',
+                                        item.kecil ? 'text-lg' : 'text-2xl',
+                                    )}
+                                >
                                     {item.value}
                                 </p>
                             </div>
@@ -181,6 +216,7 @@ export default function InventoriIndex({ bahanBakus, stats }: Props) {
                                 <TableHead className="min-w-48">
                                     Bahan
                                 </TableHead>
+                                <TableHead align="right">Harga Beli</TableHead>
                                 <TableHead align="center">Stok</TableHead>
                                 <TableHead align="center">
                                     Stok Minimum
@@ -196,7 +232,7 @@ export default function InventoriIndex({ bahanBakus, stats }: Props) {
                             {bahanBakus.length === 0 ? (
                                 <tr>
                                     <td
-                                        colSpan={6}
+                                        colSpan={7}
                                         className="px-4 py-14 text-center"
                                     >
                                         <div className="mx-auto flex max-w-xs flex-col items-center gap-2">
@@ -226,6 +262,12 @@ export default function InventoriIndex({ bahanBakus, stats }: Props) {
                                                 </div>
                                                 {item.nama}
                                             </div>
+                                        </td>
+                                        <td className="px-4 py-3.5 text-right whitespace-nowrap text-foreground tabular-nums">
+                                            {formatRupiah(item.harga_beli)}
+                                            <span className="text-xs text-muted-foreground">
+                                                /{item.satuan}
+                                            </span>
                                         </td>
                                         <td className="px-4 py-3.5 text-center font-semibold text-foreground tabular-nums">
                                             {formatAngka(item.stok)}{' '}
@@ -358,6 +400,24 @@ export default function InventoriIndex({ bahanBakus, stats }: Props) {
                                             </span>
                                         </p>
                                     </div>
+                                    <div>
+                                        <p className="text-[10px] font-medium tracking-wide text-muted-foreground uppercase">
+                                            Harga beli
+                                        </p>
+                                        <p className="mt-0.5 font-semibold text-foreground tabular-nums">
+                                            {formatRupiah(item.harga_beli)}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] font-medium tracking-wide text-muted-foreground uppercase">
+                                            Nilai stok
+                                        </p>
+                                        <p className="mt-0.5 font-semibold text-foreground tabular-nums">
+                                            {formatRupiah(
+                                                item.stok * item.harga_beli,
+                                            )}
+                                        </p>
+                                    </div>
                                 </div>
 
                                 <div className="mt-3 grid grid-cols-2 gap-2">
@@ -487,6 +547,29 @@ export default function InventoriIndex({ bahanBakus, stats }: Props) {
                                     </span>
                                 )}
                             </div>
+                        </div>
+
+                        <div>
+                            <Label htmlFor="harga_beli">
+                                Harga beli per {data.satuan}
+                            </Label>
+                            <Input
+                                id="harga_beli"
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                value={data.harga_beli}
+                                onChange={(e) =>
+                                    setData('harga_beli', e.target.value)
+                                }
+                                placeholder="12000"
+                                required
+                            />
+                            {errors.harga_beli && (
+                                <span className="text-xs text-red-500">
+                                    {errors.harga_beli}
+                                </span>
+                            )}
                         </div>
 
                         <div className="flex justify-end gap-2 pt-4">

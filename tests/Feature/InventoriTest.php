@@ -22,11 +22,13 @@ class InventoriTest extends TestCase
                 'satuan' => 'gram',
                 'stok' => 250,
                 'stok_minimum' => 100,
+                'harga_beli' => 12000,
             ])
             ->assertRedirect();
 
         $bahan = BahanBaku::query()->where('nama', 'Gula')->firstOrFail();
         $this->assertEquals(250, $bahan->stok);
+        $this->assertEquals(12000, $bahan->harga_beli);
 
         $this->actingAs($admin)
             ->put(route('inventori.update', $bahan), [
@@ -34,6 +36,7 @@ class InventoriTest extends TestCase
                 'satuan' => 'gram',
                 'stok' => 80,
                 'stok_minimum' => 100,
+                'harga_beli' => 12500,
             ])
             ->assertRedirect();
 
@@ -48,7 +51,9 @@ class InventoriTest extends TestCase
                 ->component('admin/inventori/index')
                 ->where('bahanBakus.0.stok', 80)
                 ->where('bahanBakus.0.stok_menipis', true)
+                ->where('bahanBakus.0.harga_beli', 12500)
                 ->where('stats.menipis', 1)
+                ->where('stats.nilai_stok', 1000000)
             );
     }
 }

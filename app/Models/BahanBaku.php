@@ -7,11 +7,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class BahanBaku extends Model
 {
-    protected $fillable = ['nama', 'satuan', 'stok', 'stok_minimum'];
+    protected $fillable = ['nama', 'satuan', 'stok', 'stok_minimum', 'harga_beli'];
 
     protected $casts = [
         'stok' => 'float',
         'stok_minimum' => 'float',
+        'harga_beli' => 'float',
     ];
 
     protected $appends = ['stok_menipis'];

@@ -25,6 +25,9 @@ class BahanBakuController extends Controller
                 'total' => $bahanBakus->count(),
                 'menipis' => $bahanBakus->where('stok_menipis', true)->count(),
                 'habis' => $bahanBakus->where('stok', '<=', 0)->count(),
+                'nilai_stok' => (int) round($bahanBakus->sum(
+                    fn (BahanBaku $bahan): float => (float) $bahan->stok * (float) $bahan->harga_beli,
+                )),
             ],
         ]);
     }
@@ -39,6 +42,7 @@ class BahanBakuController extends Controller
             'satuan' => 'required|string|max:20',
             'stok' => 'required|numeric|min:0',
             'stok_minimum' => 'required|numeric|min:0',
+            'harga_beli' => 'required|numeric|min:0',
         ]);
 
         BahanBaku::create($validated);
@@ -56,6 +60,7 @@ class BahanBakuController extends Controller
             'satuan' => 'required|string|max:20',
             'stok' => 'required|numeric|min:0',
             'stok_minimum' => 'required|numeric|min:0',
+            'harga_beli' => 'required|numeric|min:0',
         ]);
 
         $inventori->update($validated);
