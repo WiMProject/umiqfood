@@ -6,6 +6,7 @@ import {
     Coins,
     Info,
     RotateCcw,
+    Scale,
     TrendingUp,
     Wallet,
 } from 'lucide-react';
@@ -153,14 +154,16 @@ export default function AdminLaporanLabaRugiIndex({
             value: formatRupiah(ringkasan.pemasukan),
             hint: `${ringkasan.transaksi} pembayaran lunas`,
             icon: ArrowUpRight,
-            warna: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300',
+            warna: 'bg-emerald-500/10 text-emerald-600 ring-emerald-500/15 dark:text-emerald-300',
+            aksen: 'bg-gradient-to-r from-emerald-400 via-emerald-500 to-transparent',
         },
         {
             label: 'Pengeluaran',
             value: formatRupiah(ringkasan.pengeluaran),
             hint: 'Uang keluar pada periode ini',
             icon: ArrowDownRight,
-            warna: 'bg-rose-500/10 text-rose-600 dark:text-rose-300',
+            warna: 'bg-rose-500/10 text-rose-600 ring-rose-500/15 dark:text-rose-300',
+            aksen: 'bg-gradient-to-r from-rose-400 via-rose-500 to-transparent',
         },
         {
             label: ringkasan.laba >= 0 ? 'Laba' : 'Rugi',
@@ -169,15 +172,20 @@ export default function AdminLaporanLabaRugiIndex({
             icon: TrendingUp,
             warna:
                 ringkasan.laba >= 0
-                    ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300'
-                    : 'bg-rose-500/10 text-rose-600 dark:text-rose-300',
+                    ? 'bg-emerald-500/10 text-emerald-600 ring-emerald-500/15 dark:text-emerald-300'
+                    : 'bg-rose-500/10 text-rose-600 ring-rose-500/15 dark:text-rose-300',
+            aksen:
+                ringkasan.laba >= 0
+                    ? 'bg-gradient-to-r from-emerald-400 via-teal-500 to-transparent'
+                    : 'bg-gradient-to-r from-rose-400 via-rose-500 to-transparent',
         },
         {
             label: 'Margin',
             value: `${ringkasan.margin_persen}%`,
             hint: `Nilai stok ${formatRupiah(ringkasan.nilai_stok)}`,
             icon: Coins,
-            warna: 'bg-sky-500/10 text-sky-600 dark:text-sky-300',
+            warna: 'bg-sky-500/10 text-sky-600 ring-sky-500/15 dark:text-sky-300',
+            aksen: 'bg-gradient-to-r from-sky-400 via-sky-500 to-transparent',
         },
     ];
 
@@ -185,26 +193,41 @@ export default function AdminLaporanLabaRugiIndex({
         <>
             <Head title="Laporan Laba Rugi" />
 
-            <div className="flex flex-col gap-6 p-4 sm:p-6">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                    <div>
-                        <p className="text-[11px] font-semibold tracking-[0.18em] text-emerald-600 uppercase dark:text-emerald-400">
-                            Laporan
-                        </p>
-                        <h1 className="mt-1 text-2xl font-extrabold tracking-tight">
-                            Laba rugi
-                        </h1>
-                        <p className="mt-1 text-sm text-muted-foreground">
-                            Pemasukan berasal dari pembayaran lunas. Pengeluaran
-                            diambil dari catatan uang keluar.
-                        </p>
+            <div className="flex flex-col gap-5 p-4 sm:p-6">
+                <div className="relative overflow-hidden rounded-2xl border border-emerald-100/80 bg-gradient-to-br from-emerald-50 via-teal-50/70 to-card p-5 shadow-sm sm:p-6 dark:border-emerald-900/40 dark:from-emerald-950/40 dark:via-teal-950/20 dark:to-card">
+                    <div className="pointer-events-none absolute -top-12 -right-10 size-44 rounded-full bg-teal-400/10 blur-2xl" />
+                    <div className="pointer-events-none absolute -right-4 -bottom-16 size-40 rounded-full bg-emerald-400/10 blur-3xl" />
+                    <div className="relative flex items-start gap-4">
+                        <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-600/25">
+                            <Scale className="size-6" />
+                        </span>
+                        <div>
+                            <p className="text-[11px] font-bold tracking-[0.18em] text-emerald-700 uppercase dark:text-emerald-400">
+                                Laporan
+                            </p>
+                            <h1 className="mt-1 text-2xl font-extrabold tracking-tight sm:text-3xl">
+                                Laba rugi
+                            </h1>
+                            <p className="mt-1 max-w-xl text-sm leading-relaxed text-muted-foreground">
+                                Pemasukan berasal dari pembayaran lunas.
+                                Pengeluaran diambil dari catatan uang keluar.
+                            </p>
+                        </div>
                     </div>
-                    <form
-                        onSubmit={terapkanFilter}
-                        className="flex flex-col gap-2 sm:flex-row sm:items-end"
-                    >
+                </div>
+
+                <form
+                    onSubmit={terapkanFilter}
+                    className="flex flex-col gap-4 rounded-2xl border border-emerald-100/70 bg-gradient-to-r from-card via-emerald-50/30 to-card p-4 shadow-sm sm:flex-row sm:items-end dark:border-emerald-900/40 dark:via-emerald-950/10"
+                >
+                    <div className="grid flex-1 grid-cols-2 gap-3">
                         <div className="grid gap-1.5">
-                            <Label htmlFor="laporan-dari">Dari</Label>
+                            <Label
+                                htmlFor="laporan-dari"
+                                className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase"
+                            >
+                                Dari
+                            </Label>
                             <Input
                                 id="laporan-dari"
                                 type="date"
@@ -212,11 +235,15 @@ export default function AdminLaporanLabaRugiIndex({
                                 onChange={(event) =>
                                     setFilterDari(event.target.value)
                                 }
-                                className="h-10 rounded-xl bg-card"
                             />
                         </div>
                         <div className="grid gap-1.5">
-                            <Label htmlFor="laporan-sampai">Sampai</Label>
+                            <Label
+                                htmlFor="laporan-sampai"
+                                className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase"
+                            >
+                                Sampai
+                            </Label>
                             <Input
                                 id="laporan-sampai"
                                 type="date"
@@ -224,12 +251,13 @@ export default function AdminLaporanLabaRugiIndex({
                                 onChange={(event) =>
                                     setFilterSampai(event.target.value)
                                 }
-                                className="h-10 rounded-xl bg-card"
                             />
                         </div>
+                    </div>
+                    <div className="flex gap-2">
                         <Button
                             type="submit"
-                            className="h-10 gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
+                            className="h-10 flex-1 gap-2 rounded-xl bg-emerald-600 px-5 font-semibold text-white shadow-sm hover:bg-emerald-700 sm:flex-none"
                         >
                             <CalendarDays className="size-4" />
                             Terapkan
@@ -238,56 +266,74 @@ export default function AdminLaporanLabaRugiIndex({
                             type="button"
                             variant="outline"
                             onClick={resetFilter}
-                            className="h-10"
+                            className="h-10 gap-2 rounded-xl"
                             title="Kembali ke bulan ini"
                         >
                             <RotateCcw className="size-4" />
+                            <span className="sm:hidden">Reset</span>
                         </Button>
-                    </form>
-                </div>
+                    </div>
+                </form>
 
                 <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
                     {kartuStats.map((item) => (
-                        <Card key={item.label} className="gap-1 p-4">
+                        <Card
+                            key={item.label}
+                            className="group relative gap-0 overflow-hidden px-4 pt-5 pb-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+                        >
                             <span
                                 className={cn(
-                                    'flex size-9 items-center justify-center rounded-xl',
-                                    item.warna,
+                                    'absolute inset-x-0 top-0 h-1 opacity-80',
+                                    item.aksen,
                                 )}
-                            >
-                                <item.icon className="size-4.5" />
-                            </span>
-                            <p className="mt-2 text-xl font-extrabold tracking-tight">
+                            />
+                            <div className="flex items-start justify-between gap-2">
+                                <span
+                                    className={cn(
+                                        'flex size-10 items-center justify-center rounded-xl ring-1 ring-inset',
+                                        item.warna,
+                                    )}
+                                >
+                                    <item.icon className="size-5" />
+                                </span>
+                                <p className="text-right text-[10px] font-semibold tracking-wider text-muted-foreground/80 uppercase">
+                                    {item.label}
+                                </p>
+                            </div>
+                            <p className="mt-3 text-lg font-extrabold tracking-tight tabular-nums sm:text-xl">
                                 {item.value}
                             </p>
-                            <p className="text-xs font-medium text-muted-foreground">
-                                {item.label}
-                            </p>
-                            <p className="text-[11px] text-muted-foreground/80">
+                            <p className="mt-1 text-[11px] text-muted-foreground">
                                 {item.hint}
                             </p>
                         </Card>
                     ))}
                 </div>
 
-                <Card className="gap-4 p-4 sm:p-5">
-                    <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                        <div>
-                            <h2 className="text-base font-semibold">
-                                Arus kas harian
-                            </h2>
-                            <p className="text-xs text-muted-foreground">
-                                Perbandingan uang masuk dan uang keluar per
-                                tanggal.
-                            </p>
+                <Card className="relative gap-4 overflow-hidden border-emerald-100/70 p-4 shadow-sm sm:p-5 dark:border-emerald-900/40">
+                    <span className="pointer-events-none absolute -top-20 right-10 size-40 rounded-full bg-emerald-400/5 blur-3xl" />
+                    <div className="relative flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="flex items-start gap-3">
+                            <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 ring-1 ring-emerald-500/15 dark:text-emerald-300">
+                                <TrendingUp className="size-4.5" />
+                            </span>
+                            <div>
+                                <h2 className="text-base font-bold tracking-tight">
+                                    Arus kas harian
+                                </h2>
+                                <p className="mt-0.5 text-xs text-muted-foreground">
+                                    Perbandingan uang masuk dan uang keluar per
+                                    tanggal.
+                                </p>
+                            </div>
                         </div>
-                        <div className="flex flex-wrap gap-3 text-[11px] text-muted-foreground">
-                            <span className="inline-flex items-center gap-1.5">
-                                <span className="size-2.5 rounded-full bg-emerald-500" />
+                        <div className="flex flex-wrap gap-2">
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-1 text-[11px] font-medium text-emerald-700 ring-1 ring-emerald-500/15 dark:text-emerald-300">
+                                <span className="size-2 rounded-full bg-emerald-500" />
                                 Pemasukan
                             </span>
-                            <span className="inline-flex items-center gap-1.5">
-                                <span className="size-2.5 rounded-full bg-rose-500" />
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-2.5 py-1 text-[11px] font-medium text-rose-600 ring-1 ring-rose-500/15 dark:text-rose-300">
+                                <span className="size-2 rounded-full bg-rose-500" />
                                 Pengeluaran
                             </span>
                         </div>
@@ -350,12 +396,14 @@ export default function AdminLaporanLabaRugiIndex({
                             </BarChart>
                         </ChartContainer>
                     ) : (
-                        <div className="flex h-64 flex-col items-center justify-center gap-2 rounded-xl border border-dashed text-center">
-                            <Wallet className="size-6 text-muted-foreground" />
-                            <p className="text-sm font-medium">
+                        <div className="flex h-64 flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-emerald-200/80 bg-gradient-to-b from-emerald-50/40 to-card text-center dark:border-emerald-900/50 dark:from-emerald-950/20">
+                            <span className="flex size-12 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-300">
+                                <Wallet className="size-6" />
+                            </span>
+                            <p className="mt-1 text-sm font-semibold">
                                 Belum ada transaksi pada periode ini
                             </p>
-                            <p className="text-xs text-muted-foreground">
+                            <p className="max-w-xs text-xs text-muted-foreground">
                                 Pembayaran lunas dan catatan pengeluaran akan
                                 muncul di sini.
                             </p>
@@ -385,16 +433,43 @@ export default function AdminLaporanLabaRugiIndex({
                                     <tr>
                                         <td
                                             colSpan={3}
-                                            className="px-4 py-10 text-center text-sm text-muted-foreground"
+                                            className="px-4 py-10 text-center"
                                         >
-                                            Belum ada pengeluaran.
+                                            <div className="mx-auto flex max-w-[220px] flex-col items-center gap-2">
+                                                <span className="flex size-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-300">
+                                                    <Wallet className="size-5" />
+                                                </span>
+                                                <p className="text-sm font-medium text-foreground">
+                                                    Belum ada pengeluaran
+                                                </p>
+                                                <p className="text-xs text-muted-foreground">
+                                                    Catatan uang keluar akan
+                                                    dikelompokkan di sini.
+                                                </p>
+                                            </div>
                                         </td>
                                     </tr>
                                 ) : (
                                     perKategori.map((item) => (
-                                        <tr key={item.kategori}>
-                                            <td className="px-4 py-3 font-medium text-foreground">
-                                                {item.label}
+                                        <tr
+                                            key={item.kategori}
+                                            className="transition-colors hover:bg-emerald-50/40 dark:hover:bg-emerald-950/10"
+                                        >
+                                            <td className="px-4 py-3">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="size-2 shrink-0 rounded-full bg-emerald-500/80" />
+                                                    <span className="font-medium text-foreground">
+                                                        {item.label}
+                                                    </span>
+                                                </div>
+                                                <div className="mt-2 h-1 w-full max-w-32 overflow-hidden rounded-full bg-muted">
+                                                    <div
+                                                        className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-teal-500"
+                                                        style={{
+                                                            width: `${totalKategori > 0 ? Math.round((item.total / totalKategori) * 100) : 0}%`,
+                                                        }}
+                                                    />
+                                                </div>
                                             </td>
                                             <td className="px-4 py-3 text-center text-muted-foreground tabular-nums">
                                                 {item.jumlah_transaksi}
@@ -439,14 +514,29 @@ export default function AdminLaporanLabaRugiIndex({
                                     <tr>
                                         <td
                                             colSpan={3}
-                                            className="px-4 py-10 text-center text-sm text-muted-foreground"
+                                            className="px-4 py-10 text-center"
                                         >
-                                            Belum ada menu dengan resep lengkap.
+                                            <div className="mx-auto flex max-w-[220px] flex-col items-center gap-2">
+                                                <span className="flex size-10 items-center justify-center rounded-xl bg-sky-500/10 text-sky-600 dark:text-sky-300">
+                                                    <TrendingUp className="size-5" />
+                                                </span>
+                                                <p className="text-sm font-medium text-foreground">
+                                                    Belum ada margin menu
+                                                </p>
+                                                <p className="text-xs text-muted-foreground">
+                                                    Lengkapi resep dan harga
+                                                    beli bahan untuk melihat
+                                                    estimasi.
+                                                </p>
+                                            </div>
                                         </td>
                                     </tr>
                                 ) : (
                                     marginMenu.map((item) => (
-                                        <tr key={item.nama}>
+                                        <tr
+                                            key={item.nama}
+                                            className="transition-colors hover:bg-sky-50/40 dark:hover:bg-sky-950/10"
+                                        >
                                             <td className="px-4 py-3">
                                                 <p className="font-medium text-foreground">
                                                     {item.nama}
@@ -477,8 +567,10 @@ export default function AdminLaporanLabaRugiIndex({
                     </AdminTableCard>
                 </div>
 
-                <div className="flex items-start gap-2 rounded-2xl border border-emerald-200/70 bg-emerald-50/60 px-4 py-3 text-xs text-emerald-900 dark:border-emerald-900/50 dark:bg-emerald-950/20 dark:text-emerald-200">
-                    <Info className="mt-0.5 size-4 shrink-0" />
+                <div className="flex items-start gap-3 rounded-2xl border border-emerald-200/70 bg-gradient-to-r from-emerald-50/80 to-teal-50/50 px-4 py-3 text-xs leading-relaxed text-emerald-900 shadow-sm dark:border-emerald-900/50 dark:from-emerald-950/30 dark:to-teal-950/20 dark:text-emerald-200">
+                    <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-300">
+                        <Info className="size-4" />
+                    </span>
                     <p>
                         Laba di atas dihitung secara kas: pemasukan dari
                         pembayaran lunas dikurangi pengeluaran tercatat. Margin

@@ -1,9 +1,11 @@
 import { Head, router, useForm } from '@inertiajs/react';
 import {
-    CalendarDays,
+    Boxes,
+    Filter,
     LoaderCircle,
     Pencil,
     Plus,
+    ReceiptText,
     RotateCcw,
     Save,
     Trash2,
@@ -39,6 +41,13 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 
 interface Pengeluaran {
@@ -239,21 +248,24 @@ export default function AdminPengeluaranIndex({
             value: formatRupiah(stats.total),
             hint: `${stats.jumlah} transaksi pada filter ini`,
             icon: Wallet,
-            warna: 'bg-rose-500/10 text-rose-600 dark:text-rose-300',
+            warna: 'bg-rose-500/10 text-rose-600 ring-rose-500/15 dark:text-rose-300',
+            aksen: 'bg-gradient-to-r from-rose-400 via-rose-500 to-transparent',
         },
         {
             label: 'Beli bahan baku',
             value: formatRupiah(stats.bahan),
             hint: 'Otomatis menambah stok',
-            icon: Plus,
-            warna: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300',
+            icon: Boxes,
+            warna: 'bg-emerald-500/10 text-emerald-600 ring-emerald-500/15 dark:text-emerald-300',
+            aksen: 'bg-gradient-to-r from-emerald-400 via-emerald-500 to-transparent',
         },
         {
             label: 'Biaya lainnya',
             value: formatRupiah(stats.total - stats.bahan),
             hint: 'Operasional, gaji, listrik, dll.',
-            icon: CalendarDays,
-            warna: 'bg-sky-500/10 text-sky-600 dark:text-sky-300',
+            icon: ReceiptText,
+            warna: 'bg-sky-500/10 text-sky-600 ring-sky-500/15 dark:text-sky-300',
+            aksen: 'bg-gradient-to-r from-sky-400 via-sky-500 to-transparent',
         },
     ];
 
@@ -261,47 +273,67 @@ export default function AdminPengeluaranIndex({
         <>
             <Head title="Pengeluaran" />
 
-            <div className="flex flex-col gap-6 p-4 sm:p-6">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                    <div>
-                        <p className="text-[11px] font-semibold tracking-[0.18em] text-emerald-600 uppercase dark:text-emerald-400">
-                            Keuangan
-                        </p>
-                        <h1 className="mt-1 text-2xl font-extrabold tracking-tight">
-                            Catatan pengeluaran
-                        </h1>
-                        <p className="mt-1 text-sm text-muted-foreground">
-                            Catat uang keluar, termasuk pembelian bahan yang
-                            langsung menambah stok inventori.
-                        </p>
+            <div className="flex flex-col gap-5 p-4 sm:p-6">
+                <div className="relative overflow-hidden rounded-2xl border border-emerald-100/80 bg-gradient-to-br from-emerald-50 via-teal-50/70 to-card p-5 shadow-sm sm:p-6 dark:border-emerald-900/40 dark:from-emerald-950/40 dark:via-teal-950/20 dark:to-card">
+                    <div className="pointer-events-none absolute -top-12 -right-10 size-44 rounded-full bg-emerald-400/10 blur-2xl" />
+                    <div className="pointer-events-none absolute -right-4 -bottom-16 size-40 rounded-full bg-teal-400/10 blur-3xl" />
+                    <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex items-start gap-4">
+                            <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-600/25">
+                                <Wallet className="size-6" />
+                            </span>
+                            <div>
+                                <p className="text-[11px] font-bold tracking-[0.18em] text-emerald-700 uppercase dark:text-emerald-400">
+                                    Keuangan
+                                </p>
+                                <h1 className="mt-1 text-2xl font-extrabold tracking-tight sm:text-3xl">
+                                    Catatan pengeluaran
+                                </h1>
+                                <p className="mt-1 max-w-xl text-sm leading-relaxed text-muted-foreground">
+                                    Catat uang keluar, termasuk pembelian bahan
+                                    yang langsung menambah stok inventori.
+                                </p>
+                            </div>
+                        </div>
+                        <Button
+                            onClick={bukaTambah}
+                            className="h-11 shrink-0 gap-2 self-start rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-5 font-semibold text-white shadow-md shadow-emerald-600/20 transition hover:-translate-y-0.5 hover:from-emerald-700 hover:to-teal-700 hover:shadow-lg sm:self-auto"
+                        >
+                            <Plus className="size-4" />
+                            Tambah pengeluaran
+                        </Button>
                     </div>
-                    <Button
-                        onClick={bukaTambah}
-                        className="gap-2 self-start bg-emerald-600 text-white shadow-sm hover:bg-emerald-700 sm:self-auto"
-                    >
-                        <Plus className="size-4" />
-                        Tambah pengeluaran
-                    </Button>
                 </div>
 
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                     {kartuStats.map((item) => (
-                        <Card key={item.label} className="gap-1 p-4">
+                        <Card
+                            key={item.label}
+                            className="group relative gap-0 overflow-hidden px-4 pt-5 pb-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+                        >
                             <span
                                 className={cn(
-                                    'flex size-9 items-center justify-center rounded-xl',
-                                    item.warna,
+                                    'absolute inset-x-0 top-0 h-1 opacity-80',
+                                    item.aksen,
                                 )}
-                            >
-                                <item.icon className="size-4.5" />
-                            </span>
-                            <p className="mt-2 text-lg font-extrabold tracking-tight">
+                            />
+                            <div className="flex items-start justify-between gap-2">
+                                <span
+                                    className={cn(
+                                        'flex size-10 items-center justify-center rounded-xl ring-1 ring-inset',
+                                        item.warna,
+                                    )}
+                                >
+                                    <item.icon className="size-5" />
+                                </span>
+                                <p className="text-right text-[10px] font-semibold tracking-wider text-muted-foreground/80 uppercase">
+                                    {item.label}
+                                </p>
+                            </div>
+                            <p className="mt-3 text-xl font-extrabold tracking-tight tabular-nums sm:text-2xl">
                                 {item.value}
                             </p>
-                            <p className="text-xs font-medium text-muted-foreground">
-                                {item.label}
-                            </p>
-                            <p className="text-[11px] text-muted-foreground/80">
+                            <p className="mt-1 text-[11px] text-muted-foreground">
                                 {item.hint}
                             </p>
                         </Card>
@@ -310,32 +342,49 @@ export default function AdminPengeluaranIndex({
 
                 <form
                     onSubmit={terapkanFilter}
-                    className="flex flex-col gap-3 rounded-2xl border border-border/70 bg-card p-4 shadow-sm lg:flex-row lg:items-end"
+                    className="flex flex-col gap-4 rounded-2xl border border-emerald-100/70 bg-gradient-to-r from-card via-emerald-50/30 to-card p-4 shadow-sm lg:flex-row lg:items-end dark:border-emerald-900/40 dark:via-emerald-950/10"
                 >
                     <div className="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-3">
                         <div className="grid gap-1.5">
-                            <Label htmlFor="filter-kategori">Kategori</Label>
-                            <select
-                                id="filter-kategori"
-                                value={filterKategori}
-                                onChange={(event) =>
-                                    setFilterKategori(event.target.value)
-                                }
-                                className="h-10 rounded-xl border border-input bg-card px-3 text-sm"
+                            <Label
+                                htmlFor="filter-kategori"
+                                className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase"
                             >
-                                <option value="">Semua kategori</option>
-                                {kategoris.map((kategori) => (
-                                    <option
-                                        key={kategori.value}
-                                        value={kategori.value}
-                                    >
-                                        {kategori.label}
-                                    </option>
-                                ))}
-                            </select>
+                                Kategori
+                            </Label>
+                            <Select
+                                value={filterKategori || 'semua'}
+                                onValueChange={(value) =>
+                                    setFilterKategori(
+                                        value === 'semua' ? '' : value,
+                                    )
+                                }
+                            >
+                                <SelectTrigger id="filter-kategori">
+                                    <SelectValue placeholder="Semua kategori" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="semua">
+                                        Semua kategori
+                                    </SelectItem>
+                                    {kategoris.map((kategori) => (
+                                        <SelectItem
+                                            key={kategori.value}
+                                            value={kategori.value}
+                                        >
+                                            {kategori.label}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         </div>
                         <div className="grid gap-1.5">
-                            <Label htmlFor="filter-dari">Dari tanggal</Label>
+                            <Label
+                                htmlFor="filter-dari"
+                                className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase"
+                            >
+                                Dari tanggal
+                            </Label>
                             <Input
                                 id="filter-dari"
                                 type="date"
@@ -343,11 +392,13 @@ export default function AdminPengeluaranIndex({
                                 onChange={(event) =>
                                     setDari(event.target.value)
                                 }
-                                className="h-10 rounded-xl bg-card"
                             />
                         </div>
                         <div className="grid gap-1.5">
-                            <Label htmlFor="filter-sampai">
+                            <Label
+                                htmlFor="filter-sampai"
+                                className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase"
+                            >
                                 Sampai tanggal
                             </Label>
                             <Input
@@ -357,22 +408,22 @@ export default function AdminPengeluaranIndex({
                                 onChange={(event) =>
                                     setSampai(event.target.value)
                                 }
-                                className="h-10 rounded-xl bg-card"
                             />
                         </div>
                     </div>
                     <div className="flex gap-2">
                         <Button
                             type="submit"
-                            className="h-10 gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
+                            className="h-10 flex-1 gap-2 rounded-xl bg-emerald-600 px-5 font-semibold text-white shadow-sm hover:bg-emerald-700 sm:flex-none"
                         >
+                            <Filter className="size-4" />
                             Terapkan
                         </Button>
                         <Button
                             type="button"
                             variant="outline"
                             onClick={resetFilter}
-                            className="h-10 gap-2"
+                            className="h-10 gap-2 rounded-xl"
                         >
                             <RotateCcw className="size-4" />
                             Reset
@@ -415,13 +466,13 @@ export default function AdminPengeluaranIndex({
                                         className="px-4 py-14 text-center"
                                     >
                                         <div className="mx-auto flex max-w-xs flex-col items-center gap-2">
-                                            <div className="flex size-11 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-300">
-                                                <Wallet className="size-5" />
+                                            <div className="flex size-14 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-100 to-teal-100 text-emerald-600 ring-1 ring-emerald-200/70 dark:from-emerald-950/50 dark:to-teal-950/40 dark:text-emerald-300 dark:ring-emerald-900/50">
+                                                <ReceiptText className="size-6" />
                                             </div>
-                                            <p className="text-sm font-medium text-foreground">
+                                            <p className="mt-1 text-sm font-semibold text-foreground">
                                                 Belum ada pengeluaran
                                             </p>
-                                            <p className="text-xs text-muted-foreground">
+                                            <p className="text-xs leading-relaxed text-muted-foreground">
                                                 Catat biaya pertama untuk mulai
                                                 memantau laba rugi.
                                             </p>
@@ -501,16 +552,32 @@ export default function AdminPengeluaranIndex({
 
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:hidden">
                     {pengeluarans.length === 0 ? (
-                        <div className="rounded-2xl border border-dashed border-border/70 bg-card p-8 text-center text-sm text-muted-foreground">
-                            Belum ada pengeluaran. Catat biaya pertama untuk
-                            mulai memantau laba rugi.
+                        <div className="col-span-full flex flex-col items-center gap-2 rounded-2xl border border-dashed border-emerald-200/80 bg-gradient-to-b from-emerald-50/40 to-card px-6 py-10 text-center dark:border-emerald-900/50 dark:from-emerald-950/20">
+                            <div className="flex size-12 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-300">
+                                <ReceiptText className="size-6" />
+                            </div>
+                            <p className="text-sm font-semibold text-foreground">
+                                Belum ada pengeluaran
+                            </p>
+                            <p className="max-w-xs text-xs text-muted-foreground">
+                                Catat biaya pertama untuk mulai memantau laba
+                                rugi.
+                            </p>
                         </div>
                     ) : (
                         pengeluarans.map((item) => (
                             <div
                                 key={item.id}
-                                className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm"
+                                className="relative overflow-hidden rounded-2xl border border-border/70 bg-card p-4 shadow-sm transition hover:border-emerald-200/80 hover:shadow-md dark:hover:border-emerald-900/60"
                             >
+                                <span
+                                    className={cn(
+                                        'absolute inset-x-0 top-0 h-0.5',
+                                        item.kategori === KATEGORI_BAHAN
+                                            ? 'bg-emerald-500/70'
+                                            : 'bg-sky-500/70',
+                                    )}
+                                />
                                 <div className="flex items-start justify-between gap-3">
                                     <div className="min-w-0">
                                         <p className="truncate font-semibold text-foreground">
@@ -569,20 +636,27 @@ export default function AdminPengeluaranIndex({
                     }
                 }}
             >
-                <DialogContent className="sm:max-w-lg">
-                    <DialogHeader>
-                        <DialogTitle>
+                <DialogContent className="rounded-2xl sm:max-w-lg">
+                    <DialogHeader className="rounded-xl border border-emerald-100/70 bg-gradient-to-br from-emerald-50 to-teal-50/60 px-4 py-4 text-left dark:border-emerald-900/40 dark:from-emerald-950/40 dark:to-teal-950/20">
+                        <span className="mb-2 flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-md shadow-emerald-600/20">
+                            {editing ? (
+                                <Pencil className="size-5" />
+                            ) : (
+                                <Plus className="size-5" />
+                            )}
+                        </span>
+                        <DialogTitle className="text-lg font-extrabold">
                             {editing
                                 ? 'Edit pengeluaran'
                                 : 'Tambah pengeluaran'}
                         </DialogTitle>
-                        <DialogDescription>
+                        <DialogDescription className="text-xs leading-relaxed">
                             Pembelian bahan otomatis menambah stok dan
                             memperbarui harga beli acuan.
                         </DialogDescription>
                     </DialogHeader>
 
-                    <form onSubmit={handleSubmit} className="space-y-4">
+                    <form onSubmit={handleSubmit} className="space-y-4 pt-1">
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <div className="grid gap-2">
                                 <Label htmlFor="pengeluaran-tanggal">
@@ -603,24 +677,27 @@ export default function AdminPengeluaranIndex({
                                 <Label htmlFor="pengeluaran-kategori">
                                     Kategori
                                 </Label>
-                                <select
-                                    id="pengeluaran-kategori"
-                                    value={data.kategori}
-                                    onChange={(event) =>
-                                        setData('kategori', event.target.value)
-                                    }
-                                    className="h-10 rounded-xl border border-input bg-card px-3 text-sm"
+                                <Select
                                     required
+                                    value={data.kategori}
+                                    onValueChange={(value) =>
+                                        setData('kategori', value)
+                                    }
                                 >
-                                    {kategoris.map((kategori) => (
-                                        <option
-                                            key={kategori.value}
-                                            value={kategori.value}
-                                        >
-                                            {kategori.label}
-                                        </option>
-                                    ))}
-                                </select>
+                                    <SelectTrigger id="pengeluaran-kategori">
+                                        <SelectValue placeholder="Pilih kategori" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {kategoris.map((kategori) => (
+                                            <SelectItem
+                                                key={kategori.value}
+                                                value={kategori.value}
+                                            >
+                                                {kategori.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                                 <InputError message={errors.kategori} />
                             </div>
                         </div>
@@ -631,31 +708,32 @@ export default function AdminPengeluaranIndex({
                                     <Label htmlFor="pengeluaran-bahan">
                                         Bahan baku
                                     </Label>
-                                    <select
-                                        id="pengeluaran-bahan"
-                                        value={data.bahan_baku_id}
-                                        onChange={(event) =>
-                                            setData(
-                                                'bahan_baku_id',
-                                                event.target.value,
-                                            )
-                                        }
-                                        className="h-10 rounded-xl border border-input bg-card px-3 text-sm"
+                                    <Select
                                         required
+                                        value={
+                                            data.bahan_baku_id
+                                                ? String(data.bahan_baku_id)
+                                                : undefined
+                                        }
+                                        onValueChange={(value) =>
+                                            setData('bahan_baku_id', value)
+                                        }
                                     >
-                                        <option value="">
-                                            Pilih bahan baku
-                                        </option>
-                                        {bahanBakus.map((bahan) => (
-                                            <option
-                                                key={bahan.id}
-                                                value={bahan.id}
-                                            >
-                                                {bahan.nama} (stok {bahan.stok}{' '}
-                                                {bahan.satuan})
-                                            </option>
-                                        ))}
-                                    </select>
+                                        <SelectTrigger id="pengeluaran-bahan">
+                                            <SelectValue placeholder="Pilih bahan baku" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {bahanBakus.map((bahan) => (
+                                                <SelectItem
+                                                    key={bahan.id}
+                                                    value={String(bahan.id)}
+                                                >
+                                                    {bahan.nama} · stok{' '}
+                                                    {bahan.stok} {bahan.satuan}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                     <InputError
                                         message={errors.bahan_baku_id}
                                     />
@@ -707,11 +785,16 @@ export default function AdminPengeluaranIndex({
                                         />
                                     </div>
                                 </div>
-                                <div className="rounded-xl bg-emerald-50/60 p-3 dark:bg-emerald-950/20">
-                                    <p className="text-xs text-muted-foreground">
-                                        Total pembelian
-                                    </p>
-                                    <p className="mt-0.5 text-lg font-extrabold text-emerald-700 dark:text-emerald-300">
+                                <div className="flex items-center justify-between gap-3 rounded-xl border border-emerald-100/80 bg-gradient-to-r from-emerald-50 to-teal-50/60 px-4 py-3 dark:border-emerald-900/40 dark:from-emerald-950/30 dark:to-teal-950/20">
+                                    <div>
+                                        <p className="text-[11px] font-medium text-muted-foreground">
+                                            Total pembelian
+                                        </p>
+                                        <p className="text-[10px] text-muted-foreground/70">
+                                            qty × harga satuan
+                                        </p>
+                                    </div>
+                                    <p className="text-xl font-extrabold tracking-tight text-emerald-700 tabular-nums dark:text-emerald-300">
                                         {formatRupiah(totalBeli)}
                                     </p>
                                 </div>
@@ -765,7 +848,7 @@ export default function AdminPengeluaranIndex({
                             <Button
                                 type="submit"
                                 disabled={processing}
-                                className="gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
+                                className="h-10 gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-5 font-semibold text-white shadow-md shadow-emerald-600/20 hover:from-emerald-700 hover:to-teal-700"
                             >
                                 {processing ? (
                                     <LoaderCircle className="size-4 animate-spin" />

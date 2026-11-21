@@ -26,6 +26,13 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 
 interface BahanBaku {
@@ -482,21 +489,22 @@ export default function InventoriIndex({ bahanBakus, stats }: Props) {
 
                         <div>
                             <Label htmlFor="satuan">Satuan</Label>
-                            <select
-                                id="satuan"
-                                value={data.satuan}
-                                onChange={(e) =>
-                                    setData('satuan', e.target.value)
-                                }
-                                className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus:ring-1 focus:ring-ring focus:outline-none"
+                            <Select
                                 required
+                                value={String(data.satuan)}
+                                onValueChange={(v) => setData('satuan', v)}
                             >
-                                {satuanUmum.map((satuan) => (
-                                    <option key={satuan} value={satuan}>
-                                        {satuan}
-                                    </option>
-                                ))}
-                            </select>
+                                <SelectTrigger id="satuan" className="w-full">
+                                    <SelectValue placeholder="Pilih satuan" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {satuanUmum.map((satuan) => (
+                                        <SelectItem key={satuan} value={satuan}>
+                                            {satuan}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                             {errors.satuan && (
                                 <span className="text-xs text-red-500">
                                     {errors.satuan}

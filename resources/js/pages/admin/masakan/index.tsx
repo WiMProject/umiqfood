@@ -31,6 +31,13 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 
 interface Kategori {
     id: number;
@@ -728,21 +735,34 @@ export default function MasakanIndex({
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <Label htmlFor="kategori">Kategori</Label>
-                                <select
-                                    id="kategori"
-                                    value={data.kategori_id}
-                                    onChange={(e) =>
-                                        setData('kategori_id', e.target.value)
-                                    }
-                                    className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus:ring-1 focus:ring-ring focus:outline-none"
+                                <Select
                                     required
+                                    value={
+                                        data.kategori_id === ''
+                                            ? undefined
+                                            : String(data.kategori_id)
+                                    }
+                                    onValueChange={(v) =>
+                                        setData('kategori_id', v)
+                                    }
                                 >
-                                    {kategoris.map((cat) => (
-                                        <option key={cat.id} value={cat.id}>
-                                            {cat.icon} {cat.nama}
-                                        </option>
-                                    ))}
-                                </select>
+                                    <SelectTrigger
+                                        id="kategori"
+                                        className="w-full"
+                                    >
+                                        <SelectValue placeholder="Pilih kategori" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {kategoris.map((cat) => (
+                                            <SelectItem
+                                                key={cat.id}
+                                                value={String(cat.id)}
+                                            >
+                                                {cat.icon} {cat.nama}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                                 {errors.kategori_id && (
                                     <span className="text-xs text-red-500">
                                         {errors.kategori_id}
@@ -1036,28 +1056,39 @@ export default function MasakanIndex({
                                                 key={index}
                                                 className="flex items-center gap-2"
                                             >
-                                                <select
-                                                    value={row.bahan_baku_id}
-                                                    onChange={(e) =>
+                                                <Select
+                                                    value={String(
+                                                        row.bahan_baku_id,
+                                                    )}
+                                                    onValueChange={(v) =>
                                                         updateResepRow(index, {
-                                                            bahan_baku_id:
-                                                                e.target.value,
+                                                            bahan_baku_id: v,
                                                         })
                                                     }
-                                                    className="min-w-0 flex-1 rounded-md border border-input bg-transparent px-2 py-1.5 text-sm shadow-sm focus:ring-1 focus:ring-ring focus:outline-none"
                                                 >
-                                                    {bahanBakus.map((bahan) => (
-                                                        <option
-                                                            key={bahan.id}
-                                                            value={bahan.id}
-                                                            disabled={terpakaiLain.has(
-                                                                bahan.id,
-                                                            )}
-                                                        >
-                                                            {bahan.nama}
-                                                        </option>
-                                                    ))}
-                                                </select>
+                                                    <SelectTrigger className="w-full min-w-0 flex-1">
+                                                        <SelectValue placeholder="Pilih bahan baku" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {bahanBakus.map(
+                                                            (bahan) => (
+                                                                <SelectItem
+                                                                    key={
+                                                                        bahan.id
+                                                                    }
+                                                                    value={String(
+                                                                        bahan.id,
+                                                                    )}
+                                                                    disabled={terpakaiLain.has(
+                                                                        bahan.id,
+                                                                    )}
+                                                                >
+                                                                    {bahan.nama}
+                                                                </SelectItem>
+                                                            ),
+                                                        )}
+                                                    </SelectContent>
+                                                </Select>
                                                 <Input
                                                     type="number"
                                                     step="0.01"

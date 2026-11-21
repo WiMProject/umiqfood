@@ -45,6 +45,13 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { useInitials } from '@/hooks/use-initials';
 import { cn } from '@/lib/utils';
 
@@ -652,19 +659,27 @@ export default function AdminUsersIndex({ users, stats }: Props) {
 
                         <div className="grid gap-2">
                             <Label htmlFor="user-role">Peran</Label>
-                            <select
-                                id="user-role"
-                                value={data.role}
-                                onChange={(event) =>
-                                    setData('role', event.target.value as Role)
-                                }
-                                disabled={editing?.is_self}
-                                className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-input/30"
+                            <Select
                                 required
+                                value={data.role}
+                                onValueChange={(v) =>
+                                    setData('role', v as Role)
+                                }
                             >
-                                <option value="user">Pelanggan</option>
-                                <option value="admin">Admin</option>
-                            </select>
+                                <SelectTrigger
+                                    id="user-role"
+                                    className="w-full"
+                                    disabled={editing?.is_self}
+                                >
+                                    <SelectValue placeholder="Pilih peran" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="user">
+                                        Pelanggan
+                                    </SelectItem>
+                                    <SelectItem value="admin">Admin</SelectItem>
+                                </SelectContent>
+                            </Select>
                             {editing?.is_self ? (
                                 <p className="text-xs text-muted-foreground">
                                     Peran akun sendiri tidak bisa diubah.
