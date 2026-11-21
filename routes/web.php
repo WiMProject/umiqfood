@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\BahanBakuController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\KeranjangController;
 use App\Http\Controllers\MasakanController;
 use App\Http\Controllers\ReviewController;
@@ -48,6 +49,9 @@ Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
 
     // Rute CRUD Inventori (bahan baku)
     Route::resource('inventori', BahanBakuController::class)->except(['create', 'show', 'edit']);
+
+    // Rute CRUD Kategori menu
+    Route::resource('kategori', KategoriController::class)->except(['create', 'show', 'edit']);
 
     // Pesanan pickup
     Route::get('/pesanan', [AdminPesananController::class, 'index'])->name('admin.pesanan.index');

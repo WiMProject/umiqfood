@@ -3,6 +3,7 @@ import {
     Boxes,
     ClipboardList,
     LayoutGrid,
+    Tags,
     Users,
     UtensilsCrossed,
     X,
@@ -34,6 +35,11 @@ const mainNavItems: NavItem[] = [
         title: 'Menu Masakan',
         href: '/masakan',
         icon: UtensilsCrossed,
+    },
+    {
+        title: 'Kategori',
+        href: '/kategori',
+        icon: Tags,
     },
     {
         title: 'Inventori',
