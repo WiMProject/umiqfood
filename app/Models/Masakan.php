@@ -37,6 +37,17 @@ class Masakan extends Model
         return $this->belongsTo(Kategori::class);
     }
 
+    // Relasi: 1 Masakan punya BANYAK foto (galeri)
+    /**
+     * @return HasMany<MasakanFoto, $this>
+     */
+    public function fotos(): HasMany
+    {
+        return $this->hasMany(MasakanFoto::class)
+            ->orderBy('urutan')
+            ->orderBy('id');
+    }
+
     // Relasi: 1 Masakan punya BANYAK item resep
     /**
      * @return HasMany<ResepItem, $this>
@@ -92,9 +103,17 @@ class Masakan extends Model
         return 'Rp '.number_format($this->harga, 0, ',', '.');
     }
 
-    // Accessor: URL lengkap foto
+    // Accessor: URL lengkap foto utama (fallback ke foto galeri pertama)
     public function getFotoUrlAttribute(): ?string
     {
-        return $this->foto ? asset('storage/'.$this->foto) : null;
+        if ($this->foto) {
+            return asset('storage/'.$this->foto);
+        }
+
+        $foto = $this->relationLoaded('fotos')
+            ? $this->fotos->first()
+            : $this->fotos()->first();
+
+        return $foto?->url;
     }
 }

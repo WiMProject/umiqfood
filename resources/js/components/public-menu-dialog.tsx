@@ -9,6 +9,7 @@ import {
     ShoppingBag,
 } from 'lucide-react';
 import { cn } from 'cn';
+import { MenuPhotoGallery } from '@/components/menu-photo-gallery';
 import { RatingStars } from '@/components/rating-stars';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -70,21 +71,13 @@ export function PublicMenuDialog({
                             </DialogDescription>
                         </DialogHeader>
 
-                        <div className="relative h-56 overflow-hidden rounded-xl bg-muted sm:h-72">
-                            {menu.foto_url ? (
-                                <img
-                                    src={menu.foto_url}
-                                    alt={menu.nama}
-                                    className="h-full w-full object-cover"
-                                />
-                            ) : (
-                                <div className="flex h-full w-full items-center justify-center bg-[radial-gradient(circle_at_30%_20%,rgba(16,185,129,0.3),transparent_55%),radial-gradient(circle_at_75%_80%,rgba(20,184,166,0.26),transparent_50%)]">
-                                    <span className="text-6xl drop-shadow-sm">
-                                        {menu.kategori?.icon ?? '🍱'}
-                                    </span>
-                                </div>
-                            )}
-
+                        <MenuPhotoGallery
+                            nama={menu.nama}
+                            fotoUrl={menu.foto_url}
+                            fotos={menu.fotos}
+                            icon={menu.kategori?.icon}
+                            className="h-56 sm:h-72"
+                        >
                             <div className="absolute inset-x-0 top-0 flex items-start justify-between gap-2 p-3">
                                 <Badge className="gap-1 border-0 bg-background/85 text-foreground shadow-sm backdrop-blur">
                                     <span>{menu.kategori?.icon ?? '🍽️'}</span>
@@ -103,7 +96,7 @@ export function PublicMenuDialog({
                                         : `Sisa ${menu.jumlah_porsi} porsi`}
                                 </Badge>
                             </div>
-                        </div>
+                        </MenuPhotoGallery>
 
                         <div className="flex flex-wrap items-start justify-between gap-3">
                             <div className="min-w-0">

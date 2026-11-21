@@ -2,13 +2,19 @@ import { Head, router, useForm } from '@inertiajs/react';
 import {
     ChefHat,
     CheckCircle2,
+    ImagePlus,
+    Images,
     Pencil,
     Plus,
+    RotateCcw,
+    Star,
     Trash2,
     Utensils,
+    X,
     XCircle,
 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { cn } from 'cn';
 
 import {
     AdminTableCard,
@@ -46,6 +52,14 @@ interface ResepItem {
     bahan_baku?: BahanBaku;
 }
 
+interface MasakanFoto {
+    id: number;
+    masakan_id: number;
+    path: string;
+    url: string;
+    urutan: number;
+}
+
 interface Masakan {
     id: number;
     nama: string;
@@ -59,6 +73,7 @@ interface Masakan {
     max_porsi: number | null;
     kategori_id: number;
     kategori?: Kategori;
+    fotos?: MasakanFoto[];
     resep_items?: ResepItem[];
 }
 
@@ -71,6 +86,46 @@ interface Props {
 interface ResepRow {
     bahan_baku_id: string | number;
     jumlah: string | number;
+}
+
+function FotoBaruPreview({
+    file,
+    onRemove,
+}: {
+    file: File;
+    onRemove: () => void;
+}) {
+    const [url, setUrl] = useState<string | null>(null);
+
+    useEffect(() => {
+        const objectUrl = URL.createObjectURL(file);
+        setUrl(objectUrl);
+
+        return () => URL.revokeObjectURL(objectUrl);
+    }, [file]);
+
+    return (
+        <div className="relative aspect-square overflow-hidden rounded-xl border border-emerald-200 bg-muted dark:border-emerald-900/60">
+            {url && (
+                <img
+                    src={url}
+                    alt={file.name}
+                    className="h-full w-full object-cover"
+                />
+            )}
+            <span className="absolute inset-x-1 bottom-1 truncate rounded bg-background/85 px-1.5 py-0.5 text-[10px] font-medium backdrop-blur">
+                {file.name}
+            </span>
+            <button
+                type="button"
+                onClick={onRemove}
+                aria-label={`Hapus ${file.name}`}
+                className="absolute top-1 right-1 flex size-6 items-center justify-center rounded-full bg-rose-600/90 text-white shadow hover:bg-rose-700"
+            >
+                <X className="size-3" />
+            </button>
+        </div>
+    );
 }
 
 export default function MasakanIndex({
@@ -92,7 +147,9 @@ export default function MasakanIndex({
         kategori_id: string | number;
         tersedia: boolean;
         jumlah_porsi: string | number;
-        foto: File | null;
+        fotos: File[];
+        hapus_foto: number[];
+        cover_foto_id: number | null;
         resep: ResepRow[];
         _method?: string;
     }>({
@@ -102,7 +159,9 @@ export default function MasakanIndex({
         kategori_id: kategoris[0]?.id || '',
         tersedia: true,
         jumlah_porsi: 0,
-        foto: null,
+        fotos: [],
+        hapus_foto: [],
+        cover_foto_id: null,
         resep: [],
     });
 
@@ -116,7 +175,9 @@ export default function MasakanIndex({
             kategori_id: kategoris[0]?.id || '',
             tersedia: true,
             jumlah_porsi: 0,
-            foto: null,
+            fotos: [],
+            hapus_foto: [],
+            cover_foto_id: null,
             resep: [],
         });
         setIsOpen(true);
@@ -124,6 +185,9 @@ export default function MasakanIndex({
 
     const openEditModal = (item: Masakan) => {
         setEditingItem(item);
+        const coverId =
+            item.fotos?.find((foto) => foto.path === item.foto)?.id ?? null;
+
         setData({
             nama: item.nama,
             deskripsi: item.deskripsi || '',
@@ -131,7 +195,9 @@ export default function MasakanIndex({
             kategori_id: item.kategori_id,
             tersedia: item.tersedia,
             jumlah_porsi: item.jumlah_porsi,
-            foto: null,
+            fotos: [],
+            hapus_foto: [],
+            cover_foto_id: coverId,
             resep: (item.resep_items || []).map((row) => ({
                 bahan_baku_id: row.bahan_baku_id,
                 jumlah: row.jumlah,
@@ -146,6 +212,7 @@ export default function MasakanIndex({
 
         if (editingItem) {
             post(`/masakan/${editingItem.id}`, {
+                forceFormData: true,
                 onSuccess: () => {
                     setIsOpen(false);
                     reset();
@@ -153,6 +220,7 @@ export default function MasakanIndex({
             });
         } else {
             post('/masakan', {
+                forceFormData: true,
                 onSuccess: () => {
                     setIsOpen(false);
                     reset();
@@ -196,6 +264,51 @@ export default function MasakanIndex({
         setData(
             'resep',
             data.resep.filter((_, i) => i !== index),
+        );
+    };
+
+    const fotoTersimpan = editingItem?.fotos ?? [];
+    const fotoDihapus = new Set(data.hapus_foto);
+    const totalFoto =
+        fotoTersimpan.filter((foto) => !fotoDihapus.has(foto.id)).length +
+        data.fotos.length;
+
+    const toggleHapusFoto = (id: number) => {
+        if (data.hapus_foto.includes(id)) {
+            setData(
+                'hapus_foto',
+                data.hapus_foto.filter((fotoId) => fotoId !== id),
+            );
+
+            return;
+        }
+
+        setData('hapus_foto', [...data.hapus_foto, id]);
+
+        if (data.cover_foto_id === id) {
+            setData('cover_foto_id', null);
+        }
+    };
+
+    const pilihCover = (id: number) => {
+        setData('cover_foto_id', id);
+    };
+
+    const tambahFoto = (files: FileList | null) => {
+        if (!files || totalFoto >= 8) {
+            return;
+        }
+
+        const sisa = 8 - totalFoto;
+        const dipilih = Array.from(files).slice(0, sisa);
+
+        setData('fotos', [...data.fotos, ...dipilih]);
+    };
+
+    const hapusFotoBaru = (index: number) => {
+        setData(
+            'fotos',
+            data.fotos.filter((_, i) => i !== index),
         );
     };
 
@@ -328,17 +441,26 @@ export default function MasakanIndex({
                                     >
                                         <td className="px-4 py-3.5">
                                             <div className="flex items-center gap-3">
-                                                {item.foto_url ? (
-                                                    <img
-                                                        src={item.foto_url}
-                                                        alt={item.nama}
-                                                        className="size-11 shrink-0 rounded-xl border border-border/70 object-cover ring-2 ring-emerald-50 dark:ring-emerald-950/40"
-                                                    />
-                                                ) : (
-                                                    <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
-                                                        <Utensils className="size-5" />
-                                                    </div>
-                                                )}
+                                                <div className="relative shrink-0">
+                                                    {item.foto_url ? (
+                                                        <img
+                                                            src={item.foto_url}
+                                                            alt={item.nama}
+                                                            className="size-11 rounded-xl border border-border/70 object-cover ring-2 ring-emerald-50 dark:ring-emerald-950/40"
+                                                        />
+                                                    ) : (
+                                                        <div className="flex size-11 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
+                                                            <Utensils className="size-5" />
+                                                        </div>
+                                                    )}
+                                                    {(item.fotos?.length ?? 0) >
+                                                        1 && (
+                                                        <span className="absolute -right-1 -bottom-1 inline-flex items-center gap-0.5 rounded-full bg-emerald-600 px-1.5 py-0.5 text-[9px] font-semibold text-white shadow-sm">
+                                                            <Images className="size-2.5" />
+                                                            {item.fotos?.length}
+                                                        </span>
+                                                    )}
+                                                </div>
                                                 <div>
                                                     <div className="font-semibold text-foreground">
                                                         {item.nama}
@@ -450,17 +572,25 @@ export default function MasakanIndex({
                                 className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm"
                             >
                                 <div className="flex items-start gap-3">
-                                    {item.foto_url ? (
-                                        <img
-                                            src={item.foto_url}
-                                            alt={item.nama}
-                                            className="size-11 shrink-0 rounded-xl border border-border/70 object-cover ring-2 ring-emerald-50 dark:ring-emerald-950/40"
-                                        />
-                                    ) : (
-                                        <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
-                                            <Utensils className="size-5" />
-                                        </div>
-                                    )}
+                                    <div className="relative shrink-0">
+                                        {item.foto_url ? (
+                                            <img
+                                                src={item.foto_url}
+                                                alt={item.nama}
+                                                className="size-11 rounded-xl border border-border/70 object-cover ring-2 ring-emerald-50 dark:ring-emerald-950/40"
+                                            />
+                                        ) : (
+                                            <div className="flex size-11 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
+                                                <Utensils className="size-5" />
+                                            </div>
+                                        )}
+                                        {(item.fotos?.length ?? 0) > 1 && (
+                                            <span className="absolute -right-1 -bottom-1 inline-flex items-center gap-0.5 rounded-full bg-emerald-600 px-1.5 py-0.5 text-[9px] font-semibold text-white shadow-sm">
+                                                <Images className="size-2.5" />
+                                                {item.fotos?.length}
+                                            </span>
+                                        )}
+                                    </div>
                                     <div className="min-w-0 flex-1">
                                         <div className="flex items-start justify-between gap-2">
                                             <p className="truncate font-semibold text-foreground">
@@ -658,48 +788,195 @@ export default function MasakanIndex({
                             )}
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <Label htmlFor="jumlah_porsi">
-                                    Jumlah Porsi Siap Jual
-                                </Label>
-                                <Input
-                                    id="jumlah_porsi"
-                                    type="number"
-                                    min="0"
-                                    value={data.jumlah_porsi}
-                                    onChange={(e) =>
-                                        setData('jumlah_porsi', e.target.value)
-                                    }
-                                    placeholder="0"
-                                />
-                                {errors.jumlah_porsi && (
-                                    <span className="text-xs text-red-500">
-                                        {errors.jumlah_porsi}
-                                    </span>
-                                )}
+                        <div>
+                            <Label htmlFor="jumlah_porsi">
+                                Jumlah Porsi Siap Jual
+                            </Label>
+                            <Input
+                                id="jumlah_porsi"
+                                type="number"
+                                min="0"
+                                value={data.jumlah_porsi}
+                                onChange={(e) =>
+                                    setData('jumlah_porsi', e.target.value)
+                                }
+                                placeholder="0"
+                            />
+                            {errors.jumlah_porsi && (
+                                <span className="text-xs text-red-500">
+                                    {errors.jumlah_porsi}
+                                </span>
+                            )}
+                        </div>
+
+                        <div className="space-y-3 rounded-xl border border-border/70 p-3.5">
+                            <div className="flex items-start justify-between gap-3">
+                                <div>
+                                    <p className="text-sm font-semibold">
+                                        Foto Menu
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">
+                                        Unggah beberapa foto sekaligus. Foto
+                                        pertama menjadi cover.
+                                    </p>
+                                </div>
+                                <span className="shrink-0 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300">
+                                    {totalFoto}/8
+                                </span>
                             </div>
-                            <div>
-                                <Label htmlFor="foto">Foto Masakan</Label>
-                                <Input
-                                    id="foto"
+
+                            {fotoTersimpan.length > 0 && (
+                                <div className="space-y-1.5">
+                                    <p className="text-xs font-medium text-muted-foreground">
+                                        Foto tersimpan
+                                    </p>
+                                    <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                                        {fotoTersimpan.map((foto) => {
+                                            const dihapus = fotoDihapus.has(
+                                                foto.id,
+                                            );
+                                            const jadiCover =
+                                                data.cover_foto_id === foto.id;
+
+                                            return (
+                                                <div
+                                                    key={foto.id}
+                                                    className={cn(
+                                                        'relative aspect-square overflow-hidden rounded-xl border border-border/70 bg-muted',
+                                                        dihapus && 'opacity-80',
+                                                    )}
+                                                >
+                                                    <img
+                                                        src={foto.url}
+                                                        alt={`Foto ${editingItem?.nama ?? 'menu'}`}
+                                                        className={cn(
+                                                            'h-full w-full object-cover',
+                                                            dihapus &&
+                                                                'opacity-30 grayscale',
+                                                        )}
+                                                    />
+
+                                                    {jadiCover && !dihapus && (
+                                                        <span className="absolute top-1 left-1 inline-flex items-center gap-1 rounded-full bg-emerald-600 px-1.5 py-0.5 text-[10px] font-semibold text-white shadow">
+                                                            <Star className="size-2.5 fill-current" />
+                                                            Cover
+                                                        </span>
+                                                    )}
+
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            toggleHapusFoto(
+                                                                foto.id,
+                                                            )
+                                                        }
+                                                        aria-label={
+                                                            dihapus
+                                                                ? 'Batalkan hapus foto'
+                                                                : 'Hapus foto'
+                                                        }
+                                                        className={cn(
+                                                            'absolute top-1 right-1 flex size-6 items-center justify-center rounded-full text-white shadow',
+                                                            dihapus
+                                                                ? 'bg-emerald-600 hover:bg-emerald-700'
+                                                                : 'bg-rose-600/90 hover:bg-rose-700',
+                                                        )}
+                                                    >
+                                                        {dihapus ? (
+                                                            <RotateCcw className="size-3" />
+                                                        ) : (
+                                                            <Trash2 className="size-3" />
+                                                        )}
+                                                    </button>
+
+                                                    {dihapus ? (
+                                                        <span className="absolute inset-x-1 bottom-1 rounded bg-black/60 py-0.5 text-center text-[10px] font-medium text-white">
+                                                            Akan dihapus
+                                                        </span>
+                                                    ) : (
+                                                        !jadiCover && (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() =>
+                                                                    pilihCover(
+                                                                        foto.id,
+                                                                    )
+                                                                }
+                                                                className="absolute inset-x-1 bottom-1 rounded bg-background/85 py-1 text-[10px] font-medium text-foreground shadow-sm backdrop-blur hover:bg-background"
+                                                            >
+                                                                Jadikan cover
+                                                            </button>
+                                                        )
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+
+                            {data.fotos.length > 0 && (
+                                <div className="space-y-1.5">
+                                    <p className="text-xs font-medium text-muted-foreground">
+                                        Foto baru
+                                    </p>
+                                    <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                                        {data.fotos.map((file, index) => (
+                                            <FotoBaruPreview
+                                                key={`${file.name}-${file.lastModified}-${index}`}
+                                                file={file}
+                                                onRemove={() =>
+                                                    hapusFotoBaru(index)
+                                                }
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            <label
+                                className={cn(
+                                    'flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-emerald-300 bg-emerald-50/40 px-3 py-3 text-sm font-medium text-emerald-700 transition hover:bg-emerald-50 dark:border-emerald-900/60 dark:bg-emerald-950/20 dark:text-emerald-300 dark:hover:bg-emerald-950/40',
+                                    totalFoto >= 8 &&
+                                        'pointer-events-none opacity-50',
+                                )}
+                            >
+                                <ImagePlus className="size-4" />
+                                {totalFoto >= 8
+                                    ? 'Batas 8 foto tercapai'
+                                    : 'Pilih foto (bisa lebih dari satu)'}
+                                <input
                                     type="file"
-                                    accept="image/*"
-                                    onChange={(e) =>
-                                        setData(
-                                            'foto',
-                                            e.target.files
-                                                ? e.target.files[0]
-                                                : null,
-                                        )
-                                    }
+                                    accept="image/jpeg,image/png,image/webp"
+                                    multiple
+                                    className="sr-only"
+                                    disabled={totalFoto >= 8}
+                                    onChange={(event) => {
+                                        tambahFoto(event.target.files);
+                                        event.target.value = '';
+                                    }}
                                 />
-                                {errors.foto && (
-                                    <span className="text-xs text-red-500">
-                                        {errors.foto}
+                            </label>
+                            <p className="text-[11px] text-muted-foreground">
+                                Format JPG, PNG, atau WEBP. Maksimal 2 MB per
+                                foto.
+                            </p>
+
+                            {errors.fotos && (
+                                <span className="block text-xs text-red-500">
+                                    {errors.fotos}
+                                </span>
+                            )}
+                            {Object.entries(errors)
+                                .filter(([key]) => key.startsWith('fotos.'))
+                                .map(([key, pesan]) => (
+                                    <span
+                                        key={key}
+                                        className="block text-xs text-red-500"
+                                    >
+                                        {pesan}
                                     </span>
-                                )}
-                            </div>
+                                ))}
                         </div>
 
                         {/* Editor Resep */}

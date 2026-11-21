@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             KategoriSeeder::class,
             MasakanSeeder::class,
+            MasakanFotoSeeder::class,
             ReviewSeeder::class,
         ]);
     }

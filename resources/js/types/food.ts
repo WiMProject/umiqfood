@@ -18,6 +18,14 @@ export interface Review {
     created_at: string;
 }
 
+export interface MasakanFoto {
+    id: number;
+    masakan_id: number;
+    path: string;
+    url: string;
+    urutan: number;
+}
+
 export interface Masakan {
     id: number;
     nama: string;
@@ -30,6 +38,7 @@ export interface Masakan {
     jumlah_porsi: number;
     kategori_id: number;
     kategori?: Kategori;
+    fotos?: MasakanFoto[];
     reviews?: Review[];
     reviews_count?: number;
     reviews_avg_rating?: number | string | null;

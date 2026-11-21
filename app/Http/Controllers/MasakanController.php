@@ -7,8 +7,11 @@ use App\Models\Kategori;
 use App\Models\Masakan;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -19,7 +22,7 @@ class MasakanController extends Controller
      */
     public function index(): Response
     {
-        $masakans = Masakan::with(['kategori', 'resepItems.bahanBaku'])
+        $masakans = Masakan::with(['kategori', 'fotos', 'resepItems.bahanBaku'])
             ->latest()
             ->get()
             ->each->append('max_porsi');
@@ -47,20 +50,42 @@ class MasakanController extends Controller
             'tersedia' => 'boolean',
             'jumlah_porsi' => 'nullable|integer|min:0',
             'foto' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'fotos' => 'nullable|array|max:8',
+            'fotos.*' => 'image|mimes:jpg,jpeg,png,webp|max:2048',
             'resep' => 'nullable|array',
             'resep.*.bahan_baku_id' => 'required|exists:bahan_bakus,id',
             'resep.*.jumlah' => 'required|numeric|min:0.01',
         ]);
 
-        if ($request->hasFile('foto')) {
-            $validated['foto'] = $request->file('foto')->store('masakans', 'public');
+        $fileBaru = $this->fileFotos($request);
+        $jumlahBaru = count($fileBaru) + ($request->hasFile('foto') ? 1 : 0);
+
+        if ($jumlahBaru > 8) {
+            throw ValidationException::withMessages([
+                'fotos' => 'Maksimal 8 foto untuk setiap menu.',
+            ]);
         }
 
         $data = $validated;
-        unset($data['resep']);
+        unset($data['resep'], $data['fotos']);
+
+        if ($request->hasFile('foto')) {
+            $data['foto'] = $request->file('foto')->store('masakans', 'public');
+        }
+
         $data['jumlah_porsi'] = $validated['jumlah_porsi'] ?? 0;
 
         $masakan = Masakan::create($data);
+
+        if (! empty($data['foto'])) {
+            $masakan->fotos()->create([
+                'path' => $data['foto'],
+                'urutan' => 1,
+            ]);
+        }
+
+        $this->simpanFotos($masakan, $fileBaru);
+        $this->sinkronCover($masakan);
 
         $this->syncResep($masakan, (array) $request->input('resep', []));
 
@@ -80,24 +105,72 @@ class MasakanController extends Controller
             'tersedia' => 'boolean',
             'jumlah_porsi' => 'nullable|integer|min:0',
             'foto' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'fotos' => 'nullable|array',
+            'fotos.*' => 'image|mimes:jpg,jpeg,png,webp|max:2048',
+            'hapus_foto' => 'nullable|array',
+            'hapus_foto.*' => [
+                'integer',
+                Rule::exists('masakan_fotos', 'id')->where(
+                    fn ($query) => $query->where('masakan_id', $masakan->id)
+                ),
+            ],
+            'cover_foto_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('masakan_fotos', 'id')->where(
+                    fn ($query) => $query->where('masakan_id', $masakan->id)
+                ),
+            ],
             'resep' => 'nullable|array',
             'resep.*.bahan_baku_id' => 'required|exists:bahan_bakus,id',
             'resep.*.jumlah' => 'required|numeric|min:0.01',
         ]);
 
-        if ($request->hasFile('foto')) {
-            // Hapus foto lama jika ada
-            if ($masakan->foto) {
-                Storage::disk('public')->delete($masakan->foto);
-            }
-            $validated['foto'] = $request->file('foto')->store('masakans', 'public');
+        $hapusFoto = array_map('intval', (array) ($validated['hapus_foto'] ?? []));
+        $fileBaru = $this->fileFotos($request);
+        $jumlahBaru = count($fileBaru) + ($request->hasFile('foto') ? 1 : 0);
+        $jumlahTersimpan = $masakan->fotos()->whereNotIn('id', $hapusFoto)->count();
+
+        if ($jumlahTersimpan + $jumlahBaru > 8) {
+            throw ValidationException::withMessages([
+                'fotos' => 'Maksimal 8 foto untuk setiap menu.',
+            ]);
         }
 
         $data = $validated;
-        unset($data['resep']);
+        unset(
+            $data['resep'],
+            $data['fotos'],
+            $data['hapus_foto'],
+            $data['cover_foto_id'],
+        );
+
+        if ($request->hasFile('foto')) {
+            $data['foto'] = $request->file('foto')->store('masakans', 'public');
+            $masakan->fotos()->create([
+                'path' => $data['foto'],
+                'urutan' => ((int) $masakan->fotos()->max('urutan')) + 1,
+            ]);
+        }
+
         $data['jumlah_porsi'] = $validated['jumlah_porsi'] ?? $masakan->jumlah_porsi;
 
         $masakan->update($data);
+
+        $this->hapusFotos($masakan, $hapusFoto);
+        $this->simpanFotos($masakan, $fileBaru);
+
+        if (! empty($validated['cover_foto_id'])) {
+            $cover = $masakan->fotos()
+                ->whereKey($validated['cover_foto_id'])
+                ->first();
+
+            if ($cover) {
+                $masakan->update(['foto' => $cover->path]);
+            }
+        }
+
+        $this->sinkronCover($masakan);
 
         $this->syncResep($masakan, (array) $request->input('resep', []));
 
@@ -109,8 +182,14 @@ class MasakanController extends Controller
      */
     public function destroy(Masakan $masakan): RedirectResponse
     {
+        $paths = $masakan->fotos()->pluck('path');
+
         if ($masakan->foto) {
-            Storage::disk('public')->delete($masakan->foto);
+            $paths->push($masakan->foto);
+        }
+
+        foreach ($paths->unique() as $path) {
+            Storage::disk('public')->delete($path);
         }
 
         $masakan->delete();
@@ -183,6 +262,77 @@ class MasakanController extends Controller
         Inertia::flash('toast', ['type' => $type, 'message' => $message]);
 
         return back();
+    }
+
+    /**
+     * Ambil berkas galeri yang diunggah dari request.
+     *
+     * @return array<int, UploadedFile>
+     */
+    private function fileFotos(Request $request): array
+    {
+        $files = $request->file('fotos', []);
+
+        if (! is_array($files)) {
+            return [];
+        }
+
+        return array_values($files);
+    }
+
+    /**
+     * Simpan berkas galeri baru ke storage dan database.
+     *
+     * @param  array<int, UploadedFile>  $files
+     */
+    private function simpanFotos(Masakan $masakan, array $files): void
+    {
+        if ($files === []) {
+            return;
+        }
+
+        $urutan = (int) $masakan->fotos()->max('urutan');
+
+        foreach ($files as $file) {
+            $masakan->fotos()->create([
+                'path' => $file->store('masakans', 'public'),
+                'urutan' => ++$urutan,
+            ]);
+        }
+    }
+
+    /**
+     * Hapus foto galeri terpilih beserta berkasnya.
+     *
+     * @param  array<int, int>  $ids
+     */
+    private function hapusFotos(Masakan $masakan, array $ids): void
+    {
+        if ($ids === []) {
+            return;
+        }
+
+        $fotos = $masakan->fotos()->whereIn('id', $ids)->get();
+
+        foreach ($fotos as $foto) {
+            Storage::disk('public')->delete($foto->path);
+        }
+
+        $masakan->fotos()->whereIn('id', $ids)->delete();
+    }
+
+    /**
+     * Pastikan foto utama selalu menunjuk ke foto galeri yang masih ada.
+     */
+    private function sinkronCover(Masakan $masakan): void
+    {
+        $paths = $masakan->fotos()->pluck('path');
+
+        if ($masakan->foto && $paths->contains($masakan->foto)) {
+            return;
+        }
+
+        $masakan->update(['foto' => $paths->first()]);
     }
 
     /**

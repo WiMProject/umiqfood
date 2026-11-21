@@ -62,6 +62,7 @@ class HomeController extends Controller
         return Masakan::query()
             ->with([
                 'kategori',
+                'fotos',
                 'reviews' => fn ($query) => $query->latest()->take($batasUlasan),
             ])
             ->withCount('reviews')
