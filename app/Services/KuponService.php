@@ -39,7 +39,10 @@ class KuponService
         $hariIni = Carbon::today();
 
         if ($kupon->mulai && $hariIni->lt($kupon->mulai->copy()->startOfDay())) {
-            $this->gagal('Kupon belum bisa dipakai.');
+            $this->gagal(sprintf(
+                'Kupon baru bisa dipakai mulai %s.',
+                $kupon->mulai->copy()->startOfDay()->translatedFormat('d M Y'),
+            ));
         }
 
         if ($kupon->selesai && $hariIni->gt($kupon->selesai->copy()->endOfDay())) {

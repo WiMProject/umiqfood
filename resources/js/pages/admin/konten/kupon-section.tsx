@@ -739,6 +739,9 @@ export function KuponSection({ kupons }: Props) {
                                         setData('mulai', event.target.value)
                                     }
                                 />
+                                <p className="text-[11px] text-muted-foreground">
+                                    Kosongkan agar kupon langsung bisa dipakai.
+                                </p>
                                 <InputError message={errors.mulai} />
                             </div>
                             <div className="grid gap-1.5">
