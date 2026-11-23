@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\Payment;
+use App\Models\Pengumuman;
 use App\Services\OrderService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -50,6 +51,11 @@ class UserDashboardController extends Controller
             'orders' => $orders,
             'payments' => $payments,
             'activeOrder' => $activeOrder,
+            'promos' => Pengumuman::query()
+                ->with('kupon:id,kode,nama,tipe,nilai,maks_diskon,min_subtotal,aktif,mulai,selesai')
+                ->tampil()
+                ->take(6)
+                ->get(),
             'stats' => [
                 'totalPesanan' => $user->orders()->count(),
                 'pesananAktif' => $user->orders()

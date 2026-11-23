@@ -93,7 +93,7 @@ class Pengumuman extends Model
 
     public function getKodeKuponAktifAttribute(): ?string
     {
-        if (! $this->kupon?->sedangBerlaku()) {
+        if (! $this->kupon || ! $this->kupon->aktif) {
             return null;
         }
 

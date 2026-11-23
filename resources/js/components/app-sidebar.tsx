@@ -128,7 +128,7 @@ export function AppSidebar() {
                                 className="rounded-xl hover:bg-sidebar-accent/70 data-[state=open]:bg-sidebar-accent/70"
                             >
                                 <Link
-                                    href={dashboard()}
+                                    href="/"
                                     prefetch
                                     onClick={() => {
                                         if (isMobile) {
