@@ -53,6 +53,8 @@ interface Masakan {
     harga_format: string;
     tersedia: boolean;
     jumlah_porsi: number;
+    porsi_dipesan: number;
+    porsi_tersedia: number;
     foto_url: string | null;
     kategori?: Kategori;
 }
@@ -983,7 +985,9 @@ export default function Dashboard({
                                             <p className="truncate text-[11px] text-muted-foreground">
                                                 {item.kategori?.icon}{' '}
                                                 {item.kategori?.nama || '-'} ·{' '}
-                                                {item.jumlah_porsi} porsi
+                                                {item.jumlah_porsi} porsi ·{' '}
+                                                {item.porsi_dipesan} dipesan ·{' '}
+                                                {item.porsi_tersedia} tersedia
                                             </p>
                                         </div>
                                         <span className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">

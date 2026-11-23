@@ -46,7 +46,9 @@ export function PublicMenuDialog({
     pesanLabel = 'Pesan sekarang',
     tamu = false,
 }: Props) {
-    const habis = (menu?.jumlah_porsi ?? 0) < 1;
+    const tersedia = menu?.porsi_tersedia ?? 0;
+    const dipesan = menu?.porsi_dipesan ?? 0;
+    const habis = tersedia < 1;
     const daftarUlasan = menu?.reviews ?? [];
     const jumlahUlasan = menu?.reviews_count ?? daftarUlasan.length;
     const rataRating = Number(menu?.reviews_avg_rating ?? 0);
@@ -91,9 +93,7 @@ export function PublicMenuDialog({
                                             : 'bg-emerald-600/90 text-white',
                                     )}
                                 >
-                                    {habis
-                                        ? 'Habis'
-                                        : `Sisa ${menu.jumlah_porsi} porsi`}
+                                    {habis ? 'Habis' : `Sisa ${tersedia} porsi`}
                                 </Badge>
                             </div>
                         </MenuPhotoGallery>
@@ -153,7 +153,7 @@ export function PublicMenuDialog({
                                 'flex items-start gap-2.5 rounded-xl border px-3.5 py-3',
                                 habis
                                     ? 'border-red-200 bg-red-50/70 dark:border-red-900/60 dark:bg-red-950/30'
-                                    : menu.jumlah_porsi <= 3
+                                    : tersedia <= 3
                                       ? 'border-amber-200 bg-amber-50/70 dark:border-amber-900/60 dark:bg-amber-950/30'
                                       : 'border-emerald-200 bg-emerald-50/60 dark:border-emerald-900/60 dark:bg-emerald-950/25',
                             )}
@@ -163,7 +163,7 @@ export function PublicMenuDialog({
                                     'flex size-8 shrink-0 items-center justify-center rounded-lg',
                                     habis
                                         ? 'bg-red-100 text-red-600 dark:bg-red-900/60 dark:text-red-300'
-                                        : menu.jumlah_porsi <= 3
+                                        : tersedia <= 3
                                           ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/60 dark:text-amber-300'
                                           : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300',
                                 )}
@@ -174,17 +174,23 @@ export function PublicMenuDialog({
                                 <p className="text-sm font-semibold">
                                     {habis
                                         ? 'Porsi hari ini habis'
-                                        : `Tersedia ${menu.jumlah_porsi} porsi hari ini`}
+                                        : `Tersedia ${tersedia} porsi hari ini`}
                                 </p>
                                 <p className="mt-0.5 text-xs text-muted-foreground">
                                     {habis
                                         ? 'Coba menu lain atau cek lagi besok ya.'
-                                        : menu.jumlah_porsi <= 3
+                                        : tersedia <= 3
                                           ? 'Tinggal sedikit — amankan porsimu sekarang.'
                                           : 'Porsi terbatas dan dimasak fresh setelah dipesan.'}
                                 </p>
                             </div>
                         </div>
+                        {dipesan > 0 && (
+                            <p className="-mt-1 text-xs text-muted-foreground">
+                                {dipesan} porsi sedang direservasi pesanan yang
+                                belum lunas.
+                            </p>
+                        )}
 
                         <div className="space-y-2">
                             {habis ? (

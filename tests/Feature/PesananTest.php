@@ -51,6 +51,44 @@ class PesananTest extends TestCase
         ]);
     }
 
+    public function test_keranjang_memakai_porsi_tersedia_bukan_stok_fisik(): void
+    {
+        $pembeli = User::factory()->create(['role' => 'user']);
+        $admin = User::factory()->create(['role' => 'admin']);
+        $masakan = $this->buatMasakan(jumlahPorsi: 5);
+        $pemesanLain = User::factory()->create(['role' => 'user']);
+        $orderLain = $this->buatPesananUntuk($pemesanLain, $masakan, 4);
+
+        $this->assertSame(5, $masakan->fresh()->jumlah_porsi);
+
+        // 4 dari 5 porsi direservasi, jadi yang boleh dipesan cuma 1.
+        $this->actingAs($pembeli)
+            ->post(route('keranjang.store', $masakan), ['jumlah' => 2])
+            ->assertRedirect();
+
+        $this->assertDatabaseMissing('cart_items', [
+            'user_id' => $pembeli->id,
+            'masakan_id' => $masakan->id,
+        ]);
+
+        // Setelah pesanan lain dibayar, stok fisik jadi 1 dan reservasinya hilang.
+        $this->actingAs($admin)
+            ->patch(route('admin.pesanan.bayar', $orderLain))
+            ->assertRedirect();
+
+        $this->assertSame(1, $masakan->fresh()->jumlah_porsi);
+
+        $this->actingAs($pembeli)
+            ->post(route('keranjang.store', $masakan), ['jumlah' => 1])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('cart_items', [
+            'user_id' => $pembeli->id,
+            'masakan_id' => $masakan->id,
+            'jumlah' => 1,
+        ]);
+    }
+
     public function test_checkout_membuat_pesanan_antrian_dan_pembayaran_tanpa_memotong_porsi(): void
     {
         $user = User::factory()->create(['role' => 'user']);

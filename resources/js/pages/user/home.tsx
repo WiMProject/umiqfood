@@ -178,7 +178,7 @@ export default function UserHome() {
                 return tersaring.sort((a, b) => rataRating(b) - rataRating(a));
             case 'porsi':
                 return tersaring.sort(
-                    (a, b) => b.jumlah_porsi - a.jumlah_porsi,
+                    (a, b) => b.porsi_tersedia - a.porsi_tersedia,
                 );
             default:
                 return tersaring;
@@ -194,7 +194,7 @@ export default function UserHome() {
     }, [masakans]);
 
     const totalPorsi = useMemo(
-        () => masakans.reduce((total, item) => total + item.jumlah_porsi, 0),
+        () => masakans.reduce((total, item) => total + item.porsi_tersedia, 0),
         [masakans],
     );
 
@@ -599,7 +599,7 @@ export default function UserHome() {
                     ) : (
                         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                             {hasil.map((item) => {
-                                const habis = item.jumlah_porsi < 1;
+                                const habis = item.porsi_tersedia < 1;
                                 const sedangMenambah = menambah === item.id;
                                 const ulasan = jumlahUlasan(item);
                                 const rata = rataRating(item);
@@ -668,7 +668,7 @@ export default function UserHome() {
                                                     <Flame className="size-3" />
                                                     {habis
                                                         ? 'Habis'
-                                                        : `Sisa ${item.jumlah_porsi} porsi`}
+                                                        : `Sisa ${item.porsi_tersedia} porsi`}
                                                 </Badge>
                                             </div>
                                         </div>
@@ -848,14 +848,14 @@ export default function UserHome() {
                                     <Badge
                                         className={cn(
                                             'border-0 shadow-sm backdrop-blur',
-                                            detail.jumlah_porsi < 1
+                                            detail.porsi_tersedia < 1
                                                 ? 'bg-red-600/90 text-white'
                                                 : 'bg-emerald-600/90 text-white',
                                         )}
                                     >
-                                        {detail.jumlah_porsi < 1
+                                        {detail.porsi_tersedia < 1
                                             ? 'Habis'
-                                            : `Sisa ${detail.jumlah_porsi} porsi`}
+                                            : `Sisa ${detail.porsi_tersedia} porsi`}
                                     </Badge>
                                 </div>
                             </MenuPhotoGallery>
@@ -914,9 +914,9 @@ export default function UserHome() {
                             <div
                                 className={cn(
                                     'flex items-start gap-2.5 rounded-xl border px-3.5 py-3',
-                                    detail.jumlah_porsi < 1
+                                    detail.porsi_tersedia < 1
                                         ? 'border-red-200 bg-red-50/70 dark:border-red-900/60 dark:bg-red-950/30'
-                                        : detail.jumlah_porsi <= 3
+                                        : detail.porsi_tersedia <= 3
                                           ? 'border-amber-200 bg-amber-50/70 dark:border-amber-900/60 dark:bg-amber-950/30'
                                           : 'border-emerald-200 bg-emerald-50/60 dark:border-emerald-900/60 dark:bg-emerald-950/25',
                                 )}
@@ -924,9 +924,9 @@ export default function UserHome() {
                                 <span
                                     className={cn(
                                         'flex size-8 shrink-0 items-center justify-center rounded-lg',
-                                        detail.jumlah_porsi < 1
+                                        detail.porsi_tersedia < 1
                                             ? 'bg-red-100 text-red-600 dark:bg-red-900/60 dark:text-red-300'
-                                            : detail.jumlah_porsi <= 3
+                                            : detail.porsi_tersedia <= 3
                                               ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/60 dark:text-amber-300'
                                               : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300',
                                     )}
@@ -935,19 +935,25 @@ export default function UserHome() {
                                 </span>
                                 <div className="min-w-0">
                                     <p className="text-sm font-semibold">
-                                        {detail.jumlah_porsi < 1
+                                        {detail.porsi_tersedia < 1
                                             ? 'Porsi hari ini habis'
-                                            : `Tersedia ${detail.jumlah_porsi} porsi hari ini`}
+                                            : `Tersedia ${detail.porsi_tersedia} porsi hari ini`}
                                     </p>
                                     <p className="mt-0.5 text-xs text-muted-foreground">
-                                        {detail.jumlah_porsi < 1
+                                        {detail.porsi_tersedia < 1
                                             ? 'Coba menu lain atau cek lagi besok ya.'
-                                            : detail.jumlah_porsi <= 3
+                                            : detail.porsi_tersedia <= 3
                                               ? 'Tinggal sedikit — amankan porsimu sekarang.'
                                               : 'Porsi terbatas dan dimasak fresh setelah dipesan.'}
                                     </p>
                                 </div>
                             </div>
+                            {detail.porsi_dipesan > 0 && (
+                                <p className="-mt-1 text-xs text-muted-foreground">
+                                    {detail.porsi_dipesan} porsi sedang
+                                    direservasi pesanan yang belum lunas.
+                                </p>
+                            )}
 
                             <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                                 <div className="inline-flex h-11 shrink-0 items-center justify-between rounded-xl border border-border/80 bg-card">
@@ -972,14 +978,14 @@ export default function UserHome() {
                                         onClick={() =>
                                             setJumlah((nilai) =>
                                                 Math.min(
-                                                    detail.jumlah_porsi,
+                                                    detail.porsi_tersedia,
                                                     nilai + 1,
                                                 ),
                                             )
                                         }
                                         disabled={
-                                            jumlah >= detail.jumlah_porsi ||
-                                            detail.jumlah_porsi < 1
+                                            jumlah >= detail.porsi_tersedia ||
+                                            detail.porsi_tersedia < 1
                                         }
                                         className="flex size-11 items-center justify-center rounded-r-xl transition hover:bg-muted disabled:opacity-40"
                                         aria-label="Tambah jumlah"
@@ -992,7 +998,7 @@ export default function UserHome() {
                                     type="button"
                                     onClick={tambahDariDetail}
                                     disabled={
-                                        detail.jumlah_porsi < 1 ||
+                                        detail.porsi_tersedia < 1 ||
                                         menambah === detail.id
                                     }
                                     className="h-11 flex-1 gap-2 rounded-xl bg-emerald-600 text-white shadow-md shadow-emerald-600/20 hover:bg-emerald-700 disabled:bg-muted disabled:text-muted-foreground"
@@ -1000,7 +1006,7 @@ export default function UserHome() {
                                     <ShoppingBag className="size-4" />
                                     {menambah === detail.id
                                         ? 'Menambahkan...'
-                                        : detail.jumlah_porsi < 1
+                                        : detail.porsi_tersedia < 1
                                           ? 'Porsi habis'
                                           : `Tambah ke keranjang · ${formatRupiah(detail.harga * jumlah)}`}
                                 </Button>

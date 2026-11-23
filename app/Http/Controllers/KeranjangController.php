@@ -109,12 +109,17 @@ class KeranjangController extends Controller
 
     private function pesanJikaPorsiTidakCukup(Masakan $masakan, int $jumlah): ?string
     {
-        if (! $masakan->tersedia || $masakan->jumlah_porsi < 1) {
+        // Stok yang boleh dipesan adalah stok fisik dikurangi pesanan aktif
+        // yang belum lunas, supaya angka di katalog tidak menyesatkan.
+        $masakan->load('porsiReservasi');
+        $tersedia = $masakan->porsi_tersedia;
+
+        if (! $masakan->tersedia || $tersedia < 1) {
             return 'Menu ini sedang habis.';
         }
 
-        if ($jumlah > $masakan->jumlah_porsi) {
-            return "Porsi {$masakan->nama} tinggal {$masakan->jumlah_porsi}.";
+        if ($jumlah > $tersedia) {
+            return "Porsi {$masakan->nama} tinggal {$tersedia}.";
         }
 
         return null;

@@ -264,7 +264,7 @@ function MenuCard({
     item: Masakan;
     onDetail: (item: Masakan) => void;
 }) {
-    const habis = item.jumlah_porsi <= 0;
+    const habis = item.porsi_tersedia <= 0;
     const jumlahUlasan = item.reviews_count ?? item.reviews?.length ?? 0;
     const rata = Number(item.reviews_avg_rating ?? 0);
 
@@ -309,7 +309,7 @@ function MenuCard({
                                 : 'border-0 bg-emerald-600 text-white'
                         }
                     >
-                        {habis ? 'Habis' : `${item.jumlah_porsi} porsi`}
+                        {habis ? 'Habis' : `Sisa ${item.porsi_tersedia} porsi`}
                     </Badge>
                 </div>
                 {habis && (
@@ -339,6 +339,11 @@ function MenuCard({
                 <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
                     {item.deskripsi || 'Masakan spesial buatan rumahan.'}
                 </p>
+                {!habis && item.porsi_dipesan > 0 && (
+                    <p className="mt-1 text-[11px] font-medium text-amber-600 dark:text-amber-400">
+                        {item.porsi_dipesan} porsi sedang dipesan
+                    </p>
+                )}
 
                 <div className="mt-3 flex min-w-0 items-center gap-1.5 text-[11px] text-muted-foreground">
                     {jumlahUlasan > 0 ? (
@@ -461,7 +466,7 @@ export default function Welcome() {
     const totalPorsi = useMemo(
         () =>
             masakans.reduce(
-                (total, item) => total + (item.jumlah_porsi ?? 0),
+                (total, item) => total + (item.porsi_tersedia ?? 0),
                 0,
             ),
         [masakans],
@@ -529,7 +534,7 @@ export default function Welcome() {
                 return [...hasil].sort((a, b) => b.harga - a.harga);
             case 'porsi':
                 return [...hasil].sort(
-                    (a, b) => b.jumlah_porsi - a.jumlah_porsi,
+                    (a, b) => b.porsi_tersedia - a.porsi_tersedia,
                 );
             default:
                 return hasil;
@@ -551,14 +556,14 @@ export default function Welcome() {
 
     const heroProducts = useMemo<HeroParallaxProduct[]>(() => {
         const menu = heroMasakans.map((item, index) => {
-            const habis = !item.tersedia || item.jumlah_porsi <= 0;
+            const habis = !item.tersedia || item.porsi_tersedia <= 0;
 
             return {
                 id: `menu-${item.id}`,
                 title: item.nama,
                 subtitle: item.kategori?.nama ?? 'Menu',
                 description: item.deskripsi ?? 'Masakan rumahan spesial.',
-                meta: habis ? 'Habis' : `${item.jumlah_porsi} porsi`,
+                meta: habis ? 'Habis' : `Sisa ${item.porsi_tersedia} porsi`,
                 thumbnail: item.foto_url,
                 soldOut: habis,
                 link: '#menu',

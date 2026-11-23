@@ -116,7 +116,11 @@ class DashboardController extends Controller
                 ->all(),
             'pesananTertunda' => $pesananTertunda,
             'qrisImageUrl' => $this->qrisImageUrl(),
-            'masakans' => Masakan::with('kategori')->latest()->take(5)->get(),
+            'masakans' => Masakan::with('kategori')
+                ->withPorsiTersedia()
+                ->latest()
+                ->take(5)
+                ->get(),
         ]);
     }
 

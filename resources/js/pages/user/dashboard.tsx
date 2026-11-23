@@ -898,7 +898,7 @@ export default function UserDashboard() {
                                                                         item.jumlah >=
                                                                             (item
                                                                                 .masakan
-                                                                                ?.jumlah_porsi ??
+                                                                                ?.porsi_tersedia ??
                                                                                 0)
                                                                     }
                                                                     className="flex size-8 items-center justify-center rounded-r-lg transition hover:bg-emerald-50 hover:text-emerald-700 disabled:opacity-40 dark:hover:bg-emerald-950/40 dark:hover:text-emerald-300"

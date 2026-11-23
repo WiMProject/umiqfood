@@ -4,6 +4,9 @@ namespace Tests\Feature;
 
 use App\Models\Kategori;
 use App\Models\Masakan;
+use App\Models\Order;
+use App\Models\OrderItem;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -47,6 +50,59 @@ class HeroMenuTest extends TestCase
                 ->where('heroMasakans.2.foto', 'masakans/cover-baru.jpg')
                 ->where('heroMasakans.2.foto_url', asset('storage/masakans/cover-baru.jpg'))
                 ->where('heroMasakans.3.id', $lama->id)
+            );
+    }
+
+    public function test_katalog_menampilkan_porsi_tersedia_dan_porsi_yang_dipesan(): void
+    {
+        $kategori = Kategori::create([
+            'nama' => 'Nasi & Lauk',
+            'icon' => '🍚',
+            'slug' => 'nasi-lauk-'.uniqid(),
+        ]);
+
+        $masakan = $this->buatMenu(
+            $kategori,
+            'Nasi Goreng Dipesan',
+            true,
+            5,
+            now()->setTime(8, 0),
+        );
+
+        $pemesan = User::factory()->create(['role' => 'user']);
+        $order = Order::create([
+            'user_id' => $pemesan->id,
+            'kode' => 'TEST-'.uniqid(),
+            'tanggal' => now()->toDateString(),
+            'nomor_antrian' => 1,
+            'status' => Order::STATUS_MENUNGGU,
+            'metode_pembayaran' => Order::METODE_CASH,
+            'subtotal' => 30000,
+            'total' => 30000,
+            'nama_pengambil' => $pemesan->name,
+            'no_hp' => '081234567890',
+            'porsi_dipotong' => false,
+        ]);
+
+        OrderItem::create([
+            'order_id' => $order->id,
+            'masakan_id' => $masakan->id,
+            'nama_menu' => $masakan->nama,
+            'harga' => $masakan->harga,
+            'jumlah' => 2,
+            'subtotal' => 30000,
+        ]);
+
+        $this->get(route('welcome'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('welcome')
+                ->where('masakans.0.jumlah_porsi', 5)
+                ->where('masakans.0.porsi_dipesan', 2)
+                ->where('masakans.0.porsi_tersedia', 3)
+                ->where('heroMasakans.0.jumlah_porsi', 5)
+                ->where('heroMasakans.0.porsi_dipesan', 2)
+                ->where('heroMasakans.0.porsi_tersedia', 3)
             );
     }
 

@@ -77,6 +77,8 @@ interface Masakan {
     foto_url: string | null;
     tersedia: boolean;
     jumlah_porsi: number;
+    porsi_dipesan: number;
+    porsi_tersedia: number;
     max_porsi: number | null;
     kategori_id: number;
     kategori?: Kategori;
@@ -493,6 +495,11 @@ export default function MasakanIndex({
                                                 <span className="font-semibold text-foreground tabular-nums">
                                                     {item.jumlah_porsi} porsi
                                                 </span>
+                                                <span className="text-xs text-muted-foreground tabular-nums">
+                                                    {item.porsi_dipesan} dipesan
+                                                    · {item.porsi_tersedia}{' '}
+                                                    tersedia
+                                                </span>
                                                 {item.max_porsi !== null && (
                                                     <span className="text-xs text-muted-foreground">
                                                         maks. {item.max_porsi}{' '}
@@ -652,6 +659,10 @@ export default function MasakanIndex({
                                         </p>
                                         <p className="mt-0.5 font-semibold text-foreground tabular-nums">
                                             {item.jumlah_porsi} porsi
+                                        </p>
+                                        <p className="text-[10px] text-muted-foreground tabular-nums">
+                                            {item.porsi_dipesan} dipesan ·{' '}
+                                            {item.porsi_tersedia} tersedia
                                         </p>
                                         {item.max_porsi !== null && (
                                             <p className="text-[10px] text-muted-foreground">
@@ -1196,8 +1207,9 @@ export default function MasakanIndex({
                                 required
                             />
                             <p className="mt-1 text-xs text-gray-400">
-                                Porsi siap jual saat ini:{' '}
-                                {masakItem?.jumlah_porsi ?? 0} porsi
+                                Porsi fisik: {masakItem?.jumlah_porsi ?? 0} ·
+                                dipesan: {masakItem?.porsi_dipesan ?? 0} ·
+                                tersedia: {masakItem?.porsi_tersedia ?? 0}
                             </p>
                         </div>
 

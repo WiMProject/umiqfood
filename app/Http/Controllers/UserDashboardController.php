@@ -22,7 +22,10 @@ class UserDashboardController extends Controller
         $user = $request->user();
 
         $cartItems = $user->cartItems()
-            ->with('masakan.kategori')
+            ->with([
+                'masakan' => fn ($query) => $query->withPorsiTersedia(),
+                'masakan.kategori',
+            ])
             ->latest()
             ->get();
 

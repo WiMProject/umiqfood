@@ -24,6 +24,7 @@ class MasakanController extends Controller
     public function index(): Response
     {
         $masakans = Masakan::with(['kategori', 'fotos', 'resepItems.bahanBaku'])
+            ->withPorsiTersedia()
             ->latest()
             ->get()
             ->each->append('max_porsi');

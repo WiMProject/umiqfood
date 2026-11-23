@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -26,7 +27,10 @@ class Masakan extends Model
     ];
 
     // Otomatis bawa atribut ini ke frontend JSON
-    protected $appends = ['harga_format', 'foto_url'];
+    protected $appends = ['harga_format', 'foto_url', 'porsi_dipesan', 'porsi_tersedia'];
+
+    // Hasil withSum dipakai accessor, tidak perlu ikut ke JSON.
+    protected $hidden = ['porsi_dipesan_mentah'];
 
     // Relasi: 1 Masakan MILIK 1 Kategori
     /**
@@ -46,6 +50,36 @@ class Masakan extends Model
         return $this->hasMany(MasakanFoto::class)
             ->orderBy('urutan')
             ->orderBy('id');
+    }
+
+    /**
+     * Item pesanan yang masih aktif dan porsinya belum dipotong.
+     * Dipakai untuk menghitung porsi yang sedang direservasi pembeli.
+     *
+     * @return HasMany<OrderItem, $this>
+     */
+    public function porsiReservasi(): HasMany
+    {
+        return $this->hasMany(OrderItem::class)
+            ->whereNotNull('masakan_id')
+            ->whereHas('order', fn ($query) => $query
+                ->whereIn('status', [
+                    Order::STATUS_MENUNGGU,
+                    Order::STATUS_DIMASAK,
+                    Order::STATUS_SIAP,
+                ])
+                ->where('porsi_dipotong', false));
+    }
+
+    /**
+     * Eager load jumlah porsi yang sedang dipesan agar tidak N+1.
+     *
+     * @param  Builder<Masakan>  $query
+     * @return Builder<Masakan>
+     */
+    public function scopeWithPorsiTersedia(Builder $query): Builder
+    {
+        return $query->withSum('porsiReservasi as porsi_dipesan_mentah', 'jumlah');
     }
 
     // Relasi: 1 Masakan punya BANYAK item resep
@@ -95,6 +129,22 @@ class Masakan extends Model
                 return (int) floor($item->bahanBaku->stok / $item->jumlah);
             })
             ->min();
+    }
+
+    // Jumlah porsi yang sedang dipegang pesanan aktif belum lunas.
+    public function getPorsiDipesanAttribute(): int
+    {
+        if ($this->relationLoaded('porsiReservasi')) {
+            return (int) $this->porsiReservasi->sum('jumlah');
+        }
+
+        return (int) ($this->attributes['porsi_dipesan_mentah'] ?? 0);
+    }
+
+    // Angka yang dilihat pembeli: stok fisik dikurangi reservasi aktif.
+    public function getPorsiTersediaAttribute(): int
+    {
+        return max(0, (int) $this->jumlah_porsi - $this->porsi_dipesan);
     }
 
     // Accessor: format Rupiah (contoh: Rp 15.000)

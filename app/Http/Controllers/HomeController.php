@@ -49,6 +49,7 @@ class HomeController extends Controller
         // Kartu hero memakai semua menu yang ada sekarang, termasuk yang habis.
         $heroMasakans = Masakan::query()
             ->with(['kategori', 'fotos'])
+            ->withPorsiTersedia()
             ->latest()
             ->get();
 
@@ -72,6 +73,7 @@ class HomeController extends Controller
                 'fotos',
                 'reviews' => fn ($query) => $query->latest()->take($batasUlasan),
             ])
+            ->withPorsiTersedia()
             ->withCount('reviews')
             ->withAvg('reviews', 'rating')
             ->where('tersedia', true)

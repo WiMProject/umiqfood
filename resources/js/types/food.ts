@@ -36,6 +36,8 @@ export interface Masakan {
     foto_url: string | null;
     tersedia: boolean;
     jumlah_porsi: number;
+    porsi_dipesan: number;
+    porsi_tersedia: number;
     kategori_id: number;
     kategori?: Kategori;
     fotos?: MasakanFoto[];
