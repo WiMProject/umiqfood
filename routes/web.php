@@ -68,6 +68,10 @@ Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
     // Catatan uang keluar, termasuk pembelian bahan baku
     Route::resource('pengeluaran', AdminPengeluaranController::class)->except(['create', 'show', 'edit']);
 
+    // Rekap tutup hari untuk satu tanggal
+    Route::get('/laporan/tutup-hari', [AdminLaporanController::class, 'tutupHari'])
+        ->name('laporan.tutup-hari');
+
     // Laporan laba rugi berdasarkan pembayaran lunas dan pengeluaran
     Route::get('/laporan/laba-rugi', [AdminLaporanController::class, 'labaRugi'])
         ->name('laporan.laba-rugi');

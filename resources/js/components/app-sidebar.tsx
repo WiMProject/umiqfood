@@ -2,6 +2,7 @@ import { Link } from '@inertiajs/react';
 import {
     ArrowLeftRight,
     Boxes,
+    ClipboardCheck,
     ClipboardList,
     LayoutGrid,
     Tags,
@@ -63,6 +64,11 @@ const mainNavItems: NavItem[] = [
         title: 'Pengeluaran',
         href: '/pengeluaran',
         icon: Wallet,
+    },
+    {
+        title: 'Tutup Hari',
+        href: '/laporan/tutup-hari',
+        icon: ClipboardCheck,
     },
     {
         title: 'Laba Rugi',
