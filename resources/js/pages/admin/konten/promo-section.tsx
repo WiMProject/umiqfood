@@ -359,22 +359,33 @@ export function PromoSection({ promos, opsiKupon }: Props) {
                                         setData('kupon_id', value)
                                     }
                                 >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Tanpa kupon" />
+                                    <SelectTrigger className="w-full max-w-full">
+                                        <SelectValue
+                                            placeholder="Tanpa kupon"
+                                            className="truncate"
+                                        />
                                     </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="tanpa">
-                                            Tanpa kupon
+                                    <SelectContent className="max-w-[min(20rem,calc(100vw-2rem))]">
+                                        <SelectItem
+                                            value="tanpa"
+                                            className="max-w-full"
+                                        >
+                                            <span className="truncate">
+                                                Tanpa kupon
+                                            </span>
                                         </SelectItem>
                                         {opsiKupon.map((kupon) => (
                                             <SelectItem
                                                 key={kupon.id}
                                                 value={String(kupon.id)}
+                                                className="max-w-full"
                                             >
-                                                {kupon.kode}
-                                                {kupon.nama
-                                                    ? ` · ${kupon.nama}`
-                                                    : ''}
+                                                <span className="block truncate">
+                                                    {kupon.kode}
+                                                    {kupon.nama
+                                                        ? ` · ${kupon.nama}`
+                                                        : ''}
+                                                </span>
                                             </SelectItem>
                                         ))}
                                     </SelectContent>

@@ -43,6 +43,13 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import {
     HeroParallax,
     type HeroParallaxProduct,
 } from '@/components/ui/hero-parallax';
@@ -518,6 +525,7 @@ export default function Welcome() {
         faqs[0]?.id ?? null,
     );
     const [kodeTersalin, setKodeTersalin] = useState<string | null>(null);
+    const [promoTerpilih, setPromoTerpilih] = useState<Pengumuman | null>(null);
 
     const admin = auth.user?.role === 'admin';
     const tujuan = admin ? '/dashboard' : '/home';
@@ -1605,7 +1613,21 @@ export default function Welcome() {
                                     return (
                                         <Card
                                             key={promo.id}
-                                            className="overflow-hidden rounded-2xl border-border/70 p-0 shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-300/70 hover:shadow-lg dark:hover:border-emerald-800"
+                                            role="button"
+                                            tabIndex={0}
+                                            onClick={() =>
+                                                setPromoTerpilih(promo)
+                                            }
+                                            onKeyDown={(event) => {
+                                                if (
+                                                    event.key === 'Enter' ||
+                                                    event.key === ' '
+                                                ) {
+                                                    event.preventDefault();
+                                                    setPromoTerpilih(promo);
+                                                }
+                                            }}
+                                            className="cursor-pointer overflow-hidden rounded-2xl border-border/70 p-0 shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-300/70 hover:shadow-lg dark:hover:border-emerald-800"
                                         >
                                             {promo.gambar_url && (
                                                 <img
@@ -1672,11 +1694,14 @@ export default function Welcome() {
                                                             type="button"
                                                             size="sm"
                                                             variant="outline"
-                                                            onClick={() =>
-                                                                salinKode(
+                                                            onClick={(
+                                                                event,
+                                                            ) => {
+                                                                event.stopPropagation();
+                                                                void salinKode(
                                                                     promo.kode_kupon_aktif as string,
-                                                                )
-                                                            }
+                                                                );
+                                                            }}
                                                             className="h-8 shrink-0 gap-1 rounded-lg border-emerald-300 bg-white text-[11px] text-emerald-700 hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
                                                         >
                                                             {kodeTersalin ===
@@ -2280,6 +2305,113 @@ export default function Welcome() {
                         </Button>
                     </div>
                 </div>
+
+                {/* Detail promo & berita */}
+                <Dialog
+                    open={promoTerpilih !== null}
+                    onOpenChange={(open) => {
+                        if (!open) {
+                            setPromoTerpilih(null);
+                        }
+                    }}
+                >
+                    <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+                        {promoTerpilih && (
+                            <>
+                                <DialogHeader>
+                                    <div className="flex flex-wrap items-center gap-2">
+                                        <Badge
+                                            className={
+                                                promoTerpilih.jenis === 'promo'
+                                                    ? 'border-0 bg-emerald-600 text-white'
+                                                    : 'border-0 bg-slate-700 text-white'
+                                            }
+                                        >
+                                            {promoTerpilih.jenis === 'promo' ? (
+                                                <Megaphone className="size-3" />
+                                            ) : (
+                                                <BadgeCheck className="size-3" />
+                                            )}
+                                            {promoTerpilih.jenis_label}
+                                        </Badge>
+                                        {formatPeriodePromo(
+                                            promoTerpilih.mulai,
+                                            promoTerpilih.selesai,
+                                        ) && (
+                                            <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                                                <CalendarDays className="size-3" />
+                                                {formatPeriodePromo(
+                                                    promoTerpilih.mulai,
+                                                    promoTerpilih.selesai,
+                                                )}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <DialogTitle className="mt-2 text-lg font-bold tracking-tight">
+                                        {promoTerpilih.judul}
+                                    </DialogTitle>
+                                    {promoTerpilih.ringkasan && (
+                                        <DialogDescription className="text-sm leading-relaxed">
+                                            {promoTerpilih.ringkasan}
+                                        </DialogDescription>
+                                    )}
+                                </DialogHeader>
+
+                                {promoTerpilih.gambar_url && (
+                                    <img
+                                        src={promoTerpilih.gambar_url}
+                                        alt={promoTerpilih.judul}
+                                        className="h-48 w-full rounded-xl object-cover"
+                                    />
+                                )}
+
+                                {promoTerpilih.isi && (
+                                    <p className="text-sm leading-relaxed whitespace-pre-line text-muted-foreground">
+                                        {promoTerpilih.isi}
+                                    </p>
+                                )}
+
+                                {promoTerpilih.kode_kupon_aktif && (
+                                    <div className="flex items-center gap-2 rounded-xl border border-dashed border-emerald-300 bg-emerald-50/70 p-3 dark:border-emerald-800 dark:bg-emerald-950/40">
+                                        <TicketPercent className="size-5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                                        <div className="min-w-0 flex-1">
+                                            <p className="text-[10px] font-medium tracking-wide text-emerald-700 uppercase dark:text-emerald-300">
+                                                Kode kupon
+                                            </p>
+                                            <p className="font-mono text-base font-bold tracking-wide text-emerald-900 dark:text-emerald-100">
+                                                {promoTerpilih.kode_kupon_aktif}
+                                            </p>
+                                        </div>
+                                        <Button
+                                            type="button"
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={() =>
+                                                void salinKode(
+                                                    promoTerpilih.kode_kupon_aktif as string,
+                                                )
+                                            }
+                                            className="h-9 shrink-0 gap-1 rounded-lg border-emerald-300 bg-white text-xs text-emerald-700 hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
+                                        >
+                                            {kodeTersalin ===
+                                            promoTerpilih.kode_kupon_aktif ? (
+                                                <>
+                                                    <Check className="size-3.5" />
+                                                    Tersalin
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Copy className="size-3.5" />
+                                                    Salin
+                                                </>
+                                            )}
+                                        </Button>
+                                    </div>
+                                )}
+                            </>
+                        )}
+                    </DialogContent>
+                </Dialog>
 
                 <PublicMenuDialog
                     menu={detail}
