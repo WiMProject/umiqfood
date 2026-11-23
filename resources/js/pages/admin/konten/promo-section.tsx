@@ -359,18 +359,18 @@ export function PromoSection({ promos, opsiKupon }: Props) {
                                         setData('kupon_id', value)
                                     }
                                 >
-                                    <SelectTrigger className="w-full max-w-full">
+                                    <SelectTrigger className="w-full min-w-0 overflow-hidden">
                                         <SelectValue
                                             placeholder="Tanpa kupon"
-                                            className="truncate"
+                                            className="min-w-0 flex-1 truncate"
                                         />
                                     </SelectTrigger>
-                                    <SelectContent className="max-w-[min(20rem,calc(100vw-2rem))]">
+                                    <SelectContent className="max-w-[min(22rem,calc(100vw-2rem))]">
                                         <SelectItem
                                             value="tanpa"
                                             className="max-w-full"
                                         >
-                                            <span className="truncate">
+                                            <span className="block truncate">
                                                 Tanpa kupon
                                             </span>
                                         </SelectItem>
@@ -378,6 +378,7 @@ export function PromoSection({ promos, opsiKupon }: Props) {
                                             <SelectItem
                                                 key={kupon.id}
                                                 value={String(kupon.id)}
+                                                title={`${kupon.kode}${kupon.nama ? ` · ${kupon.nama}` : ''}`}
                                                 className="max-w-full"
                                             >
                                                 <span className="block truncate">

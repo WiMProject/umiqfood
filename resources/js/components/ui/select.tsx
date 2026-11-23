@@ -118,7 +118,7 @@ function SelectItem({
         <SelectPrimitive.Item
             data-slot="select-item"
             className={cn(
-                'focus:bg-emerald-50 focus:text-emerald-900 data-[state=checked]:bg-emerald-50/80 data-[state=checked]:font-semibold data-[state=checked]:text-emerald-700 relative flex w-full cursor-pointer items-center gap-2 rounded-lg py-2 pr-9 pl-3 text-sm outline-hidden select-none transition-colors data-[disabled]:pointer-events-none data-[disabled]:opacity-40 dark:focus:bg-emerald-950/50 dark:focus:text-emerald-100 dark:data-[state=checked]:bg-emerald-950/40 dark:data-[state=checked]:text-emerald-300',
+                'focus:bg-emerald-50 focus:text-emerald-900 data-[state=checked]:bg-emerald-50/80 data-[state=checked]:font-semibold data-[state=checked]:text-emerald-700 relative flex w-full min-w-0 cursor-pointer items-center gap-2 rounded-lg py-2 pr-9 pl-3 text-sm outline-hidden select-none transition-colors data-[disabled]:pointer-events-none data-[disabled]:opacity-40 dark:focus:bg-emerald-950/50 dark:focus:text-emerald-100 dark:data-[state=checked]:bg-emerald-950/40 dark:data-[state=checked]:text-emerald-300',
                 className,
             )}
             {...props}
@@ -131,7 +131,9 @@ function SelectItem({
                     <CheckIcon className="size-4 text-emerald-600 dark:text-emerald-400" />
                 </SelectPrimitive.ItemIndicator>
             </span>
-            <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
+            <SelectPrimitive.ItemText className="min-w-0 flex-1 truncate">
+                {children}
+            </SelectPrimitive.ItemText>
         </SelectPrimitive.Item>
     );
 }
