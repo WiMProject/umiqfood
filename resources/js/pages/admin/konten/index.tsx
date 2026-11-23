@@ -138,7 +138,7 @@ export default function AdminKontenIndex({
         <>
             <Head title="Konten" />
 
-            <div className="flex flex-col gap-6 p-4 sm:p-6">
+            <div className="flex flex-col gap-4 p-3 sm:gap-6 sm:p-4 lg:p-6">
                 <div>
                     <p className="text-[11px] font-semibold tracking-[0.18em] text-emerald-600 uppercase dark:text-emerald-400">
                         Halaman utama
@@ -161,22 +161,22 @@ export default function AdminKontenIndex({
                             onClick={() => setTab(item.key)}
                             className="text-left"
                         >
-                            <Card className="h-full gap-1 p-4 transition hover:border-emerald-300 hover:shadow-md dark:hover:border-emerald-800">
+                            <Card className="h-full gap-1 p-3 transition hover:border-emerald-300 hover:shadow-md sm:p-4 dark:hover:border-emerald-800">
                                 <span
                                     className={cn(
-                                        'flex size-9 items-center justify-center rounded-xl',
+                                        'flex size-8 items-center justify-center rounded-xl sm:size-9',
                                         item.warna,
                                     )}
                                 >
-                                    <item.icon className="size-4.5" />
+                                    <item.icon className="size-4" />
                                 </span>
-                                <p className="mt-2 text-xl font-extrabold tracking-tight">
+                                <p className="mt-2 text-lg font-extrabold tracking-tight sm:text-xl">
                                     {item.value}
                                 </p>
                                 <p className="text-xs font-medium text-muted-foreground">
                                     {item.label}
                                 </p>
-                                <p className="text-[11px] text-muted-foreground/80">
+                                <p className="text-[10px] text-muted-foreground/80 sm:text-[11px]">
                                     {item.hint}
                                 </p>
                             </Card>
@@ -195,7 +195,7 @@ export default function AdminKontenIndex({
                                 onClick={() => setTab(item.key)}
                                 title={item.hint}
                                 className={cn(
-                                    'group flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium whitespace-nowrap transition',
+                                    'group flex items-center justify-center gap-1.5 rounded-xl px-2.5 py-2 text-xs font-medium whitespace-nowrap transition sm:gap-2 sm:px-3 sm:py-2.5 sm:text-sm',
                                     aktif
                                         ? 'bg-card text-foreground shadow-sm ring-1 ring-emerald-500/15'
                                         : 'text-muted-foreground hover:bg-card/60 hover:text-foreground',
@@ -203,13 +203,13 @@ export default function AdminKontenIndex({
                             >
                                 <span
                                     className={cn(
-                                        'flex size-7 items-center justify-center rounded-lg transition',
+                                        'flex size-6 items-center justify-center rounded-lg transition sm:size-7',
                                         aktif
                                             ? 'bg-emerald-600 text-white'
                                             : 'bg-muted text-muted-foreground group-hover:text-foreground',
                                     )}
                                 >
-                                    <item.icon className="size-4" />
+                                    <item.icon className="size-3.5 sm:size-4" />
                                 </span>
                                 {item.label}
                                 {item.badge !== undefined && item.badge > 0 && (
