@@ -184,7 +184,7 @@ export default function AdminKontenIndex({
                     ))}
                 </div>
 
-                <div className="grid gap-1 rounded-2xl border border-border/70 bg-muted/40 p-1.5 sm:flex sm:overflow-x-auto">
+                <div className="flex gap-1 overflow-x-auto rounded-2xl border border-border/70 bg-muted/40 p-1.5">
                     {tabs.map((item) => {
                         const aktif = tab === item.key;
 
