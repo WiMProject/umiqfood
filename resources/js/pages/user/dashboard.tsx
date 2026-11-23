@@ -7,6 +7,7 @@ import {
     ClipboardList,
     Clock,
     History,
+    LoaderCircle,
     MapPin,
     Minus,
     PackageCheck,
@@ -16,6 +17,7 @@ import {
     ShoppingBag,
     Sparkles,
     Store,
+    TicketPercent,
     Trash2,
     UtensilsCrossed,
     Wallet,
@@ -59,6 +61,7 @@ import { Separator } from '@/components/ui/separator';
 import type {
     CartItem,
     KeranjangRingkas,
+    KuponPreview,
     MetodePembayaran,
     Order,
     Payment,
@@ -149,6 +152,9 @@ export default function UserDashboard() {
     const [filterPesanan, setFilterPesanan] = useState<
         'semua' | 'aktif' | 'selesai' | 'dibatalkan'
     >('semua');
+    const [kuponPreview, setKuponPreview] = useState<KuponPreview | null>(null);
+    const [kuponError, setKuponError] = useState<string | null>(null);
+    const [cekKuponProcessing, setCekKuponProcessing] = useState(false);
 
     useEffect(() => {
         if (TAB_VALID.includes(tab as TabKey)) {
@@ -161,17 +167,25 @@ export default function UserDashboard() {
         no_hp: string;
         metode_pembayaran: MetodePembayaran;
         catatan: string;
+        kode_kupon: string;
     }>({
         nama_pengambil: auth.user?.name ?? '',
         no_hp: '',
         metode_pembayaran: 'cash',
         catatan: '',
+        kode_kupon: '',
     });
 
     const totalKeranjang = useMemo(
         () => cartItems.reduce((total, item) => total + item.subtotal, 0),
         [cartItems],
     );
+
+    const diskonAktif =
+        kuponPreview && kuponPreview.subtotal === totalKeranjang
+            ? kuponPreview.diskon
+            : 0;
+    const totalSetelahDiskon = Math.max(0, totalKeranjang - diskonAktif);
 
     const pesananTersaring = useMemo(() => {
         if (filterPesanan === 'semua') {
@@ -209,11 +223,19 @@ export default function UserDashboard() {
         [payments],
     );
 
+    const lupakanKupon = () => {
+        setKuponPreview(null);
+        setKuponError(null);
+        checkout.setData('kode_kupon', '');
+        checkout.clearErrors('kode_kupon');
+    };
+
     const ubahJumlah = (item: CartItem, jumlah: number) => {
         if (jumlah < 1) {
             return;
         }
 
+        lupakanKupon();
         setMemproses(item.masakan_id);
         router.patch(
             `/keranjang/${item.masakan_id}`,
@@ -227,12 +249,73 @@ export default function UserDashboard() {
     };
 
     const hapusItem = (item: CartItem) => {
+        lupakanKupon();
         setMemproses(item.masakan_id);
         router.delete(`/keranjang/${item.masakan_id}`, {
             preserveScroll: true,
             preserveState: true,
             onFinish: () => setMemproses(null),
         });
+    };
+
+    const setDataKupon = (value: string) => {
+        checkout.setData('kode_kupon', value.toUpperCase());
+        setKuponPreview(null);
+        setKuponError(null);
+        checkout.clearErrors('kode_kupon');
+    };
+
+    const terapkanKupon = async () => {
+        const kode = checkout.data.kode_kupon.trim();
+
+        if (kode === '') {
+            setKuponError('Masukkan kode kupon dulu.');
+            return;
+        }
+
+        setCekKuponProcessing(true);
+        setKuponError(null);
+
+        try {
+            const xsrf = document.cookie
+                .split('; ')
+                .find((row) => row.startsWith('XSRF-TOKEN='))
+                ?.slice('XSRF-TOKEN='.length);
+
+            const response = await fetch('/kupon/cek', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                    ...(xsrf
+                        ? { 'X-XSRF-TOKEN': decodeURIComponent(xsrf) }
+                        : {}),
+                },
+                body: JSON.stringify({ kode }),
+            });
+
+            const payload = await response.json().catch(() => null);
+
+            if (!response.ok) {
+                setKuponPreview(null);
+                setKuponError(
+                    payload?.message ??
+                        'Kupon tidak bisa dipakai untuk pesanan ini.',
+                );
+
+                return;
+            }
+
+            const hasil = payload as KuponPreview;
+            setKuponPreview(hasil);
+            checkout.setData('kode_kupon', hasil.kode);
+            checkout.clearErrors('kode_kupon');
+        } catch {
+            setKuponPreview(null);
+            setKuponError('Gagal memeriksa kupon. Coba lagi sebentar.');
+        } finally {
+            setCekKuponProcessing(false);
+        }
     };
 
     const gantiTab = (value: TabKey) => {
@@ -247,7 +330,11 @@ export default function UserDashboard() {
     const kirimCheckout = () => {
         checkout.post('/checkout', {
             preserveScroll: true,
-            onSuccess: () => checkout.reset('catatan'),
+            onSuccess: () => {
+                checkout.reset('catatan', 'kode_kupon');
+                setKuponPreview(null);
+                setKuponError(null);
+            },
         });
     };
 
@@ -765,14 +852,15 @@ export default function UserDashboard() {
                                                                 Batal
                                                             </AlertDialogCancel>
                                                             <AlertDialogAction
-                                                                onClick={() =>
+                                                                onClick={() => {
+                                                                    lupakanKupon();
                                                                     router.delete(
                                                                         '/keranjang',
                                                                         {
                                                                             preserveScroll: true,
                                                                         },
-                                                                    )
-                                                                }
+                                                                    );
+                                                                }}
                                                                 className="bg-red-600 text-white hover:bg-red-700"
                                                             >
                                                                 Ya, kosongkan
@@ -956,6 +1044,18 @@ export default function UserDashboard() {
                                             {formatRupiah(totalKeranjang)}
                                         </span>
                                     </div>
+                                    {diskonAktif > 0 && (
+                                        <div className="flex justify-between font-medium text-emerald-700 dark:text-emerald-300">
+                                            <span className="inline-flex items-center gap-1">
+                                                <TicketPercent className="size-3.5" />
+                                                Diskon{' '}
+                                                {kuponPreview?.kode ?? ''}
+                                            </span>
+                                            <span>
+                                                −{formatRupiah(diskonAktif)}
+                                            </span>
+                                        </div>
+                                    )}
                                     <div className="flex justify-between text-muted-foreground">
                                         <span>Biaya antar</span>
                                         <span className="font-medium text-emerald-600 dark:text-emerald-400">
@@ -966,7 +1066,7 @@ export default function UserDashboard() {
                                     <div className="flex justify-between text-base font-bold">
                                         <span>Total</span>
                                         <span className="text-emerald-700 dark:text-emerald-300">
-                                            {formatRupiah(totalKeranjang)}
+                                            {formatRupiah(totalSetelahDiskon)}
                                         </span>
                                     </div>
                                 </div>
@@ -979,6 +1079,86 @@ export default function UserDashboard() {
                                     </p>
                                 ) : (
                                     <div className="space-y-3">
+                                        <div className="space-y-1.5">
+                                            <Label
+                                                htmlFor="kode_kupon"
+                                                className="flex items-center gap-1.5"
+                                            >
+                                                <TicketPercent className="size-3.5 text-emerald-600 dark:text-emerald-400" />
+                                                Punya kode kupon?
+                                            </Label>
+
+                                            {kuponPreview && diskonAktif > 0 ? (
+                                                <div className="flex items-center justify-between gap-2 rounded-xl border border-emerald-300 bg-emerald-50/70 px-3 py-2.5 dark:border-emerald-800 dark:bg-emerald-950/40">
+                                                    <div className="min-w-0">
+                                                        <p className="font-mono text-sm font-bold text-emerald-800 dark:text-emerald-200">
+                                                            {kuponPreview.kode}
+                                                        </p>
+                                                        <p className="text-[11px] text-emerald-700 dark:text-emerald-300">
+                                                            Hemat{' '}
+                                                            {formatRupiah(
+                                                                kuponPreview.diskon,
+                                                            )}
+                                                        </p>
+                                                    </div>
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={lupakanKupon}
+                                                        className="h-8 shrink-0 gap-1 rounded-lg text-xs text-emerald-800 hover:bg-emerald-100 hover:text-emerald-900 dark:text-emerald-200 dark:hover:bg-emerald-900/60"
+                                                    >
+                                                        <X className="size-3.5" />
+                                                        Hapus
+                                                    </Button>
+                                                </div>
+                                            ) : (
+                                                <div className="flex gap-2">
+                                                    <Input
+                                                        id="kode_kupon"
+                                                        value={
+                                                            checkout.data
+                                                                .kode_kupon
+                                                        }
+                                                        onChange={(event) => {
+                                                            setDataKupon(
+                                                                event.target
+                                                                    .value,
+                                                            );
+                                                        }}
+                                                        placeholder="Contoh: HEMAT10"
+                                                        autoComplete="off"
+                                                        className="h-10 rounded-xl font-mono uppercase"
+                                                    />
+                                                    <Button
+                                                        type="button"
+                                                        onClick={terapkanKupon}
+                                                        disabled={
+                                                            cekKuponProcessing
+                                                        }
+                                                        className="h-10 shrink-0 gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-300 dark:hover:bg-emerald-900/60"
+                                                    >
+                                                        {cekKuponProcessing ? (
+                                                            <LoaderCircle className="size-4 animate-spin" />
+                                                        ) : (
+                                                            'Terapkan'
+                                                        )}
+                                                    </Button>
+                                                </div>
+                                            )}
+
+                                            {kuponError && (
+                                                <p className="text-xs text-rose-600 dark:text-rose-400">
+                                                    {kuponError}
+                                                </p>
+                                            )}
+                                            {checkout.errors.kode_kupon && (
+                                                <p className="text-xs text-rose-600 dark:text-rose-400">
+                                                    {checkout.errors.kode_kupon}
+                                                </p>
+                                            )}
+                                        </div>
+
                                         <div className="space-y-1.5">
                                             <Label htmlFor="nama_pengambil">
                                                 Nama pengambil
@@ -1548,6 +1728,25 @@ export default function UserDashboard() {
                                         </div>
                                     ))}
                                     <Separator />
+                                    <div className="flex justify-between text-sm text-muted-foreground">
+                                        <span>Subtotal</span>
+                                        <span>
+                                            {formatRupiah(detail.subtotal)}
+                                        </span>
+                                    </div>
+                                    {detail.diskon > 0 && (
+                                        <div className="flex justify-between text-sm font-medium text-emerald-700 dark:text-emerald-300">
+                                            <span>
+                                                Diskon{' '}
+                                                {detail.kode_kupon
+                                                    ? `(${detail.kode_kupon})`
+                                                    : ''}
+                                            </span>
+                                            <span>
+                                                −{formatRupiah(detail.diskon)}
+                                            </span>
+                                        </div>
+                                    )}
                                     <div className="flex justify-between font-bold">
                                         <span>Total</span>
                                         <span>{detail.total_format}</span>

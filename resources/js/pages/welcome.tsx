@@ -4,12 +4,23 @@ import {
     ArrowUpDown,
     ArrowUpRight,
     BadgeCheck,
+    CalendarDays,
+    Check,
     ChefHat,
+    ChevronDown,
+    ClipboardCheck,
     Clock,
+    Copy,
+    CreditCard,
     Flame,
+    HelpCircle,
+    Instagram,
     Leaf,
     LogOut,
+    MapPin,
+    Megaphone,
     Menu as MenuIcon,
+    MessageCircle,
     Moon,
     Search,
     Settings,
@@ -17,6 +28,7 @@ import {
     ShoppingBag,
     Sparkles,
     Sun,
+    TicketPercent,
     Timer,
     Utensils,
     X,
@@ -76,7 +88,13 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { Spinner } from '@/components/ui/spinner';
 import { useAppearance } from '@/hooks/use-appearance';
-import type { Kategori, Masakan } from '@/types';
+import type {
+    Faq,
+    Kategori,
+    Masakan,
+    PengaturanToko,
+    Pengumuman,
+} from '@/types';
 
 interface AuthUser {
     name: string;
@@ -394,6 +412,36 @@ function MenuCard({
     );
 }
 
+function formatPeriodePromo(
+    mulai: string | null,
+    selesai: string | null,
+): string | null {
+    const bagianTanggal = (value: string) => value.trim().slice(0, 10);
+    const format = (value: string) =>
+        new Date(`${bagianTanggal(value)}T00:00:00`).toLocaleDateString(
+            'id-ID',
+            {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric',
+            },
+        );
+
+    if (mulai && selesai) {
+        return `${format(mulai)} – ${format(selesai)}`;
+    }
+
+    if (mulai) {
+        return `Mulai ${format(mulai)}`;
+    }
+
+    if (selesai) {
+        return `Sampai ${format(selesai)}`;
+    }
+
+    return null;
+}
+
 function inisialNama(nama: string): string {
     return (
         nama
@@ -440,11 +488,24 @@ function TestimoniCard({ ulasan }: { ulasan: Testimoni }) {
 }
 
 export default function Welcome() {
-    const { auth, masakans, heroMasakans, kategoris } = usePage<{
+    const {
+        auth,
+        masakans,
+        heroMasakans,
+        kategoris,
+        menuUnggulan,
+        promos,
+        faqs,
+        pengaturanToko,
+    } = usePage<{
         auth: { user: AuthUser | null };
         masakans: Masakan[];
         heroMasakans: Masakan[];
         kategoris: Kategori[];
+        menuUnggulan: Masakan[];
+        promos: Pengumuman[];
+        faqs: Faq[];
+        pengaturanToko: PengaturanToko;
     }>().props;
 
     const { resolvedAppearance, updateAppearance } = useAppearance();
@@ -453,6 +514,10 @@ export default function Welcome() {
     const [kategoriAktif, setKategoriAktif] = useState<number | null>(null);
     const [urutan, setUrutan] = useState<Urutan>('terbaru');
     const [detail, setDetail] = useState<Masakan | null>(null);
+    const [faqTerbuka, setFaqTerbuka] = useState<number | null>(
+        faqs[0]?.id ?? null,
+    );
+    const [kodeTersalin, setKodeTersalin] = useState<string | null>(null);
 
     const admin = auth.user?.role === 'admin';
     const tujuan = admin ? '/dashboard' : '/home';
@@ -461,6 +526,33 @@ export default function Welcome() {
 
     const toggleTema = () => {
         updateAppearance(resolvedAppearance === 'dark' ? 'light' : 'dark');
+    };
+
+    const nomorWa = (pengaturanToko?.whatsapp ?? '').replace(/[^0-9]/g, '');
+    const waUrl = nomorWa
+        ? `https://wa.me/${nomorWa.startsWith('0') ? `62${nomorWa.slice(1)}` : nomorWa}`
+        : null;
+    const jamToko =
+        pengaturanToko?.jam_buka || pengaturanToko?.jam_tutup
+            ? `${pengaturanToko.jam_buka ?? '—'} – ${pengaturanToko.jam_tutup ?? '—'}`
+            : null;
+    const adaInfoToko = Boolean(
+        pengaturanToko?.alamat ||
+        jamToko ||
+        pengaturanToko?.hari_tutup ||
+        pengaturanToko?.maps_url ||
+        pengaturanToko?.catatan_pickup ||
+        pengaturanToko?.catatan_pembayaran,
+    );
+
+    const salinKode = async (kode: string) => {
+        try {
+            await navigator.clipboard.writeText(kode);
+            setKodeTersalin(kode);
+            window.setTimeout(() => setKodeTersalin(null), 2000);
+        } catch {
+            setKodeTersalin(null);
+        }
     };
 
     const totalPorsi = useMemo(
@@ -593,7 +685,7 @@ export default function Welcome() {
         <>
             <Head title="UmiqFood — Masakan Rumahan, Pesan Tanpa Repot" />
 
-            <div className="min-h-screen bg-background text-foreground">
+            <div className="min-h-screen bg-background pb-20 text-foreground sm:pb-0">
                 {/* Navbar */}
                 <header className="sticky top-0 z-50 border-b border-border/80 bg-background/85 backdrop-blur-xl">
                     <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
@@ -664,6 +756,30 @@ export default function Welcome() {
                                         </a>
                                     </NavigationMenuLink>
                                 </NavigationMenuItem>
+                                {faqs.length > 0 && (
+                                    <NavigationMenuItem>
+                                        <NavigationMenuLink asChild>
+                                            <a
+                                                href="#faq"
+                                                className={navigationMenuTriggerStyle()}
+                                            >
+                                                FAQ
+                                            </a>
+                                        </NavigationMenuLink>
+                                    </NavigationMenuItem>
+                                )}
+                                {adaInfoToko && (
+                                    <NavigationMenuItem>
+                                        <NavigationMenuLink asChild>
+                                            <a
+                                                href="#lokasi"
+                                                className={navigationMenuTriggerStyle()}
+                                            >
+                                                Lokasi
+                                            </a>
+                                        </NavigationMenuLink>
+                                    </NavigationMenuItem>
+                                )}
                             </NavigationMenuList>
                         </NavigationMenu>
 
@@ -844,6 +960,26 @@ export default function Welcome() {
                                                 Cara Pesan
                                             </a>
                                         </SheetClose>
+                                        {faqs.length > 0 && (
+                                            <SheetClose asChild>
+                                                <a
+                                                    href="#faq"
+                                                    className="rounded-lg px-3 py-2.5 text-sm font-medium transition hover:bg-muted"
+                                                >
+                                                    FAQ
+                                                </a>
+                                            </SheetClose>
+                                        )}
+                                        {adaInfoToko && (
+                                            <SheetClose asChild>
+                                                <a
+                                                    href="#lokasi"
+                                                    className="rounded-lg px-3 py-2.5 text-sm font-medium transition hover:bg-muted"
+                                                >
+                                                    Lokasi &amp; jam buka
+                                                </a>
+                                            </SheetClose>
+                                        )}
                                     </nav>
                                     <Separator />
                                     <div className="px-3">
@@ -1145,6 +1281,44 @@ export default function Welcome() {
                     </div>
                 </section>
 
+                {/* Pilihan hari ini */}
+                {menuUnggulan.length > 0 && (
+                    <section
+                        id="pilihan"
+                        className="scroll-mt-24 px-4 py-14 sm:px-6 lg:px-8"
+                    >
+                        <div className="mx-auto max-w-7xl">
+                            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                                <SectionHeading
+                                    eyebrow="Pilihan hari ini"
+                                    title="Menu yang wajib dicoba"
+                                    description={`${menuUnggulan.length} masakan pilihan yang masih tersedia hari ini.`}
+                                />
+                                <Button
+                                    asChild
+                                    variant="outline"
+                                    className="h-10 shrink-0 gap-2 self-start rounded-xl sm:self-auto"
+                                >
+                                    <a href="#menu">
+                                        Lihat semua menu
+                                        <ArrowRight className="size-4" />
+                                    </a>
+                                </Button>
+                            </div>
+
+                            <div className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                                {menuUnggulan.map((menu) => (
+                                    <MenuCard
+                                        key={menu.id}
+                                        item={menu}
+                                        onDetail={setDetail}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    </section>
+                )}
+
                 {/* Menu & Kategori */}
                 <section
                     id="menu"
@@ -1408,6 +1582,127 @@ export default function Welcome() {
                     </div>
                 </section>
 
+                {/* Promo & berita */}
+                {promos.length > 0 && (
+                    <section
+                        id="promo"
+                        className="scroll-mt-24 border-y border-border/70 bg-muted/30 px-4 py-14 sm:px-6 lg:px-8"
+                    >
+                        <div className="mx-auto max-w-7xl">
+                            <SectionHeading
+                                eyebrow="Promo & berita"
+                                title="Kabar terbaru dari UmiqFood"
+                                description="Promo terbatas dan informasi penting yang perlu kamu tahu sebelum memesan."
+                            />
+
+                            <div className="mt-7 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                                {promos.map((promo) => {
+                                    const periode = formatPeriodePromo(
+                                        promo.mulai,
+                                        promo.selesai,
+                                    );
+
+                                    return (
+                                        <Card
+                                            key={promo.id}
+                                            className="overflow-hidden rounded-2xl border-border/70 p-0 shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-300/70 hover:shadow-lg dark:hover:border-emerald-800"
+                                        >
+                                            {promo.gambar_url && (
+                                                <img
+                                                    src={promo.gambar_url}
+                                                    alt={promo.judul}
+                                                    className="h-40 w-full object-cover"
+                                                />
+                                            )}
+                                            <div className="p-5">
+                                                <div className="flex flex-wrap items-center gap-2">
+                                                    <Badge
+                                                        className={
+                                                            promo.jenis ===
+                                                            'promo'
+                                                                ? 'border-0 bg-emerald-600 text-white'
+                                                                : 'border-0 bg-slate-700 text-white'
+                                                        }
+                                                    >
+                                                        {promo.jenis ===
+                                                        'promo' ? (
+                                                            <Megaphone className="size-3" />
+                                                        ) : (
+                                                            <BadgeCheck className="size-3" />
+                                                        )}
+                                                        {promo.jenis_label}
+                                                    </Badge>
+                                                    {periode && (
+                                                        <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                                                            <CalendarDays className="size-3" />
+                                                            {periode}
+                                                        </span>
+                                                    )}
+                                                </div>
+
+                                                <h3 className="mt-3 text-base font-bold tracking-tight">
+                                                    {promo.judul}
+                                                </h3>
+                                                {promo.ringkasan && (
+                                                    <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+                                                        {promo.ringkasan}
+                                                    </p>
+                                                )}
+                                                {promo.isi &&
+                                                    !promo.ringkasan && (
+                                                        <p className="mt-1.5 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
+                                                            {promo.isi}
+                                                        </p>
+                                                    )}
+
+                                                {promo.kode_kupon_aktif && (
+                                                    <div className="mt-4 flex items-center gap-2 rounded-xl border border-dashed border-emerald-300 bg-emerald-50/70 p-2.5 dark:border-emerald-800 dark:bg-emerald-950/40">
+                                                        <TicketPercent className="size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                                                        <div className="min-w-0 flex-1">
+                                                            <p className="text-[10px] font-medium tracking-wide text-emerald-700 uppercase dark:text-emerald-300">
+                                                                Kode kupon
+                                                            </p>
+                                                            <p className="font-mono text-sm font-bold tracking-wide text-emerald-900 dark:text-emerald-100">
+                                                                {
+                                                                    promo.kode_kupon_aktif
+                                                                }
+                                                            </p>
+                                                        </div>
+                                                        <Button
+                                                            type="button"
+                                                            size="sm"
+                                                            variant="outline"
+                                                            onClick={() =>
+                                                                salinKode(
+                                                                    promo.kode_kupon_aktif as string,
+                                                                )
+                                                            }
+                                                            className="h-8 shrink-0 gap-1 rounded-lg border-emerald-300 bg-white text-[11px] text-emerald-700 hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
+                                                        >
+                                                            {kodeTersalin ===
+                                                            promo.kode_kupon_aktif ? (
+                                                                <>
+                                                                    <Check className="size-3" />
+                                                                    Tersalin
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <Copy className="size-3" />
+                                                                    Salin
+                                                                </>
+                                                            )}
+                                                        </Button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </Card>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </section>
+                )}
+
                 {/* Testimoni */}
                 <section className="px-4 py-16 sm:px-6 lg:px-8">
                     <div className="mx-auto max-w-7xl">
@@ -1430,6 +1725,262 @@ export default function Welcome() {
                         />
                     </div>
                 </section>
+
+                {/* FAQ */}
+                {faqs.length > 0 && (
+                    <section
+                        id="faq"
+                        className="scroll-mt-24 px-4 pb-16 sm:px-6 lg:px-8"
+                    >
+                        <div className="mx-auto max-w-3xl">
+                            <SectionHeading
+                                eyebrow="FAQ"
+                                title="Pertanyaan yang sering ditanya"
+                                description="Belum ketemu jawabannya? Chat WhatsApp kami, tim UmiqFood siap bantu."
+                                align="center"
+                            />
+
+                            <div className="mt-8 space-y-2.5">
+                                {faqs.map((faq) => {
+                                    const terbuka = faqTerbuka === faq.id;
+
+                                    return (
+                                        <Card
+                                            key={faq.id}
+                                            className="overflow-hidden rounded-2xl border-border/70 p-0 shadow-sm"
+                                        >
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    setFaqTerbuka(
+                                                        terbuka ? null : faq.id,
+                                                    )
+                                                }
+                                                aria-expanded={terbuka}
+                                                className="flex w-full items-center gap-3 px-4 py-4 text-left transition hover:bg-emerald-50/40 sm:px-5 dark:hover:bg-emerald-950/10"
+                                            >
+                                                <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
+                                                    <HelpCircle className="size-4" />
+                                                </span>
+                                                <span className="flex-1 text-sm font-semibold text-foreground sm:text-[15px]">
+                                                    {faq.pertanyaan}
+                                                </span>
+                                                <ChevronDown
+                                                    className={cn(
+                                                        'size-4 shrink-0 text-muted-foreground transition-transform duration-200',
+                                                        terbuka &&
+                                                            'rotate-180 text-emerald-600',
+                                                    )}
+                                                />
+                                            </button>
+                                            <div
+                                                className={cn(
+                                                    'grid transition-all duration-200',
+                                                    terbuka
+                                                        ? 'grid-rows-[1fr] opacity-100'
+                                                        : 'grid-rows-[0fr] opacity-0',
+                                                )}
+                                            >
+                                                <div className="overflow-hidden">
+                                                    <p className="px-4 pb-4 pl-[60px] text-sm leading-relaxed text-muted-foreground sm:px-5 sm:pl-[64px]">
+                                                        {faq.jawaban}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </Card>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </section>
+                )}
+
+                {/* Lokasi, pembayaran, status pesanan */}
+                {adaInfoToko && (
+                    <section
+                        id="lokasi"
+                        className="scroll-mt-24 px-4 pb-16 sm:px-6 lg:px-8"
+                    >
+                        <div className="mx-auto grid max-w-7xl gap-5 lg:grid-cols-[1.15fr_1fr]">
+                            {(pengaturanToko?.alamat ||
+                                jamToko ||
+                                pengaturanToko?.hari_tutup ||
+                                pengaturanToko?.maps_url ||
+                                pengaturanToko?.catatan_pickup) && (
+                                <Card className="overflow-hidden rounded-3xl border-border/70 p-0 shadow-sm">
+                                    <div className="relative overflow-hidden border-b border-border/70 bg-gradient-to-r from-emerald-50 via-emerald-50/40 to-transparent px-5 py-4 dark:from-emerald-950/40 dark:via-emerald-950/10">
+                                        <div className="absolute inset-y-0 left-0 w-1 bg-emerald-500/70" />
+                                        <div className="flex items-center gap-3">
+                                            <span className="flex size-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-700 ring-1 ring-emerald-500/15 dark:text-emerald-300">
+                                                <MapPin className="size-5" />
+                                            </span>
+                                            <div>
+                                                <p className="text-[11px] font-semibold tracking-[0.16em] text-emerald-700 uppercase dark:text-emerald-300">
+                                                    Lokasi &amp; pickup
+                                                </p>
+                                                <h2 className="text-lg font-bold tracking-tight">
+                                                    Ambil pesananmu di sini
+                                                </h2>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-4 p-5">
+                                        {pengaturanToko?.alamat && (
+                                            <div className="flex items-start gap-2.5">
+                                                <MapPin className="mt-0.5 size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                                                <p className="text-sm leading-relaxed text-muted-foreground">
+                                                    {pengaturanToko.alamat}
+                                                </p>
+                                            </div>
+                                        )}
+
+                                        <div className="grid gap-2 sm:grid-cols-2">
+                                            {jamToko && (
+                                                <div className="rounded-xl border border-border/70 bg-muted/30 px-3 py-2.5">
+                                                    <p className="flex items-center gap-1.5 text-[10px] font-semibold tracking-wide text-muted-foreground uppercase">
+                                                        <Clock className="size-3" />
+                                                        Jam buka
+                                                    </p>
+                                                    <p className="mt-1 text-sm font-semibold">
+                                                        {jamToko}
+                                                    </p>
+                                                </div>
+                                            )}
+                                            {pengaturanToko?.hari_tutup && (
+                                                <div className="rounded-xl border border-border/70 bg-muted/30 px-3 py-2.5">
+                                                    <p className="flex items-center gap-1.5 text-[10px] font-semibold tracking-wide text-muted-foreground uppercase">
+                                                        <CalendarDays className="size-3" />
+                                                        Hari tutup
+                                                    </p>
+                                                    <p className="mt-1 text-sm font-semibold">
+                                                        {
+                                                            pengaturanToko.hari_tutup
+                                                        }
+                                                    </p>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {pengaturanToko?.catatan_pickup && (
+                                            <p className="rounded-xl border border-emerald-200/60 bg-emerald-50/60 px-3.5 py-2.5 text-xs leading-relaxed text-emerald-900 dark:border-emerald-900/60 dark:bg-emerald-950/25 dark:text-emerald-200">
+                                                {pengaturanToko.catatan_pickup}
+                                            </p>
+                                        )}
+
+                                        <div className="flex flex-wrap gap-2">
+                                            {pengaturanToko?.maps_url && (
+                                                <Button
+                                                    asChild
+                                                    className="h-9 gap-1.5 rounded-xl bg-emerald-600 text-xs text-white hover:bg-emerald-700"
+                                                >
+                                                    <a
+                                                        href={
+                                                            pengaturanToko.maps_url
+                                                        }
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                    >
+                                                        <MapPin className="size-3.5" />
+                                                        Buka Google Maps
+                                                    </a>
+                                                </Button>
+                                            )}
+                                            {waUrl && (
+                                                <Button
+                                                    asChild
+                                                    variant="outline"
+                                                    className="h-9 gap-1.5 rounded-xl text-xs"
+                                                >
+                                                    <a
+                                                        href={waUrl}
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                    >
+                                                        <MessageCircle className="size-3.5 text-emerald-600 dark:text-emerald-400" />
+                                                        WhatsApp
+                                                    </a>
+                                                </Button>
+                                            )}
+                                            {pengaturanToko?.instagram && (
+                                                <Button
+                                                    asChild
+                                                    variant="outline"
+                                                    className="h-9 gap-1.5 rounded-xl text-xs"
+                                                >
+                                                    <a
+                                                        href={`https://instagram.com/${pengaturanToko.instagram.replace(/^@/, '')}`}
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                    >
+                                                        <Instagram className="size-3.5 text-rose-500" />
+                                                        Instagram
+                                                    </a>
+                                                </Button>
+                                            )}
+                                        </div>
+                                    </div>
+                                </Card>
+                            )}
+
+                            <div className="grid gap-5">
+                                <Card className="rounded-3xl border-border/70 p-5 shadow-sm">
+                                    <div className="flex items-center gap-3">
+                                        <span className="flex size-10 items-center justify-center rounded-xl bg-sky-500/10 text-sky-700 dark:text-sky-300">
+                                            <CreditCard className="size-5" />
+                                        </span>
+                                        <div>
+                                            <h2 className="text-sm font-semibold">
+                                                Pembayaran
+                                            </h2>
+                                            <p className="text-[11px] text-muted-foreground">
+                                                Cash atau QRIS saat ambil
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                                        {pengaturanToko?.catatan_pembayaran ||
+                                            'Bayar tunai atau scan QRIS langsung di kasir saat mengambil pesanan. Pembayaran dicatat oleh kasir setelah pesanan lunas.'}
+                                    </p>
+                                </Card>
+
+                                <Card className="rounded-3xl border-border/70 p-5 shadow-sm">
+                                    <div className="flex items-center gap-3">
+                                        <span className="flex size-10 items-center justify-center rounded-xl bg-amber-500/10 text-amber-700 dark:text-amber-300">
+                                            <ClipboardCheck className="size-5" />
+                                        </span>
+                                        <div>
+                                            <h2 className="text-sm font-semibold">
+                                                Status pesanan
+                                            </h2>
+                                            <p className="text-[11px] text-muted-foreground">
+                                                Pantau dari halaman akun
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <ol className="mt-3 space-y-2">
+                                        {[
+                                            'Menunggu konfirmasi dapur',
+                                            'Sedang dimasak',
+                                            'Siap diambil di outlet',
+                                            'Selesai & sudah dibayar',
+                                        ].map((langkah, index) => (
+                                            <li
+                                                key={langkah}
+                                                className="flex items-center gap-2.5 text-xs text-muted-foreground"
+                                            >
+                                                <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-[10px] font-bold text-white">
+                                                    {index + 1}
+                                                </span>
+                                                {langkah}
+                                            </li>
+                                        ))}
+                                    </ol>
+                                </Card>
+                            </div>
+                        </div>
+                    </section>
+                )}
 
                 {/* Cara pesan + CTA */}
                 <section
@@ -1520,10 +2071,60 @@ export default function Welcome() {
                             <div className="sm:col-span-2 lg:col-span-1">
                                 <Brand />
                                 <p className="mt-4 max-w-xs text-sm text-muted-foreground">
-                                    Masakan rumahan favorit, pesan di mana aja.
-                                    Dibuat sederhana agar kamu bisa fokus
-                                    menikmati makanan.
+                                    {pengaturanToko?.tagline ||
+                                        'Masakan rumahan favorit, pesan di mana aja. Dibuat sederhana agar kamu bisa fokus menikmati makanan.'}
                                 </p>
+
+                                {(pengaturanToko?.alamat ||
+                                    jamToko ||
+                                    waUrl ||
+                                    pengaturanToko?.instagram) && (
+                                    <div className="mt-4 space-y-2 text-xs text-muted-foreground">
+                                        {pengaturanToko?.alamat && (
+                                            <p className="flex items-start gap-2">
+                                                <MapPin className="mt-0.5 size-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                                                <span>
+                                                    {pengaturanToko.alamat}
+                                                </span>
+                                            </p>
+                                        )}
+                                        {jamToko && (
+                                            <p className="flex items-center gap-2">
+                                                <Clock className="size-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                                                <span>
+                                                    {jamToko}
+                                                    {pengaturanToko?.hari_tutup
+                                                        ? ` · Tutup ${pengaturanToko.hari_tutup}`
+                                                        : ''}
+                                                </span>
+                                            </p>
+                                        )}
+                                        <div className="flex flex-wrap gap-3 pt-1">
+                                            {waUrl && (
+                                                <a
+                                                    href={waUrl}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="inline-flex items-center gap-1.5 font-medium text-emerald-700 transition hover:text-emerald-800 dark:text-emerald-300"
+                                                >
+                                                    <MessageCircle className="size-3.5" />
+                                                    WhatsApp
+                                                </a>
+                                            )}
+                                            {pengaturanToko?.instagram && (
+                                                <a
+                                                    href={`https://instagram.com/${pengaturanToko.instagram.replace(/^@/, '')}`}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="inline-flex items-center gap-1.5 font-medium text-emerald-700 transition hover:text-emerald-800 dark:text-emerald-300"
+                                                >
+                                                    <Instagram className="size-3.5" />
+                                                    Instagram
+                                                </a>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                             <div>
@@ -1648,6 +2249,37 @@ export default function Welcome() {
                         </div>
                     </div>
                 </footer>
+
+                {/* CTA mobile */}
+                <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border/80 bg-background/95 px-3 py-2.5 shadow-[0_-8px_24px_-16px_rgba(0,0,0,0.35)] backdrop-blur sm:hidden">
+                    <div className="mx-auto flex max-w-md gap-2">
+                        {waUrl && (
+                            <Button
+                                asChild
+                                variant="outline"
+                                className="h-10 flex-1 gap-1.5 rounded-xl text-xs"
+                            >
+                                <a
+                                    href={waUrl}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                >
+                                    <MessageCircle className="size-4 text-emerald-600 dark:text-emerald-400" />
+                                    Chat WhatsApp
+                                </a>
+                            </Button>
+                        )}
+                        <Button
+                            asChild
+                            className="h-10 flex-1 gap-1.5 rounded-xl bg-emerald-600 text-xs text-white hover:bg-emerald-700"
+                        >
+                            <Link href={auth.user ? tujuan : '/login'}>
+                                <ShoppingBag className="size-4" />
+                                {auth.user ? 'Pesan sekarang' : 'Masuk & pesan'}
+                            </Link>
+                        </Button>
+                    </div>
+                </div>
 
                 <PublicMenuDialog
                     menu={detail}

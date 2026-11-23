@@ -1,8 +1,12 @@
 <?php
 
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\FaqController as AdminFaqController;
+use App\Http\Controllers\Admin\KontenController as AdminKontenController;
+use App\Http\Controllers\Admin\KuponController as AdminKuponController;
 use App\Http\Controllers\Admin\LaporanController as AdminLaporanController;
 use App\Http\Controllers\Admin\PengeluaranController as AdminPengeluaranController;
+use App\Http\Controllers\Admin\PengumumanController as AdminPengumumanController;
 use App\Http\Controllers\Admin\PesananController as AdminPesananController;
 use App\Http\Controllers\Admin\StokMutasiController as AdminStokMutasiController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
@@ -11,6 +15,7 @@ use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\KeranjangController;
+use App\Http\Controllers\KuponController;
 use App\Http\Controllers\MasakanController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\UserDashboardController;
@@ -38,6 +43,9 @@ Route::middleware(['auth', 'verified', 'role:user'])->group(function () {
 
     // Checkout pickup (tanpa pengantaran)
     Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+
+    // Pratinjau kupon dari isi keranjang
+    Route::post('/kupon/cek', [KuponController::class, 'cek'])->name('kupon.cek');
 });
 
 // Rute untuk admin
@@ -59,6 +67,27 @@ Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
 
     // Rute CRUD Kategori menu
     Route::resource('kategori', KategoriController::class)->except(['create', 'show', 'edit']);
+
+    // Manajemen konten halaman utama: profil toko, promo, kupon, FAQ, unggulan
+    Route::get('/konten', [AdminKontenController::class, 'index'])->name('konten.index');
+    Route::put('/konten/toko', [AdminKontenController::class, 'updateToko'])->name('konten.toko.update');
+    Route::patch('/konten/unggulan/{masakan}', [AdminKontenController::class, 'toggleUnggulan'])->name('konten.unggulan.update');
+
+    Route::prefix('konten')->name('konten.')->group(function () {
+        Route::post('/promo', [AdminPengumumanController::class, 'store'])->name('promo.store');
+        Route::match(['patch', 'post'], '/promo/{pengumuman}', [AdminPengumumanController::class, 'update'])->name('promo.update');
+        Route::delete('/promo/{pengumuman}', [AdminPengumumanController::class, 'destroy'])->name('promo.destroy');
+
+        Route::post('/kupon', [AdminKuponController::class, 'store'])->name('kupon.store');
+        Route::patch('/kupon/{kupon}', [AdminKuponController::class, 'update'])->name('kupon.update');
+        Route::patch('/kupon/{kupon}/toggle', [AdminKuponController::class, 'toggleAktif'])->name('kupon.toggle');
+        Route::delete('/kupon/{kupon}', [AdminKuponController::class, 'destroy'])->name('kupon.destroy');
+
+        Route::post('/faq', [AdminFaqController::class, 'store'])->name('faq.store');
+        Route::patch('/faq/{faq}', [AdminFaqController::class, 'update'])->name('faq.update');
+        Route::patch('/faq/{faq}/toggle', [AdminFaqController::class, 'toggleAktif'])->name('faq.toggle');
+        Route::delete('/faq/{faq}', [AdminFaqController::class, 'destroy'])->name('faq.destroy');
+    });
 
     // Pesanan pickup
     Route::get('/pesanan', [AdminPesananController::class, 'index'])->name('admin.pesanan.index');

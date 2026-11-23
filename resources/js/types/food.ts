@@ -35,6 +35,7 @@ export interface Masakan {
     foto: string | null;
     foto_url: string | null;
     tersedia: boolean;
+    tampil_unggulan: boolean;
     jumlah_porsi: number;
     porsi_dipesan: number;
     porsi_tersedia: number;
@@ -90,6 +91,9 @@ export interface Order {
     metode_pembayaran: MetodePembayaran;
     metode_pembayaran_label: string;
     subtotal: number;
+    diskon: number;
+    diskon_format: string;
+    kode_kupon: string | null;
     total: number;
     total_format: string;
     nama_pengambil: string;
@@ -101,6 +105,7 @@ export interface Order {
     dibatalkan_at: string | null;
     created_at: string;
     items: OrderItem[];
+    kupon?: Kupon | null;
     payment?: Payment | null;
     user?: {
         id: number;
@@ -126,5 +131,78 @@ export interface Payment {
 
 export interface KeranjangRingkas {
     jumlah: number;
+    subtotal: number;
+}
+
+export type KuponTipe = 'persen' | 'nominal';
+
+export interface Kupon {
+    id: number;
+    kode: string;
+    nama: string | null;
+    tipe: KuponTipe;
+    tipe_label: string;
+    nilai: number;
+    nilai_format: string;
+    min_subtotal: number;
+    maks_diskon: number | null;
+    kuota: number | null;
+    maks_per_user: number;
+    mulai: string | null;
+    selesai: string | null;
+    aktif: boolean;
+    total_pemakaian?: number;
+    total_diskon?: number | null;
+}
+
+export type PengumumanJenis = 'promo' | 'info';
+
+export interface Pengumuman {
+    id: number;
+    judul: string;
+    slug: string;
+    jenis: PengumumanJenis;
+    jenis_label: string;
+    ringkasan: string | null;
+    isi: string | null;
+    gambar: string | null;
+    gambar_url: string | null;
+    kupon_id: number | null;
+    kode_kupon_aktif: string | null;
+    kupon?: Kupon | null;
+    mulai: string | null;
+    selesai: string | null;
+    aktif: boolean;
+    urutan: number;
+}
+
+export interface Faq {
+    id: number;
+    pertanyaan: string;
+    jawaban: string;
+    urutan: number;
+    aktif: boolean;
+}
+
+export interface PengaturanToko {
+    id: number;
+    nama_toko: string;
+    tagline: string | null;
+    alamat: string | null;
+    jam_buka: string | null;
+    jam_tutup: string | null;
+    hari_tutup: string | null;
+    whatsapp: string | null;
+    instagram: string | null;
+    maps_url: string | null;
+    catatan_pickup: string | null;
+    catatan_pembayaran: string | null;
+}
+
+export interface KuponPreview {
+    kode: string;
+    nama: string | null;
+    diskon: number;
+    total: number;
     subtotal: number;
 }

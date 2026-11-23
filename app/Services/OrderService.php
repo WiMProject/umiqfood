@@ -16,11 +16,13 @@ use Illuminate\Validation\ValidationException;
 
 class OrderService
 {
+    public function __construct(private readonly KuponService $kuponService) {}
+
     /**
      * Buat pesanan pickup dari keranjang user. Porsi belum dipotong di sini,
      * hanya "direservasi" sampai pembayaran dikonfirmasi.
      *
-     * @param  array{nama_pengambil: string, no_hp: string, metode_pembayaran: string, catatan?: string|null}  $data
+     * @param  array{nama_pengambil: string, no_hp: string, metode_pembayaran: string, catatan?: string|null, kode_kupon?: string|null}  $data
      */
     public function createFromCart(User $user, array $data): Order
     {
@@ -77,6 +79,23 @@ class OrderService
                 return $masakans->get($item->masakan_id)->harga * $item->jumlah;
             });
 
+            $kupon = null;
+            $diskon = 0;
+
+            if (! empty($data['kode_kupon'])) {
+                $hasilKupon = $this->kuponService->validasi(
+                    $data['kode_kupon'],
+                    $user,
+                    $subtotal,
+                    kunci: true,
+                );
+
+                $kupon = $hasilKupon['kupon'];
+                $diskon = $hasilKupon['diskon'];
+            }
+
+            $total = max(0, $subtotal - $diskon);
+
             $sekarang = Carbon::now();
             $tanggal = $sekarang->toDateString();
             $nomorAntrian = (int) Order::query()
@@ -91,8 +110,11 @@ class OrderService
                 'status' => Order::STATUS_MENUNGGU,
                 'porsi_dipotong' => false,
                 'metode_pembayaran' => $data['metode_pembayaran'],
+                'kupon_id' => $kupon?->id,
+                'kode_kupon' => $kupon?->kode,
                 'subtotal' => $subtotal,
-                'total' => $subtotal,
+                'diskon' => $diskon,
+                'total' => $total,
                 'nama_pengambil' => $data['nama_pengambil'],
                 'no_hp' => $data['no_hp'],
                 'catatan' => $data['catatan'] ?? null,

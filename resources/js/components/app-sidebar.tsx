@@ -5,6 +5,7 @@ import {
     ClipboardCheck,
     ClipboardList,
     LayoutGrid,
+    Newspaper,
     Tags,
     TrendingUp,
     Users,
@@ -27,58 +28,88 @@ import {
     useSidebar,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
-import type { NavItem } from '@/types';
+import type { NavGroup } from '@/types';
 
-const mainNavItems: NavItem[] = [
+const mainNavGroups: NavGroup[] = [
     {
-        title: 'Dashboard',
-        href: dashboard(),
-        icon: LayoutGrid,
+        title: 'Utama',
+        items: [
+            {
+                title: 'Dashboard',
+                href: dashboard(),
+                icon: LayoutGrid,
+            },
+        ],
     },
     {
-        title: 'Menu Masakan',
-        href: '/masakan',
-        icon: UtensilsCrossed,
+        title: 'Katalog & stok',
+        items: [
+            {
+                title: 'Menu Masakan',
+                href: '/masakan',
+                icon: UtensilsCrossed,
+            },
+            {
+                title: 'Kategori',
+                href: '/kategori',
+                icon: Tags,
+            },
+            {
+                title: 'Inventori',
+                href: '/inventori',
+                icon: Boxes,
+            },
+            {
+                title: 'Mutasi Stok',
+                href: '/stok-mutasi',
+                icon: ArrowLeftRight,
+            },
+        ],
     },
     {
-        title: 'Kategori',
-        href: '/kategori',
-        icon: Tags,
+        title: 'Penjualan',
+        items: [
+            {
+                title: 'Pesanan',
+                href: '/pesanan',
+                icon: ClipboardList,
+            },
+            {
+                title: 'Pengeluaran',
+                href: '/pengeluaran',
+                icon: Wallet,
+            },
+        ],
     },
     {
-        title: 'Inventori',
-        href: '/inventori',
-        icon: Boxes,
+        title: 'Laporan',
+        items: [
+            {
+                title: 'Tutup Hari',
+                href: '/laporan/tutup-hari',
+                icon: ClipboardCheck,
+            },
+            {
+                title: 'Laba Rugi',
+                href: '/laporan/laba-rugi',
+                icon: TrendingUp,
+            },
+        ],
     },
     {
-        title: 'Mutasi Stok',
-        href: '/stok-mutasi',
-        icon: ArrowLeftRight,
-    },
-    {
-        title: 'Pesanan',
-        href: '/pesanan',
-        icon: ClipboardList,
-    },
-    {
-        title: 'Pengeluaran',
-        href: '/pengeluaran',
-        icon: Wallet,
-    },
-    {
-        title: 'Tutup Hari',
-        href: '/laporan/tutup-hari',
-        icon: ClipboardCheck,
-    },
-    {
-        title: 'Laba Rugi',
-        href: '/laporan/laba-rugi',
-        icon: TrendingUp,
-    },
-    {
-        title: 'Manajemen User',
-        href: '/users',
-        icon: Users,
+        title: 'Toko',
+        items: [
+            {
+                title: 'Konten',
+                href: '/konten',
+                icon: Newspaper,
+            },
+            {
+                title: 'Manajemen User',
+                href: '/users',
+                icon: Users,
+            },
+        ],
     },
 ];
 
@@ -126,8 +157,8 @@ export function AppSidebar() {
                 </div>
             </SidebarHeader>
 
-            <SidebarContent className="py-2">
-                <NavMain items={mainNavItems} />
+            <SidebarContent className="gap-3 py-2">
+                <NavMain groups={mainNavGroups} />
             </SidebarContent>
 
             <SidebarFooter className="border-t border-sidebar-border/70 p-3 group-data-[collapsible=icon]:p-2">

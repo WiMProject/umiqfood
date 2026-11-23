@@ -16,6 +16,7 @@ class Masakan extends Model
         'harga',
         'foto',
         'tersedia',
+        'tampil_unggulan',
         'jumlah_porsi',
         'kategori_id',
     ];
@@ -23,6 +24,7 @@ class Masakan extends Model
     protected $casts = [
         'harga' => 'integer',
         'tersedia' => 'boolean',
+        'tampil_unggulan' => 'boolean',
         'jumlah_porsi' => 'integer',
     ];
 

@@ -63,7 +63,10 @@ class Order extends Model
         'status',
         'porsi_dipotong',
         'metode_pembayaran',
+        'kupon_id',
+        'kode_kupon',
         'subtotal',
+        'diskon',
         'total',
         'nama_pengambil',
         'no_hp',
@@ -79,6 +82,7 @@ class Order extends Model
         'nomor_antrian' => 'integer',
         'porsi_dipotong' => 'boolean',
         'subtotal' => 'integer',
+        'diskon' => 'integer',
         'total' => 'integer',
         'estimasi_siap_at' => 'datetime',
         'siap_at' => 'datetime',
@@ -90,6 +94,7 @@ class Order extends Model
         'antrian_format',
         'status_label',
         'metode_pembayaran_label',
+        'diskon_format',
         'total_format',
         'tanggal_format',
     ];
@@ -118,6 +123,14 @@ class Order extends Model
         return $this->hasOne(Payment::class);
     }
 
+    /**
+     * @return BelongsTo<Kupon, $this>
+     */
+    public function kupon(): BelongsTo
+    {
+        return $this->belongsTo(Kupon::class);
+    }
+
     public function isActive(): bool
     {
         return in_array($this->status, [
@@ -140,6 +153,11 @@ class Order extends Model
     public function getMetodePembayaranLabelAttribute(): string
     {
         return self::METODE_LABELS[$this->metode_pembayaran] ?? ucfirst($this->metode_pembayaran);
+    }
+
+    public function getDiskonFormatAttribute(): string
+    {
+        return 'Rp '.number_format($this->diskon, 0, ',', '.');
     }
 
     public function getTotalFormatAttribute(): string

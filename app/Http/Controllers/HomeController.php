@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Faq;
 use App\Models\Kategori;
 use App\Models\Masakan;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\PengaturanToko;
+use App\Models\Pengumuman;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -53,10 +56,29 @@ class HomeController extends Controller
             ->latest()
             ->get();
 
+        $menuUnggulan = Masakan::query()
+            ->with(['kategori', 'fotos'])
+            ->withPorsiTersedia()
+            ->where('tampil_unggulan', true)
+            ->where('tersedia', true)
+            ->latest()
+            ->get()
+            ->filter(fn (Masakan $masakan): bool => $masakan->porsi_tersedia > 0)
+            ->take(6)
+            ->values();
+
         return Inertia::render('welcome', [
             'masakans' => $this->katalog(12)->take(24)->get(),
             'heroMasakans' => $heroMasakans,
             'kategoris' => Kategori::withCount('masakans')->get(),
+            'menuUnggulan' => $menuUnggulan,
+            'promos' => Pengumuman::query()
+                ->with('kupon:id,kode,nama,tipe,nilai,maks_diskon,min_subtotal,aktif,mulai,selesai')
+                ->tampil()
+                ->take(6)
+                ->get(),
+            'faqs' => Faq::query()->aktif()->take(10)->get(['id', 'pertanyaan', 'jawaban']),
+            'pengaturanToko' => PengaturanToko::current(),
         ]);
     }
 
