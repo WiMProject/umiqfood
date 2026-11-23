@@ -874,7 +874,7 @@ export default function Welcome() {
                             ) : (
                                 <div className="hidden items-center gap-2 md:flex">
                                     <Button variant="ghost" asChild>
-                                        <Link href="/login">Login</Link>
+                                        <Link href="/login">Masuk</Link>
                                     </Button>
                                     <Button
                                         asChild
