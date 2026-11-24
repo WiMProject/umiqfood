@@ -47,7 +47,7 @@ class HomeController extends Controller
      * Halaman depan publik: katalog, foto, harga, porsi, dan ulasan.
      * Hanya untuk dilihat; formulir ulasan tetap khusus pelanggan yang login.
      */
-    public function welcome(): Response
+    public function welcome(Request $request): Response
     {
         // Kartu hero memakai semua menu yang ada sekarang, termasuk yang habis.
         $heroMasakans = Masakan::query()
