@@ -280,54 +280,91 @@ export function OrderProgress({
         (langkah) => langkah.status === status,
     );
 
-    return (
-        <div className={cn('grid grid-cols-4', ringkas ? 'gap-0.5' : 'gap-1')}>
-            {langkahPesanan.map((langkah, index) => {
-                const selesai = index <= posisi;
-                const aktif = index === posisi;
+    const posisiAman = Math.max(0, posisi);
+    const progres =
+        langkahPesanan.length > 1
+            ? (posisiAman / (langkahPesanan.length - 1)) * 100
+            : 0;
 
-                return (
+    return (
+        <div className={cn('relative', ringkas ? '' : 'pt-1')}>
+            {/* Track */}
+            {!ringkas && (
+                <>
                     <div
-                        key={langkah.status}
-                        className="flex flex-col items-center gap-1 text-center"
-                    >
-                        <span
-                            className={cn(
-                                'flex size-8 items-center justify-center rounded-full border transition',
-                                tone === 'dark'
-                                    ? selesai
-                                        ? 'border-white/30 bg-white text-emerald-700'
-                                        : 'border-white/25 bg-white/10 text-white/60'
-                                    : selesai
-                                      ? 'border-emerald-600 bg-emerald-600 text-white'
-                                      : 'border-border bg-muted text-muted-foreground',
-                                aktif &&
-                                    (tone === 'dark'
-                                        ? 'ring-2 ring-white/40'
-                                        : 'ring-2 ring-emerald-500/40'),
-                            )}
+                        className={cn(
+                            'absolute top-4 right-0 left-0 h-1 -translate-y-1/2 rounded-full',
+                            tone === 'dark' ? 'bg-white/15' : 'bg-muted',
+                        )}
+                        aria-hidden="true"
+                    />
+                    <div
+                        className={cn(
+                            'absolute top-4 left-0 h-1 -translate-y-1/2 rounded-full transition-all duration-500',
+                            tone === 'dark' ? 'bg-white' : 'bg-emerald-600',
+                        )}
+                        style={{ width: `${progres}%` }}
+                        aria-hidden="true"
+                    />
+                </>
+            )}
+            <div
+                className={cn(
+                    'relative grid grid-cols-4',
+                    ringkas ? 'gap-0.5' : 'gap-1',
+                )}
+            >
+                {langkahPesanan.map((langkah, index) => {
+                    const selesai = index <= posisi;
+                    const aktif = index === posisi;
+
+                    return (
+                        <div
+                            key={langkah.status}
+                            className="flex flex-col items-center gap-1 text-center"
                         >
-                            <langkah.icon className="size-4" />
-                        </span>
-                        {!ringkas && (
                             <span
                                 className={cn(
-                                    'text-[10px] leading-tight',
+                                    'relative z-10 flex size-8 items-center justify-center rounded-full border-2 transition sm:size-9',
                                     tone === 'dark'
                                         ? selesai
-                                            ? 'font-semibold text-white'
-                                            : 'text-white/60'
+                                            ? 'border-white bg-white text-emerald-700 shadow-lg shadow-emerald-900/20'
+                                            : 'border-white/25 bg-white/10 text-white/60'
                                         : selesai
-                                          ? 'font-semibold text-foreground'
-                                          : 'text-muted-foreground',
+                                          ? 'border-emerald-600 bg-emerald-600 text-white shadow-md shadow-emerald-600/25'
+                                          : 'border-border bg-card text-muted-foreground',
+                                    aktif &&
+                                        (tone === 'dark'
+                                            ? 'scale-110 ring-4 ring-white/25'
+                                            : 'scale-110 ring-4 ring-emerald-500/20'),
                                 )}
                             >
-                                {langkah.label}
+                                {selesai && !aktif ? (
+                                    <CheckCircle2 className="size-4 sm:size-4.5" />
+                                ) : (
+                                    <langkah.icon className="size-4 sm:size-4.5" />
+                                )}
                             </span>
-                        )}
-                    </div>
-                );
-            })}
+                            {!ringkas && (
+                                <span
+                                    className={cn(
+                                        'text-[10px] leading-tight sm:text-[11px]',
+                                        tone === 'dark'
+                                            ? selesai
+                                                ? 'font-semibold text-white'
+                                                : 'text-white/60'
+                                            : selesai
+                                              ? 'font-semibold text-foreground'
+                                              : 'text-muted-foreground',
+                                    )}
+                                >
+                                    {langkah.label}
+                                </span>
+                            )}
+                        </div>
+                    );
+                })}
+            </div>
         </div>
     );
 }
