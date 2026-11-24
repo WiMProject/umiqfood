@@ -2,6 +2,7 @@ import { router, useForm } from '@inertiajs/react';
 import {
     CalendarDays,
     Coins,
+    History,
     Pencil,
     Plus,
     Power,
@@ -96,6 +97,21 @@ export function KuponSection({ kupons }: Props) {
     const [dialogTerbuka, setDialogTerbuka] = useState(false);
     const [editing, setEditing] = useState<Kupon | null>(null);
     const [hapusTarget, setHapusTarget] = useState<Kupon | null>(null);
+    const [riwayatKupon, setRiwayatKupon] = useState<Kupon | null>(null);
+    const [riwayatData, setRiwayatData] = useState<
+        {
+            id: number;
+            kode: string;
+            tanggal: string | null;
+            nama: string;
+            pelanggan: string | null;
+            status_label: string;
+            subtotal: number;
+            diskon: number;
+            total: number;
+        }[]
+    >([]);
+    const [riwayatLoading, setRiwayatLoading] = useState(false);
 
     const {
         data,
@@ -185,6 +201,27 @@ export function KuponSection({ kupons }: Props) {
             preserveScroll: true,
             onSuccess: () => setHapusTarget(null),
         });
+    };
+
+    const bukaRiwayat = async (kupon: Kupon) => {
+        setRiwayatKupon(kupon);
+        setRiwayatData([]);
+        setRiwayatLoading(true);
+
+        try {
+            const response = await fetch(`/konten/kupon/${kupon.id}/riwayat`, {
+                headers: { Accept: 'application/json' },
+            });
+            const payload = await response.json().catch(() => null);
+
+            if (response.ok && payload?.orders) {
+                setRiwayatData(payload.orders);
+            }
+        } catch {
+            setRiwayatData([]);
+        } finally {
+            setRiwayatLoading(false);
+        }
     };
 
     return (
@@ -396,6 +433,13 @@ export function KuponSection({ kupons }: Props) {
                                                         }
                                                     />
                                                     <TableAction
+                                                        label="Riwayat pemakaian"
+                                                        icon={History}
+                                                        onClick={() =>
+                                                            bukaRiwayat(kupon)
+                                                        }
+                                                    />
+                                                    <TableAction
                                                         label="Hapus kupon"
                                                         icon={Trash2}
                                                         tone="rose"
@@ -514,6 +558,16 @@ export function KuponSection({ kupons }: Props) {
                                         >
                                             <Pencil className="size-3.5" />
                                             Edit
+                                        </Button>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => bukaRiwayat(kupon)}
+                                            className="h-8 gap-1.5 rounded-lg text-xs"
+                                        >
+                                            <History className="size-3.5" />
+                                            Riwayat
                                         </Button>
                                         <Button
                                             type="button"
@@ -820,6 +874,88 @@ export function KuponSection({ kupons }: Props) {
                             Hapus
                         </Button>
                     </div>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog
+                open={riwayatKupon !== null}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setRiwayatKupon(null);
+                    }
+                }}
+            >
+                <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+                    <DialogHeader>
+                        <DialogTitle>
+                            Riwayat pemakaian {riwayatKupon?.kode}
+                        </DialogTitle>
+                        <DialogDescription>
+                            {riwayatKupon?.nama || 'Kupon'} — daftar pesanan
+                            yang memakai kupon ini.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    {riwayatLoading ? (
+                        <p className="py-6 text-center text-sm text-muted-foreground">
+                            Memuat riwayat...
+                        </p>
+                    ) : riwayatData.length === 0 ? (
+                        <p className="py-6 text-center text-sm text-muted-foreground">
+                            Belum ada pesanan yang memakai kupon ini.
+                        </p>
+                    ) : (
+                        <div className="overflow-x-auto rounded-xl border border-border/70">
+                            <table className="w-full text-left text-xs sm:text-sm">
+                                <thead className="border-b border-border/70 bg-muted/30">
+                                    <tr>
+                                        <th className="px-3 py-2 font-semibold">
+                                            Kode
+                                        </th>
+                                        <th className="px-3 py-2 font-semibold">
+                                            Tanggal
+                                        </th>
+                                        <th className="px-3 py-2 font-semibold">
+                                            Pelanggan
+                                        </th>
+                                        <th className="px-3 py-2 font-semibold">
+                                            Status
+                                        </th>
+                                        <th className="px-3 py-2 text-right font-semibold">
+                                            Total
+                                        </th>
+                                        <th className="px-3 py-2 text-right font-semibold">
+                                            Diskon
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-border/60">
+                                    {riwayatData.map((order) => (
+                                        <tr key={order.id}>
+                                            <td className="px-3 py-2 font-mono font-medium">
+                                                {order.kode}
+                                            </td>
+                                            <td className="px-3 py-2 text-muted-foreground">
+                                                {order.tanggal ?? '-'}
+                                            </td>
+                                            <td className="px-3 py-2">
+                                                {order.pelanggan || order.nama}
+                                            </td>
+                                            <td className="px-3 py-2">
+                                                {order.status_label}
+                                            </td>
+                                            <td className="px-3 py-2 text-right font-medium">
+                                                {formatRupiah(order.total)}
+                                            </td>
+                                            <td className="px-3 py-2 text-right text-emerald-700 dark:text-emerald-300">
+                                                {formatRupiah(order.diskon)}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
                 </DialogContent>
             </Dialog>
         </>

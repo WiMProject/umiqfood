@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Kupon;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\Pengumuman;
@@ -56,6 +57,12 @@ class UserDashboardController extends Controller
                 ->tampil()
                 ->take(6)
                 ->get(),
+            'kupons' => Kupon::query()
+                ->berlaku()
+                ->get()
+                ->filter(fn (Kupon $kupon) => $kupon->kuota === null || $kupon->jumlahPemakaian() < $kupon->kuota)
+                ->filter(fn (Kupon $kupon) => $kupon->jumlahPemakaianUser($user) < $kupon->maks_per_user)
+                ->values(),
             'stats' => [
                 'totalPesanan' => $user->orders()->count(),
                 'pesananAktif' => $user->orders()

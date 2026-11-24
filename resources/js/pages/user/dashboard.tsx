@@ -66,6 +66,7 @@ import { Separator } from '@/components/ui/separator';
 import type {
     CartItem,
     KeranjangRingkas,
+    Kupon,
     KuponPreview,
     MetodePembayaran,
     Order,
@@ -80,6 +81,7 @@ interface Props {
     payments: Payment[];
     activeOrder: Order | null;
     promos: Pengumuman[];
+    kupons: Kupon[];
     stats: {
         totalPesanan: number;
         pesananAktif: number;
@@ -185,6 +187,7 @@ export default function UserDashboard() {
         payments,
         activeOrder,
         promos,
+        kupons,
         stats,
         auth,
     } = usePage<Props>().props;
@@ -373,6 +376,11 @@ export default function UserDashboard() {
         } finally {
             setCekKuponProcessing(false);
         }
+    };
+
+    const terapkanLangsung = async (kode: string) => {
+        setDataKupon(kode);
+        await terapkanKupon();
     };
 
     const gantiTab = (value: TabKey) => {
@@ -1352,6 +1360,47 @@ export default function UserDashboard() {
                                                     </Button>
                                                 </div>
                                             )}
+
+                                            {!kuponPreview &&
+                                                kupons.length > 0 && (
+                                                    <div className="space-y-1.5">
+                                                        <p className="text-[11px] font-medium text-muted-foreground">
+                                                            Kupon tersedia:
+                                                        </p>
+                                                        <div className="flex flex-wrap gap-1.5">
+                                                            {kupons.map(
+                                                                (kupon) => (
+                                                                    <button
+                                                                        key={
+                                                                            kupon.id
+                                                                        }
+                                                                        type="button"
+                                                                        onClick={() =>
+                                                                            void terapkanLangsung(
+                                                                                kupon.kode,
+                                                                            )
+                                                                        }
+                                                                        className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50/70 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 transition hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 dark:hover:bg-emerald-950/70"
+                                                                    >
+                                                                        <TicketPercent className="size-3" />
+                                                                        {
+                                                                            kupon.kode
+                                                                        }
+                                                                        <span className="font-normal text-emerald-600/80 dark:text-emerald-400/80">
+                                                                            ·{' '}
+                                                                            {kupon.tipe ===
+                                                                            'persen'
+                                                                                ? `${kupon.nilai}%`
+                                                                                : formatRupiah(
+                                                                                      kupon.nilai,
+                                                                                  )}
+                                                                        </span>
+                                                                    </button>
+                                                                ),
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                )}
 
                                             {kuponError && (
                                                 <p className="text-xs text-rose-600 dark:text-rose-400">

@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Kupon;
+use App\Models\Order;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -56,6 +58,39 @@ class KuponController extends Controller
         $kupon->delete();
 
         return $this->toast('success', 'Kupon berhasil dihapus.');
+    }
+
+    /**
+     * Riwayat pemakaian kupon untuk audit.
+     */
+    public function riwayat(Kupon $kupon): JsonResponse
+    {
+        $orders = $kupon->orders()
+            ->with('user:id,name')
+            ->latest()
+            ->take(50)
+            ->get()
+            ->map(fn (Order $order): array => [
+                'id' => $order->id,
+                'kode' => $order->kode,
+                'tanggal' => $order->tanggal->format('d M Y'),
+                'nama' => $order->nama_pengambil,
+                'pelanggan' => $order->user?->name,
+                'status' => $order->status,
+                'status_label' => $order->status_label,
+                'subtotal' => $order->subtotal,
+                'diskon' => $order->diskon,
+                'total' => $order->total,
+            ]);
+
+        return response()->json([
+            'kupon' => [
+                'id' => $kupon->id,
+                'kode' => $kupon->kode,
+                'nama' => $kupon->nama,
+            ],
+            'orders' => $orders,
+        ]);
     }
 
     /**

@@ -82,6 +82,7 @@ Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
         Route::patch('/kupon/{kupon}', [AdminKuponController::class, 'update'])->name('kupon.update');
         Route::patch('/kupon/{kupon}/toggle', [AdminKuponController::class, 'toggleAktif'])->name('kupon.toggle');
         Route::delete('/kupon/{kupon}', [AdminKuponController::class, 'destroy'])->name('kupon.destroy');
+        Route::get('/kupon/{kupon}/riwayat', [AdminKuponController::class, 'riwayat'])->name('kupon.riwayat');
 
         Route::post('/faq', [AdminFaqController::class, 'store'])->name('faq.store');
         Route::patch('/faq/{faq}', [AdminFaqController::class, 'update'])->name('faq.update');
