@@ -19,6 +19,7 @@ import {
     Plus,
     QrCode,
     ReceiptText,
+    RotateCcw,
     ShoppingBag,
     Sparkles,
     Store,
@@ -1717,6 +1718,26 @@ export default function UserDashboard() {
                                                         }
                                                     </p>
                                                 </div>
+                                                {order.status === 'selesai' && (
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() =>
+                                                            router.post(
+                                                                `/pesanan/${order.id}/pesan-lagi`,
+                                                                {},
+                                                                {
+                                                                    preserveScroll: true,
+                                                                },
+                                                            )
+                                                        }
+                                                        className="h-9 gap-1 rounded-lg border-emerald-200 text-xs text-emerald-700 hover:bg-emerald-50 dark:border-emerald-900 dark:text-emerald-300 dark:hover:bg-emerald-950/40"
+                                                    >
+                                                        <RotateCcw className="size-3.5" />
+                                                        Pesan lagi
+                                                    </Button>
+                                                )}
                                                 <div className="flex items-center gap-1.5">
                                                     {order.status ===
                                                         'menunggu' && (

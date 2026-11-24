@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Kupon;
+use App\Models\CartItem;
+use App\Models\Masakan;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\Pengumuman;
@@ -101,5 +103,75 @@ class UserDashboardController extends Controller
         ]);
 
         return back();
+    }
+
+    /**
+     * Tambahkan item dari pesanan selesai ke keranjang (pesan lagi).
+     */
+    public function pesanLagi(Request $request, Order $order): RedirectResponse
+    {
+        abort_unless($order->user_id === $request->user()->id, 403);
+
+        if ($order->status !== Order::STATUS_SELESAI) {
+            Inertia::flash('toast', [
+                'type' => 'error',
+                'message' => 'Hanya pesanan selesai yang bisa dipesan ulang.',
+            ]);
+
+            return back();
+        }
+
+        $ditambahkan = 0;
+        $tidakTersedia = 0;
+
+        foreach ($order->items as $item) {
+            if (! $item->masakan_id) {
+                continue;
+            }
+
+            $masakan = Masakan::query()
+                ->where('id', $item->masakan_id)
+                ->where('tersedia', true)
+                ->first();
+
+            if (! $masakan) {
+                $tidakTersedia++;
+
+                continue;
+            }
+
+            $cartItem = CartItem::firstOrNew(
+                [
+                    'user_id' => $request->user()->id,
+                    'masakan_id' => $masakan->id,
+                ],
+                ['jumlah' => 0],
+            );
+
+            $cartItem->jumlah += (int) $item->jumlah;
+            $cartItem->save();
+            $ditambahkan++;
+        }
+
+        if ($ditambahkan === 0) {
+            Inertia::flash('toast', [
+                'type' => 'error',
+                'message' => 'Menu dari pesanan ini tidak tersedia lagi.',
+            ]);
+
+            return back();
+        }
+
+        $pesan = "{$ditambahkan} menu ditambahkan ke keranjang.";
+        if ($tidakTersedia > 0) {
+            $pesan .= " {$tidakTersedia} menu tidak tersedia lagi.";
+        }
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => $pesan,
+        ]);
+
+        return redirect()->route('user.dashboard', ['tab' => 'keranjang']);
     }
 }

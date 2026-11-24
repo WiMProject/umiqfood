@@ -349,7 +349,35 @@ export default function UserLayout({
                 </div>
             </header>
 
-            <main className="flex-1">{children}</main>
+            <main className="flex-1 pb-20 md:pb-0">{children}</main>
+
+            {/* Bottom navigation (mobile) */}
+            <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border/70 bg-background/95 px-2 py-1.5 backdrop-blur md:hidden">
+                <div className="mx-auto flex max-w-lg items-center justify-around">
+                    {navigasi.map((item) => (
+                        <Link
+                            key={item.label}
+                            href={item.href}
+                            className={cn(
+                                'relative flex flex-1 flex-col items-center gap-0.5 rounded-xl px-2 py-1.5 text-[10px] font-medium transition',
+                                item.aktif
+                                    ? 'text-emerald-700 dark:text-emerald-300'
+                                    : 'text-muted-foreground hover:text-foreground',
+                            )}
+                        >
+                            <span className="relative">
+                                <item.icon className="size-5" />
+                                {item.badge > 0 && (
+                                    <span className="absolute -top-1 -right-2 flex min-w-4 items-center justify-center rounded-full bg-emerald-600 px-1 text-[9px] font-bold text-white">
+                                        {item.badge > 99 ? '99+' : item.badge}
+                                    </span>
+                                )}
+                            </span>
+                            {item.label}
+                        </Link>
+                    ))}
+                </div>
+            </nav>
 
             <footer className="border-t border-border/70 bg-muted/30">
                 <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-4 py-6 text-sm text-muted-foreground sm:flex-row sm:px-6">

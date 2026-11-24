@@ -31,6 +31,7 @@ Route::middleware(['auth', 'verified', 'role:user'])->group(function () {
     // Dashboard user: ringkasan, keranjang, pesanan, pembayaran
     Route::get('/akun', [UserDashboardController::class, 'index'])->name('user.dashboard');
     Route::post('/pesanan/{order}/batal', [UserDashboardController::class, 'batal'])->name('pesanan.batal');
+    Route::post('/pesanan/{order}/pesan-lagi', [UserDashboardController::class, 'pesanLagi'])->name('pesanan.pesanLagi');
 
     // Ulasan menu (hanya setelah pesanan selesai)
     Route::post('/menu/{masakan}/ulasan', [ReviewController::class, 'store'])->name('ulasan.store');
