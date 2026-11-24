@@ -67,11 +67,35 @@ class HomeController extends Controller
             ->take(6)
             ->values();
 
+        $reorderMasakans = collect();
+
+        if ($request->user()) {
+            $masakanIds = OrderItem::query()
+                ->whereNotNull('masakan_id')
+                ->whereHas('order', fn ($query) => $query
+                    ->where('user_id', $request->user()->id)
+                    ->where('status', Order::STATUS_SELESAI))
+                ->pluck('masakan_id')
+                ->unique()
+                ->take(6)
+                ->all();
+
+            if ($masakanIds !== []) {
+                $reorderMasakans = Masakan::query()
+                    ->with(['kategori', 'fotos'])
+                    ->withPorsiTersedia()
+                    ->whereIn('id', $masakanIds)
+                    ->where('tersedia', true)
+                    ->get();
+            }
+        }
+
         return Inertia::render('welcome', [
             'masakans' => $this->katalog(12)->take(24)->get(),
             'heroMasakans' => $heroMasakans,
             'kategoris' => Kategori::withCount('masakans')->get(),
             'menuUnggulan' => $menuUnggulan,
+            'reorderMasakans' => $reorderMasakans,
             'promos' => Pengumuman::query()
                 ->with('kupon:id,kode,nama,tipe,nilai,maks_diskon,min_subtotal,aktif,mulai,selesai')
                 ->tampil()

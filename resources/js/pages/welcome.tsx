@@ -501,6 +501,7 @@ export default function Welcome() {
         heroMasakans,
         kategoris,
         menuUnggulan,
+        reorderMasakans,
         promos,
         faqs,
         pengaturanToko,
@@ -510,6 +511,7 @@ export default function Welcome() {
         heroMasakans: Masakan[];
         kategoris: Kategori[];
         menuUnggulan: Masakan[];
+        reorderMasakans: Masakan[];
         promos: Pengumuman[];
         faqs: Faq[];
         pengaturanToko: PengaturanToko;
@@ -544,6 +546,14 @@ export default function Welcome() {
         pengaturanToko?.jam_buka || pengaturanToko?.jam_tutup
             ? `${pengaturanToko.jam_buka ?? '—'} – ${pengaturanToko.jam_tutup ?? '—'}`
             : null;
+    const tersediaHariIni = heroMasakans.filter(
+        (menu) => (menu.porsi_tersedia ?? 0) > 0,
+    ).length;
+    const hampirHabis = heroMasakans.filter(
+        (menu) =>
+            (menu.porsi_tersedia ?? 0) > 0 && (menu.porsi_tersedia ?? 0) <= 3,
+    ).length;
+
     const adaInfoToko = Boolean(
         pengaturanToko?.alamat ||
         jamToko ||
@@ -1129,6 +1139,39 @@ export default function Welcome() {
                     </div>
                 </header>
 
+                {/* Banner promo aktif */}
+                {promos.length > 0 && promos[0].kode_kupon_aktif && (
+                    <div className="border-b border-emerald-200/60 bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-2.5 text-white sm:px-6 lg:px-8">
+                        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 text-sm font-medium">
+                                <Megaphone className="size-4 shrink-0" />
+                                <span className="line-clamp-1">
+                                    {promos[0].judul}
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span className="rounded-full bg-white/20 px-2.5 py-0.5 font-mono text-xs font-bold">
+                                    {promos[0].kode_kupon_aktif}
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        void salinKode(
+                                            promos[0]
+                                                .kode_kupon_aktif as string,
+                                        )
+                                    }
+                                    className="rounded-full bg-white/20 px-2.5 py-0.5 text-xs font-semibold transition hover:bg-white/30"
+                                >
+                                    {kodeTersalin === promos[0].kode_kupon_aktif
+                                        ? 'Tersalin'
+                                        : 'Salin'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* Hero */}
                 <HeroParallax
                     products={heroProducts}
@@ -1226,6 +1269,10 @@ export default function Welcome() {
                                         value: totalUlasan,
                                         label: 'Ulasan',
                                     },
+                                    {
+                                        value: tersediaHariIni,
+                                        label: 'Tersedia',
+                                    },
                                 ].map((stat) => (
                                     <div
                                         key={stat.label}
@@ -1240,6 +1287,13 @@ export default function Welcome() {
                                     </div>
                                 ))}
                             </dl>
+                            {hampirHabis > 0 && (
+                                <p className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-medium text-amber-800 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
+                                    <Flame className="size-3.5" />
+                                    {hampirHabis} menu hampir habis — pesan
+                                    sekarang
+                                </p>
+                            )}
                         </div>
                     }
                 />
@@ -1316,6 +1370,41 @@ export default function Welcome() {
 
                             <div className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                                 {menuUnggulan.map((menu) => (
+                                    <MenuCard
+                                        key={menu.id}
+                                        item={menu}
+                                        onDetail={setDetail}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    </section>
+                )}
+
+                {/* Pesan lagi (user login) */}
+                {auth.user && reorderMasakans.length > 0 && (
+                    <section className="scroll-mt-24 px-4 py-14 sm:px-6 lg:px-8">
+                        <div className="mx-auto max-w-7xl">
+                            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                                <SectionHeading
+                                    eyebrow="Pesan lagi"
+                                    title="Menu favoritmu"
+                                    description="Pesan ulang menu yang pernah kamu ambil sebelumnya."
+                                />
+                                <Button
+                                    asChild
+                                    variant="outline"
+                                    className="h-10 shrink-0 gap-2 self-start rounded-xl sm:self-auto"
+                                >
+                                    <Link href="/akun?tab=pesanan">
+                                        Riwayat pesanan
+                                        <ArrowRight className="size-4" />
+                                    </Link>
+                                </Button>
+                            </div>
+
+                            <div className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                                {reorderMasakans.map((menu) => (
                                     <MenuCard
                                         key={menu.id}
                                         item={menu}
