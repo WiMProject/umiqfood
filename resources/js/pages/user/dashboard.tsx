@@ -1933,6 +1933,17 @@ export default function UserDashboard() {
                                                     label={payment.status_label}
                                                     className="mt-1"
                                                 />
+                                                {payment.order?.id && (
+                                                    <a
+                                                        href={`/pesanan/${payment.order.id}/struk`}
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                        className="mt-1 inline-flex items-center gap-1 text-[10px] font-medium text-emerald-700 hover:underline dark:text-emerald-300"
+                                                    >
+                                                        <ReceiptText className="size-3" />
+                                                        Struk
+                                                    </a>
+                                                )}
                                             </div>
                                         </div>
                                     ))}
