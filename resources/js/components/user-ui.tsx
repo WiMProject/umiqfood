@@ -281,10 +281,13 @@ export function OrderProgress({
     );
 
     const posisiAman = Math.max(0, posisi);
+    // Posisi pusat setiap bulatan (4 kolom): 12.5%, 37.5%, 62.5%, 87.5%.
+    // Saat selesai, bar penuh (100%).
+    const pusatBulatan = [12.5, 37.5, 62.5, 87.5];
     const progres =
-        langkahPesanan.length > 1
-            ? (posisiAman / (langkahPesanan.length - 1)) * 100
-            : 0;
+        posisiAman >= langkahPesanan.length - 1
+            ? 100
+            : (pusatBulatan[posisiAman] ?? 0);
 
     return (
         <div className={cn('w-full', ringkas ? '' : 'space-y-2')}>
