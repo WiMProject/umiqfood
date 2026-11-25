@@ -94,18 +94,18 @@ export function QueueBadge({
     return (
         <span
             className={cn(
-                'flex shrink-0 flex-col items-center justify-center rounded-lg bg-gradient-to-br from-emerald-600 to-teal-700 px-1 py-1 text-white shadow-sm shadow-emerald-600/20',
-                small ? 'min-h-10 min-w-12' : 'min-h-12 min-w-14',
+                'flex shrink-0 flex-col items-center justify-center gap-0.5 rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-700 px-4 py-2.5 text-white shadow-md ring-1 shadow-emerald-600/25 ring-white/10',
+                small ? 'min-w-[3.5rem]' : 'min-w-[4.25rem]',
                 className,
             )}
         >
-            <span className="text-[9px] leading-none font-semibold tracking-[0.08em] whitespace-nowrap text-emerald-100 uppercase">
+            <span className="text-[9px] leading-none font-semibold tracking-[0.12em] whitespace-nowrap text-emerald-100/90 uppercase">
                 Antrian
             </span>
             <span
                 className={cn(
-                    'leading-none font-extrabold',
-                    small ? 'text-lg' : 'text-xl',
+                    'leading-none font-extrabold tracking-tight',
+                    small ? 'text-lg' : 'text-2xl',
                 )}
             >
                 {String(nomor).padStart(3, '0')}
@@ -287,30 +287,36 @@ export function OrderProgress({
             : 0;
 
     return (
-        <div className={cn('relative', ringkas ? '' : 'pt-1')}>
-            {/* Track */}
-            {!ringkas && (
-                <>
-                    <div
-                        className={cn(
-                            'absolute top-4 right-0 left-0 h-1 -translate-y-1/2 rounded-full',
-                            tone === 'dark' ? 'bg-white/15' : 'bg-muted',
-                        )}
-                        aria-hidden="true"
-                    />
-                    <div
-                        className={cn(
-                            'absolute top-4 left-0 h-1 -translate-y-1/2 rounded-full transition-all duration-500',
-                            tone === 'dark' ? 'bg-white' : 'bg-emerald-600',
-                        )}
-                        style={{ width: `${progres}%` }}
-                        aria-hidden="true"
-                    />
-                </>
-            )}
+        <div className={cn('w-full', ringkas ? '' : 'space-y-2')}>
+            {/* Track bar */}
             <div
                 className={cn(
-                    'relative grid grid-cols-4',
+                    'relative h-2 w-full overflow-hidden rounded-full',
+                    tone === 'dark' ? 'bg-white/15' : 'bg-muted',
+                )}
+            >
+                <div
+                    className={cn(
+                        'h-full rounded-full transition-all duration-700 ease-out',
+                        tone === 'dark'
+                            ? 'bg-gradient-to-r from-emerald-300 to-white'
+                            : 'bg-gradient-to-r from-emerald-500 to-teal-500',
+                    )}
+                    style={{ width: `${progres}%` }}
+                />
+                {progres > 0 && progres < 100 && (
+                    <div
+                        className="absolute inset-y-0 w-1/3 animate-shimmer bg-gradient-to-r from-transparent via-white/40 to-transparent"
+                        style={{ left: `${Math.max(0, progres - 15)}%` }}
+                        aria-hidden="true"
+                    />
+                )}
+            </div>
+
+            {/* Langkah */}
+            <div
+                className={cn(
+                    'grid grid-cols-4 pt-3',
                     ringkas ? 'gap-0.5' : 'gap-1',
                 )}
             >
@@ -321,28 +327,31 @@ export function OrderProgress({
                     return (
                         <div
                             key={langkah.status}
-                            className="flex flex-col items-center gap-1 text-center"
+                            className={cn(
+                                'flex flex-col items-center gap-1 text-center',
+                                aktif && 'scale-[1.02]',
+                            )}
                         >
                             <span
                                 className={cn(
-                                    'relative z-10 flex size-8 items-center justify-center rounded-full border-2 transition sm:size-9',
+                                    'flex size-6 items-center justify-center rounded-full border transition sm:size-7',
                                     tone === 'dark'
                                         ? selesai
-                                            ? 'border-white bg-white text-emerald-700 shadow-lg shadow-emerald-900/20'
+                                            ? 'border-white bg-white text-emerald-700'
                                             : 'border-white/25 bg-white/10 text-white/60'
                                         : selesai
-                                          ? 'border-emerald-600 bg-emerald-600 text-white shadow-md shadow-emerald-600/25'
+                                          ? 'border-emerald-600 bg-emerald-600 text-white'
                                           : 'border-border bg-card text-muted-foreground',
                                     aktif &&
                                         (tone === 'dark'
-                                            ? 'scale-110 ring-4 ring-white/25'
-                                            : 'scale-110 ring-4 ring-emerald-500/20'),
+                                            ? 'ring-2 ring-white/40'
+                                            : 'ring-2 ring-emerald-500/30'),
                                 )}
                             >
                                 {selesai && !aktif ? (
-                                    <CheckCircle2 className="size-4 sm:size-4.5" />
+                                    <CheckCircle2 className="size-3.5 sm:size-4" />
                                 ) : (
-                                    <langkah.icon className="size-4 sm:size-4.5" />
+                                    <langkah.icon className="size-3.5 sm:size-4" />
                                 )}
                             </span>
                             {!ringkas && (
