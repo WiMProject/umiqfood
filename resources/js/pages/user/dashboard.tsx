@@ -192,6 +192,10 @@ export default function UserDashboard() {
         stats,
         auth,
     } = usePage<Props>().props;
+    const ringkasanOrder =
+        activeOrder ??
+        orders.find((order) => order.status === 'selesai') ??
+        null;
 
     const [activeTab, setActiveTab] = useState<TabKey>(
         TAB_VALID.includes(tab as TabKey) ? (tab as TabKey) : 'ringkasan',
@@ -619,24 +623,27 @@ export default function UserDashboard() {
 
                         <div className="mt-6 grid gap-5 lg:grid-cols-[1.35fr_1fr]">
                             <div className="space-y-5">
-                                {activeOrder ? (
+                                {ringkasanOrder ? (
                                     <Card className="overflow-hidden border-emerald-200/60 p-0 shadow-lg shadow-emerald-950/5 dark:border-emerald-900/60">
                                         <div className="relative overflow-hidden bg-gradient-to-br from-emerald-600 via-emerald-600 to-teal-700 px-5 py-5 text-white sm:px-6">
                                             <div className="pointer-events-none absolute -top-10 -right-6 size-40 rounded-full bg-white/10 blur-2xl" />
                                             <div className="relative flex items-start justify-between gap-4">
                                                 <div>
                                                     <p className="text-[11px] font-semibold tracking-[0.18em] text-emerald-100 uppercase">
-                                                        Pesanan aktif
+                                                        {ringkasanOrder.status ===
+                                                        'selesai'
+                                                            ? 'Pesanan selesai'
+                                                            : 'Pesanan aktif'}
                                                     </p>
                                                     <h2 className="mt-1 text-lg font-bold">
                                                         {
-                                                            activeOrder.status_label
+                                                            ringkasanOrder.status_label
                                                         }
                                                     </h2>
                                                     <p className="mt-0.5 text-xs text-emerald-50/80">
-                                                        {activeOrder.kode} ·{' '}
+                                                        {ringkasanOrder.kode} ·{' '}
                                                         {
-                                                            activeOrder.tanggal_format
+                                                            ringkasanOrder.tanggal_format
                                                         }
                                                     </p>
                                                 </div>
@@ -646,7 +653,7 @@ export default function UserDashboard() {
                                                     </p>
                                                     <p className="text-2xl font-extrabold tracking-tight">
                                                         {
-                                                            activeOrder.antrian_format
+                                                            ringkasanOrder.antrian_format
                                                         }
                                                     </p>
                                                 </div>
@@ -654,7 +661,9 @@ export default function UserDashboard() {
 
                                             <div className="relative mt-5">
                                                 <OrderProgress
-                                                    status={activeOrder.status}
+                                                    status={
+                                                        ringkasanOrder.status
+                                                    }
                                                     tone="dark"
                                                 />
                                             </div>
@@ -666,20 +675,22 @@ export default function UserDashboard() {
                                                     <Clock className="size-4 text-emerald-600 dark:text-emerald-400" />
                                                     Estimasi siap{' '}
                                                     {formatJam(
-                                                        activeOrder.estimasi_siap_at,
+                                                        ringkasanOrder.estimasi_siap_at,
                                                     )}
                                                 </div>
                                                 <div className="flex items-center gap-2 text-muted-foreground">
                                                     <Store className="size-4 text-emerald-600 dark:text-emerald-400" />
                                                     Ambil oleh{' '}
-                                                    {activeOrder.nama_pengambil}
+                                                    {
+                                                        ringkasanOrder.nama_pengambil
+                                                    }
                                                 </div>
                                             </div>
 
                                             <Separator />
 
                                             <div className="space-y-2">
-                                                {activeOrder.items.map(
+                                                {ringkasanOrder.items.map(
                                                     (item) => (
                                                         <div
                                                             key={item.id}
@@ -705,13 +716,15 @@ export default function UserDashboard() {
                                                     <span className="text-xs font-normal text-muted-foreground">
                                                         (
                                                         {
-                                                            activeOrder.metode_pembayaran_label
+                                                            ringkasanOrder.metode_pembayaran_label
                                                         }
                                                         )
                                                     </span>
                                                 </span>
                                                 <span className="font-bold">
-                                                    {activeOrder.total_format}
+                                                    {
+                                                        ringkasanOrder.total_format
+                                                    }
                                                 </span>
                                             </div>
 
@@ -726,7 +739,7 @@ export default function UserDashboard() {
                                                     Lihat status lengkap
                                                     <ArrowRight className="size-4" />
                                                 </Button>
-                                                {activeOrder.status ===
+                                                {ringkasanOrder.status ===
                                                     'menunggu' && (
                                                     <AlertDialog>
                                                         <AlertDialogTrigger
@@ -762,7 +775,7 @@ export default function UserDashboard() {
                                                                 <AlertDialogAction
                                                                     onClick={() =>
                                                                         router.post(
-                                                                            `/pesanan/${activeOrder.id}/batal`,
+                                                                            `/pesanan/${ringkasanOrder.id}/batal`,
                                                                             {},
                                                                             {
                                                                                 preserveScroll: true,
