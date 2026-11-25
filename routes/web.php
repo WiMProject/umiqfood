@@ -18,8 +18,14 @@ use App\Http\Controllers\KeranjangController;
 use App\Http\Controllers\KuponController;
 use App\Http\Controllers\MasakanController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\StrukController;
 use App\Http\Controllers\UserDashboardController;
 use Illuminate\Support\Facades\Route;
+
+// Struk pesanan (admin & pemilik pesanan)
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/pesanan/{order}/struk', [StrukController::class, 'show'])->name('pesanan.struk');
+});
 
 // Halaman depan (bisa diakses tanpa login)
 Route::get('/', [HomeController::class, 'welcome'])->name('welcome');

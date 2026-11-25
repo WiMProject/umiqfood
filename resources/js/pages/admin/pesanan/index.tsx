@@ -11,6 +11,7 @@ import {
     PackageCheck,
     Phone,
     QrCode,
+    ReceiptText,
     Search,
     Store,
     XCircle,
@@ -408,6 +409,21 @@ export default function AdminPesananIndex({ orders, stats }: Props) {
                                     </div>
 
                                     <div className="flex flex-wrap items-center gap-2 border-t border-border/70 pt-3">
+                                        <Button
+                                            asChild
+                                            variant="outline"
+                                            size="sm"
+                                            className="h-9 gap-1.5 rounded-lg"
+                                        >
+                                            <a
+                                                href={`/pesanan/${order.id}/struk`}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                            >
+                                                <ReceiptText className="size-3.5" />
+                                                Struk
+                                            </a>
+                                        </Button>
                                         <Button
                                             asChild
                                             variant="outline"

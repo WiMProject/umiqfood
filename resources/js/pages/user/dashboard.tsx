@@ -2047,6 +2047,21 @@ export default function UserDashboard() {
                                             'Pesanan dibatalkan dan porsi dikembalikan.'}
                                     </p>
                                 </div>
+
+                                <Button
+                                    asChild
+                                    variant="outline"
+                                    className="h-9 w-full gap-1.5 rounded-xl text-xs"
+                                >
+                                    <a
+                                        href={`/pesanan/${detail.id}/struk`}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                    >
+                                        <ReceiptText className="size-3.5" />
+                                        Cetak struk
+                                    </a>
+                                </Button>
                             </div>
                         </>
                     )}
