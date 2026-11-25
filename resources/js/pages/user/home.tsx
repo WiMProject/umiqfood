@@ -2,6 +2,7 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 import {
     ArrowRight,
     ArrowUpDown,
+    Banknote,
     BadgeCheck,
     CheckCircle2,
     ChefHat,
@@ -10,6 +11,7 @@ import {
     Clock,
     Flame,
     MapPin,
+    MessageCircle,
     MessageSquareQuote,
     Minus,
     PackageCheck,
@@ -48,7 +50,13 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
-import type { Kategori, KeranjangRingkas, Masakan, Review } from '@/types';
+import type {
+    Kategori,
+    KeranjangRingkas,
+    Masakan,
+    PengaturanToko,
+    Review,
+} from '@/types';
 
 interface Props {
     auth: {
@@ -63,6 +71,7 @@ interface Props {
     keranjang: KeranjangRingkas;
     pesananAktif: number;
     menuSelesai: number[];
+    pengaturanToko: PengaturanToko;
     errors?: {
         ulasan?: string;
     };
@@ -128,6 +137,7 @@ export default function UserHome() {
         keranjang,
         pesananAktif,
         menuSelesai,
+        pengaturanToko,
         errors,
     } = usePage<Props>().props;
 
@@ -763,7 +773,7 @@ export default function UserHome() {
                         }
                     />
 
-                    <div className="mt-6 grid gap-3 sm:grid-cols-3">
+                    <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                         {[
                             {
                                 nomor: '1',
@@ -774,22 +784,28 @@ export default function UserHome() {
                             {
                                 nomor: '2',
                                 icon: ChefHat,
-                                judul: 'Pantau antrian',
-                                detail: 'Lihat status masakan dari dapur.',
+                                judul: 'Dapur masak',
+                                detail: 'Pantau status masakan real-time.',
                             },
                             {
                                 nomor: '3',
                                 icon: PackageCheck,
-                                judul: 'Ambil di outlet',
-                                detail: 'Tunjukkan kode pesanan ke kasir.',
+                                judul: 'Siap diambil',
+                                detail: 'Notifikasi saat pesanan siap.',
+                            },
+                            {
+                                nomor: '4',
+                                icon: Banknote,
+                                judul: 'Bayar di kasir',
+                                detail: 'Tunai atau QRIS saat ambil.',
                             },
                         ].map((langkah, index) => (
                             <div
                                 key={langkah.nomor}
-                                className="relative rounded-2xl border border-border/70 bg-card/80 p-4"
+                                className="relative rounded-2xl border border-border/70 bg-card/80 p-4 transition hover:border-emerald-300/60 hover:shadow-md dark:hover:border-emerald-800"
                             >
-                                {index < 2 && (
-                                    <ChevronRight className="absolute top-1/2 -right-3.5 hidden size-5 -translate-y-1/2 text-emerald-500/60 sm:block" />
+                                {index < 3 && (
+                                    <ChevronRight className="absolute top-1/2 -right-3.5 hidden size-5 -translate-y-1/2 text-emerald-500/60 lg:block" />
                                 )}
                                 <div className="flex items-center gap-3">
                                     <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-sm">
@@ -808,6 +824,56 @@ export default function UserHome() {
                             </div>
                         ))}
                     </div>
+
+                    {(pengaturanToko?.alamat ||
+                        pengaturanToko?.jam_buka ||
+                        pengaturanToko?.maps_url ||
+                        pengaturanToko?.whatsapp) && (
+                        <div className="mt-5 flex flex-wrap items-center gap-2 rounded-2xl border border-emerald-200/60 bg-emerald-50/60 px-4 py-3 text-xs text-emerald-900 dark:border-emerald-900/60 dark:bg-emerald-950/25 dark:text-emerald-200">
+                            {pengaturanToko?.alamat && (
+                                <span className="inline-flex items-center gap-1.5">
+                                    <MapPin className="size-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                                    {pengaturanToko.alamat}
+                                </span>
+                            )}
+                            {pengaturanToko?.jam_buka && (
+                                <span className="inline-flex items-center gap-1.5">
+                                    <Clock className="size-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                                    {pengaturanToko.jam_buka}
+                                    {pengaturanToko.jam_tutup
+                                        ? ` – ${pengaturanToko.jam_tutup}`
+                                        : ''}
+                                    {pengaturanToko.hari_tutup
+                                        ? ` · Tutup ${pengaturanToko.hari_tutup}`
+                                        : ''}
+                                </span>
+                            )}
+                            <div className="ml-auto flex flex-wrap gap-2">
+                                {pengaturanToko?.maps_url && (
+                                    <a
+                                        href={pengaturanToko.maps_url}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="inline-flex items-center gap-1 rounded-full bg-white/70 px-2.5 py-1 font-medium text-emerald-700 transition hover:bg-white dark:bg-emerald-950/60 dark:text-emerald-300 dark:hover:bg-emerald-950"
+                                    >
+                                        <MapPin className="size-3" />
+                                        Maps
+                                    </a>
+                                )}
+                                {pengaturanToko?.whatsapp && (
+                                    <a
+                                        href={`https://wa.me/${pengaturanToko.whatsapp.replace(/[^0-9]/g, '').replace(/^0/, '62')}`}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="inline-flex items-center gap-1 rounded-full bg-white/70 px-2.5 py-1 font-medium text-emerald-700 transition hover:bg-white dark:bg-emerald-950/60 dark:text-emerald-300 dark:hover:bg-emerald-950"
+                                    >
+                                        <MessageCircle className="size-3" />
+                                        WhatsApp
+                                    </a>
+                                )}
+                            </div>
+                        </div>
+                    )}
                 </section>
             </div>
 

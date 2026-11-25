@@ -89,10 +89,13 @@ export default function UserLayout({
 
     return (
         <div className="flex min-h-screen flex-col bg-background text-foreground">
-            <header className="sticky top-0 z-40 border-b border-border/70 bg-background/85 backdrop-blur-xl">
-                <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
-                    <Link href="/" className="flex items-center gap-2.5">
-                        <span className="flex size-9 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-sm shadow-emerald-600/30">
+            <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
+                <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
+                    <Link
+                        href="/"
+                        className="group flex shrink-0 items-center gap-2.5"
+                    >
+                        <span className="flex size-9 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-md shadow-emerald-600/30 transition group-hover:scale-105 group-hover:shadow-emerald-600/40">
                             <UtensilsCrossed className="size-4.5" />
                         </span>
                         <span className="text-lg font-extrabold tracking-tight">
@@ -103,16 +106,16 @@ export default function UserLayout({
                         </span>
                     </Link>
 
-                    <nav className="hidden items-center gap-1 md:flex">
+                    <nav className="hidden items-center gap-1 rounded-full border border-border/60 bg-muted/40 p-1 md:flex">
                         {navigasi.map((item) => (
                             <Link
                                 key={item.label}
                                 href={item.href}
                                 className={cn(
-                                    'relative flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition',
+                                    'relative flex items-center gap-2 rounded-full px-3.5 py-1.5 text-sm font-medium transition-all',
                                     item.aktif
-                                        ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300'
-                                        : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                                        ? 'bg-background text-emerald-700 shadow-sm dark:bg-card dark:text-emerald-300'
+                                        : 'text-muted-foreground hover:text-foreground',
                                 )}
                             >
                                 <item.icon className="size-4" />
@@ -149,10 +152,10 @@ export default function UserLayout({
                             <DropdownMenuTrigger asChild>
                                 <button
                                     type="button"
-                                    className="hidden items-center gap-2 rounded-full border border-border p-1 pr-3 transition hover:bg-muted md:flex"
+                                    className="hidden items-center gap-2 rounded-full border border-border/70 bg-card/60 p-1 pr-3 shadow-sm transition hover:bg-muted md:flex"
                                 >
-                                    <Avatar className="size-8">
-                                        <AvatarFallback className="bg-emerald-600 text-xs font-semibold text-white">
+                                    <Avatar className="size-8 ring-2 ring-emerald-500/20">
+                                        <AvatarFallback className="bg-gradient-to-br from-emerald-500 to-teal-600 text-xs font-semibold text-white">
                                             {inisial}
                                         </AvatarFallback>
                                     </Avatar>

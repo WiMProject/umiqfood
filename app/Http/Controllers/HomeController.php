@@ -40,6 +40,7 @@ class HomeController extends Controller
             'masakans' => $masakans,
             'kategoris' => $kategoris,
             'menuSelesai' => $menuSelesai,
+            'pengaturanToko' => PengaturanToko::current(),
         ]);
     }
 
