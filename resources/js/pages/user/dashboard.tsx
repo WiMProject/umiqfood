@@ -1924,24 +1924,23 @@ export default function UserDashboard() {
                                                 </p>
                                             </div>
 
-                                            <div className="text-right">
+                                            <div className="flex flex-col items-end gap-1.5">
                                                 <p className="text-sm font-bold">
                                                     {payment.jumlah_format}
                                                 </p>
                                                 <PaymentStatusBadge
                                                     status={payment.status}
                                                     label={payment.status_label}
-                                                    className="mt-1"
                                                 />
                                                 {payment.order?.id && (
                                                     <a
                                                         href={`/pesanan/${payment.order.id}/struk`}
                                                         target="_blank"
                                                         rel="noreferrer"
-                                                        className="mt-1 inline-flex items-center gap-1 text-[10px] font-medium text-emerald-700 hover:underline dark:text-emerald-300"
+                                                        className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-[10px] font-semibold text-emerald-700 transition hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300 dark:hover:bg-emerald-900/60"
                                                     >
                                                         <ReceiptText className="size-3" />
-                                                        Struk
+                                                        Lihat struk
                                                     </a>
                                                 )}
                                             </div>
