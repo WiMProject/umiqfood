@@ -7,6 +7,7 @@ import {
     Clock,
     Coins,
     MapPin,
+    MessageCircle,
     PackageCheck,
     Phone,
     QrCode,
@@ -96,6 +97,34 @@ function formatWaktu(value: string | null): string {
 
 function formatRupiah(value: number): string {
     return 'Rp ' + new Intl.NumberFormat('id-ID').format(value);
+}
+
+function waUrl(order: Order): string {
+    const nomor = (order.no_hp ?? '').replace(/[^0-9]/g, '');
+    const wa = nomor.startsWith('0')
+        ? `62${nomor.slice(1)}`
+        : nomor.startsWith('62')
+          ? nomor
+          : `62${nomor}`;
+
+    const pesan = (() => {
+        switch (order.status) {
+            case 'menunggu':
+                return `Halo ${order.nama_pengambil}, pesanan ${order.kode} (antrian ${order.antrian_format}) sudah kami terima. Estimasi siap ${order.estimasi_siap_at ? new Date(order.estimasi_siap_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-'}. Terima kasih, UmiqFood.`;
+            case 'dimasak':
+                return `Halo ${order.nama_pengambil}, pesanan ${order.kode} sedang dimasak. Kami kabari lagi saat siap diambil. UmiqFood.`;
+            case 'siap':
+                return `Halo ${order.nama_pengambil}, pesanan ${order.kode} sudah SIAP diambil di outlet UmiqFood. Tunjukkan kode pesanan saat ambil. Terima kasih!`;
+            case 'selesai':
+                return `Halo ${order.nama_pengambil}, terima kasih sudah mengambil pesanan ${order.kode}. Sampai jumpa lagi di UmiqFood!`;
+            case 'dibatalkan':
+                return `Halo ${order.nama_pengambil}, pesanan ${order.kode} dibatalkan. Porsi dikembalikan ke menu. Maaf atas ketidaknyamanan. UmiqFood.`;
+            default:
+                return `Halo ${order.nama_pengambil}, update pesanan ${order.kode}: ${order.status_label}. UmiqFood.`;
+        }
+    })();
+
+    return `https://wa.me/${wa}?text=${encodeURIComponent(pesan)}`;
 }
 
 export default function AdminPesananIndex({ orders, stats }: Props) {
@@ -379,6 +408,21 @@ export default function AdminPesananIndex({ orders, stats }: Props) {
                                     </div>
 
                                     <div className="flex flex-wrap items-center gap-2 border-t border-border/70 pt-3">
+                                        <Button
+                                            asChild
+                                            variant="outline"
+                                            size="sm"
+                                            className="h-9 gap-1.5 rounded-lg border-emerald-200 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-900 dark:text-emerald-300 dark:hover:bg-emerald-950/40"
+                                        >
+                                            <a
+                                                href={waUrl(order)}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                            >
+                                                <MessageCircle className="size-3.5" />
+                                                Kirim WA
+                                            </a>
+                                        </Button>
                                         {order.status === 'menunggu' && (
                                             <Button
                                                 size="sm"
