@@ -27,7 +27,7 @@ class StokMutasiController extends Controller
             ->with([
                 'bahanBaku:id,nama,satuan',
                 'masakan:id,nama',
-                'order:id,kode',
+                'order:id,kode,tanggal',
                 'user:id,name',
             ])
             ->when($request->filled('dari'), fn ($query) => $query

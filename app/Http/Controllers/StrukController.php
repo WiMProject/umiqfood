@@ -9,7 +9,7 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class StrukController extends Controller
 {
-    public function show(Request $request, Order $order)
+    public function show(Request $request, Order $order): \Illuminate\Contracts\View\View
     {
         $user = $request->user();
 
