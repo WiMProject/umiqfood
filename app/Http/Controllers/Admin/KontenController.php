@@ -88,11 +88,34 @@ class KontenController extends Controller
             'maps_url' => ['nullable', 'url', 'max:2048'],
             'catatan_pickup' => ['nullable', 'string', 'max:1000'],
             'catatan_pembayaran' => ['nullable', 'string', 'max:1000'],
+            'hero_badge' => ['nullable', 'string', 'max:100'],
+            'hero_judul' => ['nullable', 'string', 'max:150'],
+            'hero_subjudul' => ['nullable', 'string', 'max:255'],
+            'hero_cta_text' => ['nullable', 'string', 'max:60'],
+            'hero_cta_url' => ['nullable', 'string', 'max:255'],
         ]);
 
         PengaturanToko::current()->update($validated);
 
         return $this->toast('success', 'Profil toko berhasil disimpan.');
+    }
+
+    /**
+     * Simpan konten hero (badge, judul, subjudul, CTA) halaman utama.
+     */
+    public function updateHero(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'hero_badge' => ['nullable', 'string', 'max:100'],
+            'hero_judul' => ['nullable', 'string', 'max:150'],
+            'hero_subjudul' => ['nullable', 'string', 'max:255'],
+            'hero_cta_text' => ['nullable', 'string', 'max:60'],
+            'hero_cta_url' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        PengaturanToko::current()->update($validated);
+
+        return $this->toast('success', 'Konten hero berhasil disimpan.');
     }
 
     /**

@@ -1182,20 +1182,27 @@ export default function Welcome() {
                                 className="gap-2 border-emerald-200 bg-emerald-50 px-3 py-1.5 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/60 dark:text-emerald-300"
                             >
                                 <ChefHat className="size-3.5" />
-                                Masakan rumahan, rasa juara
+                                {pengaturanToko.hero_badge ||
+                                    'Masakan rumahan, rasa juara'}
                             </Badge>
 
                             <h1 className="mt-5 max-w-3xl text-4xl leading-[1.08] font-extrabold tracking-tight text-balance text-foreground sm:text-5xl xl:text-6xl">
-                                Lapar? Pesan masakan{' '}
-                                <span className="text-emerald-600 dark:text-emerald-400">
-                                    favoritmu
-                                </span>{' '}
-                                di UmiqFood
+                                {pengaturanToko.hero_judul ? (
+                                    pengaturanToko.hero_judul
+                                ) : (
+                                    <>
+                                        Lapar? Pesan masakan{' '}
+                                        <span className="text-emerald-600 dark:text-emerald-400">
+                                            favoritmu
+                                        </span>{' '}
+                                        di UmiqFood
+                                    </>
+                                )}
                             </h1>
 
                             <p className="mt-4 max-w-xl text-base leading-relaxed text-pretty text-muted-foreground sm:text-lg">
-                                Pilih menu, pesan dalam hitungan menit, nikmati
-                                tanpa repot masak. Semudah itu.
+                                {pengaturanToko.hero_subjudul ||
+                                    'Pilih menu, pesan dalam hitungan menit, nikmati tanpa repot masak. Semudah itu.'}
                             </p>
 
                             <form
@@ -1233,8 +1240,14 @@ export default function Welcome() {
                                     asChild
                                     className="h-10 rounded-xl bg-emerald-600 px-5 text-white shadow-md shadow-emerald-600/20 hover:bg-emerald-700"
                                 >
-                                    <a href="#menu">
-                                        Lihat menu
+                                    <a
+                                        href={
+                                            pengaturanToko.hero_cta_url ||
+                                            '#menu'
+                                        }
+                                    >
+                                        {pengaturanToko.hero_cta_text ||
+                                            'Lihat menu'}
                                         <ArrowRight className="size-4" />
                                     </a>
                                 </Button>

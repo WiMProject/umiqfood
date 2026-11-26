@@ -78,6 +78,7 @@ Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
     // Manajemen konten halaman utama: profil toko, promo, kupon, FAQ, unggulan
     Route::get('/konten', [AdminKontenController::class, 'index'])->name('konten.index');
     Route::put('/konten/toko', [AdminKontenController::class, 'updateToko'])->name('konten.toko.update');
+Route::put('/konten/hero', [AdminKontenController::class, 'updateHero'])->name('konten.hero.update');
     Route::patch('/konten/unggulan/{masakan}', [AdminKontenController::class, 'toggleUnggulan'])->name('konten.unggulan.update');
 
     Route::prefix('konten')->name('konten.')->group(function () {

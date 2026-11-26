@@ -18,6 +18,11 @@ class PengaturanToko extends Model
         'maps_url',
         'catatan_pickup',
         'catatan_pembayaran',
+        'hero_badge',
+        'hero_judul',
+        'hero_subjudul',
+        'hero_cta_text',
+        'hero_cta_url',
     ];
 
     /**

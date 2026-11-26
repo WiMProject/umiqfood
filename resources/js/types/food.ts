@@ -197,6 +197,11 @@ export interface PengaturanToko {
     maps_url: string | null;
     catatan_pickup: string | null;
     catatan_pembayaran: string | null;
+    hero_badge: string | null;
+    hero_judul: string | null;
+    hero_subjudul: string | null;
+    hero_cta_text: string | null;
+    hero_cta_url: string | null;
 }
 
 export interface KuponPreview {

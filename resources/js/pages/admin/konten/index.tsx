@@ -15,6 +15,7 @@ import type { Faq, Kupon, Masakan, PengaturanToko, Pengumuman } from '@/types';
 
 import { FaqSection } from './faq-section';
 import { KuponSection } from './kupon-section';
+import { HeroSection } from './hero-section';
 import { ProfilSection } from './profil-section';
 import { PromoSection } from './promo-section';
 import { UnggulanSection } from './unggulan-section';
@@ -34,7 +35,7 @@ interface Props {
     };
 }
 
-type TabKey = 'profil' | 'promo' | 'kupon' | 'faq' | 'unggulan';
+type TabKey = 'hero' | 'profil' | 'promo' | 'kupon' | 'faq' | 'unggulan';
 
 interface TabItem {
     key: TabKey;
@@ -56,6 +57,12 @@ export default function AdminKontenIndex({
     const [tab, setTab] = useState<TabKey>('profil');
 
     const tabs: TabItem[] = [
+        {
+            key: 'hero',
+            label: 'Hero & Beranda',
+            icon: Sparkles,
+            hint: 'Judul, badge, CTA halaman utama',
+        },
         {
             key: 'profil',
             label: 'Profil & Kontak',
@@ -223,6 +230,7 @@ export default function AdminKontenIndex({
                 </div>
 
                 <div>
+                    {tab === 'hero' && <HeroSection pengaturan={pengaturan} />}
                     {tab === 'profil' && (
                         <ProfilSection pengaturan={pengaturan} />
                     )}
